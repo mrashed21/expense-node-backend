@@ -18,3 +18,21 @@ export const clearRefreshTokenCookie = (res: Response): void => {
     expires: new Date(0),
   });
 };
+
+export const setAccessTokenCookie = (res: Response, token: string): void => {
+  res.cookie("accessToken", token, {
+    httpOnly: true,
+    secure: envConfig.env === "production",
+    sameSite: envConfig.env === "production" ? "none" : "lax",
+    maxAge: 60 * 60 * 1000, // 1 hour
+  });
+};
+
+export const clearAccessTokenCookie = (res: Response): void => {
+  res.cookie("accessToken", "", {
+    httpOnly: true,
+    secure: envConfig.env === "production",
+    sameSite: envConfig.env === "production" ? "none" : "lax",
+    expires: new Date(0),
+  });
+};

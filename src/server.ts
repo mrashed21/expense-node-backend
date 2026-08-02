@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import app from "./app";
 import { envConfig } from "./config/env-config";
 import { Server } from "socket.io";
+import os from "os";
 
 const banner = (port: number | string) => {
   const url = `http://localhost:${port}`;
@@ -52,6 +53,10 @@ async function main() {
     log.info("Connecting to MongoDB Atlas...");
     await mongoose.connect(envConfig.database_url);
     log.success("Successfully connected to MongoDB database.");
+    
+    // Seed Super Admin
+    const { seedSuperAdmin } = await import("./utils/seed-super-admin.js");
+    await seedSuperAdmin();
 
     const server = app.listen(envConfig.port, () => {
       banner(envConfig.port);
@@ -81,6 +86,27 @@ async function main() {
         console.log(`🔴 Client disconnected: ${socket.id}`);
       });
     });
+
+    // Real-time system health emitter
+    setInterval(() => {
+      const totalMem = os.totalmem();
+      const freeMem = os.freemem();
+      const usedMem = totalMem - freeMem;
+      const memUsagePercent = (usedMem / totalMem) * 100;
+      
+      // Simple mock CPU load derived from loadavg
+      const loadAvg = os.loadavg();
+      const cpuUsagePercent = (loadAvg[0] / os.cpus().length) * 100;
+
+      const systemHealth = {
+        time: new Date().toISOString(),
+        memoryUsage: memUsagePercent.toFixed(2),
+        cpuUsage: cpuUsagePercent.toFixed(2),
+        uptime: os.uptime(),
+      };
+
+      io.emit("system_health_update", systemHealth);
+    }, 2000);
 
     const exitHandler = () => {
       if (server) {

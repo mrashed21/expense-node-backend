@@ -24,7 +24,9 @@ export const checkAuth = (...requiredRoles: UserRole[]) => {
     try {
       let token: string | undefined;
 
-      if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+      if (req.cookies.accessToken) {
+        token = req.cookies.accessToken;
+      } else if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
         token = req.headers.authorization.split(" ")[1];
       }
 

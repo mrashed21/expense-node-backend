@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import httpStatus from "http-status";
 import { AuthService } from "./auth.service";
 import { sendResponse } from "../../helpers/send-response";
-import { setRefreshTokenCookie, clearRefreshTokenCookie } from "../../utils/cookie";
+import { setRefreshTokenCookie, clearRefreshTokenCookie, setAccessTokenCookie, clearAccessTokenCookie } from "../../utils/cookie";
 
 export const AuthController = {
   register: async (req: Request, res: Response, next: NextFunction) => {
@@ -71,6 +71,7 @@ export const AuthController = {
 
       const result = await AuthService.login(req.body, clientInfo);
       setRefreshTokenCookie(res, result.refreshToken);
+      setAccessTokenCookie(res, result.accessToken);
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -78,7 +79,6 @@ export const AuthController = {
         message: "Login successful.",
         data: {
           user: result.user,
-          accessToken: result.accessToken,
         },
       });
     } catch (error) {
@@ -91,13 +91,13 @@ export const AuthController = {
       const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
       const result = await AuthService.refreshToken(refreshToken);
       setRefreshTokenCookie(res, result.refreshToken);
+      setAccessTokenCookie(res, result.accessToken);
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
         message: "Token refreshed successfully.",
         data: {
-          accessToken: result.accessToken,
           user: result.user,
         },
       });
@@ -109,6 +109,7 @@ export const AuthController = {
   logout: async (req: Request, res: Response, next: NextFunction) => {
     try {
       clearRefreshTokenCookie(res);
+      clearAccessTokenCookie(res);
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,

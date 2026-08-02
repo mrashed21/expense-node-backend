@@ -2,7 +2,8 @@ import { Document, Types } from "mongoose";
 
 export enum UserRole {
   USER = "user",
-  ADMIN = "admin"
+  ADMIN = "admin",
+  SUPER_ADMIN = "super_admin"
 }
 
 export enum UserStatus {
