@@ -31,7 +31,7 @@ const otpSchema = new Schema<IOtpDocument>(
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 otpSchema.index({ expires_at: 1 }, { expireAfterSeconds: 0 });

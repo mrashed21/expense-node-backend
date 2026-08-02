@@ -80,10 +80,13 @@ const transactionSchema = new Schema<ITransactionDocument>(
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 transactionSchema.index({ user_id: 1, date: -1, type: 1, is_deleted: 1 });
 transactionSchema.index({ user_id: 1, account_id: 1, date: -1 });
 
-export const Transaction = model<ITransactionDocument>("Transaction", transactionSchema);
+export const Transaction = model<ITransactionDocument>(
+  "Transaction",
+  transactionSchema,
+);

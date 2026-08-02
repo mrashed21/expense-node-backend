@@ -1,10 +1,14 @@
-import { Request, Response, NextFunction } from "express";
+import { sendResponse } from "@/helpers/send-response";
+import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { CategoryService } from "./category.service";
-import { sendResponse } from "../../helpers/send-response";
 
 export const CategoryController = {
-  getUserCategories: async (req: Request, res: Response, next: NextFunction) => {
+  getUserCategories: async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const categories = await CategoryService.getUserCategories(req.user!._id);
       sendResponse(res, {
@@ -19,7 +23,10 @@ export const CategoryController = {
 
   createCategory: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const category = await CategoryService.createCategory(req.user!._id, req.body);
+      const category = await CategoryService.createCategory(
+        req.user!._id,
+        req.body,
+      );
       sendResponse(res, {
         statusCode: httpStatus.CREATED,
         success: true,
@@ -33,7 +40,11 @@ export const CategoryController = {
 
   updateCategory: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const updated = await CategoryService.updateCategory(req.user!._id, req.params.id, req.body);
+      const updated = await CategoryService.updateCategory(
+        req.user!._id,
+        req.params.id as string,
+        req.body,
+      );
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -47,7 +58,10 @@ export const CategoryController = {
 
   deleteCategory: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await CategoryService.deleteCategory(req.user!._id, req.params.id);
+      await CategoryService.deleteCategory(
+        req.user!._id,
+        req.params.id as string,
+      );
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,

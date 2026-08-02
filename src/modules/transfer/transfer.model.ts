@@ -40,7 +40,7 @@ const transferSchema = new Schema<ITransferDocument>(
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 transferSchema.index({ user_id: 1, date: -1 });

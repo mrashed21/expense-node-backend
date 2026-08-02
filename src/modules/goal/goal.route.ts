@@ -1,6 +1,6 @@
+import { checkAuth } from "@/middlewares/auth.middleware";
 import { Router } from "express";
 import { GoalController } from "./goal.controller";
-import { checkAuth } from "../../middlewares/auth.middleware";
 
 const router = Router();
 router.use(checkAuth());

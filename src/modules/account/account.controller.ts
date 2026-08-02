@@ -1,12 +1,15 @@
-import { Request, Response, NextFunction } from "express";
+import { sendResponse } from "@/helpers/send-response";
+import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { AccountService } from "./account.service";
-import { sendResponse } from "../../helpers/send-response";
 
 export const AccountController = {
   createAccount: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const account = await AccountService.createAccount(req.user!._id, req.body);
+      const account = await AccountService.createAccount(
+        req.user!._id,
+        req.body,
+      );
       sendResponse(res, {
         statusCode: httpStatus.CREATED,
         success: true,
@@ -33,7 +36,10 @@ export const AccountController = {
 
   getAccountById: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const account = await AccountService.getAccountById(req.user!._id, req.params.id);
+      const account = await AccountService.getAccountById(
+        req.user!._id,
+        req.params.id as string,
+      );
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -46,7 +52,11 @@ export const AccountController = {
 
   updateAccount: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const updated = await AccountService.updateAccount(req.user!._id, req.params.id, req.body);
+      const updated = await AccountService.updateAccount(
+        req.user!._id,
+        req.params.id as string,
+        req.body,
+      );
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -60,7 +70,10 @@ export const AccountController = {
 
   deleteAccount: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await AccountService.deleteAccount(req.user!._id, req.params.id);
+      await AccountService.deleteAccount(
+        req.user!._id,
+        req.params.id as string,
+      );
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,

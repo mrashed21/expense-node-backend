@@ -1,13 +1,16 @@
-import express, { Application, Request, Response } from "express";
-import cors from "cors";
-import helmet from "helmet";
 import compression from "compression";
-import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import cors from "cors";
+import express, { Application, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
+import helmet from "helmet";
+import morgan from "morgan";
 import { envConfig } from "./config/env-config";
+import {
+  globalErrorHandler,
+  notFoundHandler,
+} from "./middlewares/error-handler.middleware";
 import routes from "./routes";
-import { globalErrorHandler, notFoundHandler } from "./middlewares/error-handler.middleware";
 
 const app: Application = express();
 
@@ -17,7 +20,7 @@ app.use(
   cors({
     origin: [envConfig.frontend_url, "http://localhost:3000"],
     credentials: true,
-  })
+  }),
 );
 
 // Global Rate Limiting
@@ -28,7 +31,8 @@ const limiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    message: "Too many requests from this IP. Please try again after 15 minutes.",
+    message:
+      "Too many requests from this IP. Please try again after 15 minutes.",
   },
 });
 app.use(limiter);

@@ -1,5 +1,5 @@
+import ApiError from "@/helpers/api-error";
 import httpStatus from "http-status";
-import ApiError from "../../helpers/api-error";
 import { Goal } from "./goal.model";
 
 export const GoalService = {
@@ -14,7 +14,10 @@ export const GoalService = {
     const goals = await Goal.find({ user_id: userId }).sort({ createdAt: -1 });
 
     return goals.map((g) => {
-      const percentage = Math.min(100, Math.round((g.current_amount / g.target_amount) * 100));
+      const percentage = Math.min(
+        100,
+        Math.round((g.current_amount / g.target_amount) * 100),
+      );
       return {
         ...g.toObject(),
         percentage,

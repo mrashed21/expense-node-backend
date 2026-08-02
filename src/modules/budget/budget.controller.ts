@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from "express";
+import { sendResponse } from "@/helpers/send-response";
+import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { BudgetService } from "./budget.service";
-import { sendResponse } from "../../helpers/send-response";
 
 export const BudgetController = {
   createBudget: async (req: Request, res: Response, next: NextFunction) => {
@@ -20,7 +20,10 @@ export const BudgetController = {
 
   getBudgets: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const budgets = await BudgetService.getBudgets(req.user!._id, req.query.month_year as string);
+      const budgets = await BudgetService.getBudgets(
+        req.user!._id,
+        req.query.month_year as string,
+      );
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -33,7 +36,7 @@ export const BudgetController = {
 
   deleteBudget: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await BudgetService.deleteBudget(req.user!._id, req.params.id);
+      await BudgetService.deleteBudget(req.user!._id, req.params.id as string);
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,

@@ -1,8 +1,8 @@
+import ApiError from "@/helpers/api-error";
 import httpStatus from "http-status";
-import ApiError from "../../helpers/api-error";
-import { Bill } from "./bill.model";
-import { TransactionService } from "../transaction/transaction.service";
 import { TransactionType } from "../transaction/transaction.interface";
+import { TransactionService } from "../transaction/transaction.service";
+import { Bill } from "./bill.model";
 
 export const BillService = {
   createBill: async (userId: string, payload: any) => {
@@ -23,7 +23,10 @@ export const BillService = {
     }
 
     if (bill.status === "paid") {
-      throw new ApiError(httpStatus.BAD_REQUEST, "Bill is already marked as paid.");
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "Bill is already marked as paid.",
+      );
     }
 
     await TransactionService.createTransaction(userId, {

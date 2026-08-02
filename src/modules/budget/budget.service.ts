@@ -1,12 +1,13 @@
+import ApiError from "@/helpers/api-error";
 import httpStatus from "http-status";
-import ApiError from "../../helpers/api-error";
-import { Budget } from "./budget.model";
-import { Transaction } from "../transaction/transaction.model";
 import { TransactionType } from "../transaction/transaction.interface";
+import { Transaction } from "../transaction/transaction.model";
+import { Budget } from "./budget.model";
 
 export const BudgetService = {
   createBudget: async (userId: string, payload: any) => {
-    const monthYear = payload.month_year || new Date().toISOString().slice(0, 7);
+    const monthYear =
+      payload.month_year || new Date().toISOString().slice(0, 7);
 
     const existing = await Budget.findOne({
       user_id: userId,
@@ -16,7 +17,8 @@ export const BudgetService = {
 
     if (existing) {
       existing.amount = payload.amount;
-      existing.warning_threshold = payload.warning_threshold || existing.warning_threshold;
+      existing.warning_threshold =
+        payload.warning_threshold || existing.warning_threshold;
       await existing.save();
       return existing;
     }
@@ -32,11 +34,21 @@ export const BudgetService = {
   getBudgets: async (userId: string, monthYear?: string) => {
     const currentMonth = monthYear || new Date().toISOString().slice(0, 7);
 
-    const budgets = await Budget.find({ user_id: userId, month_year: currentMonth })
-      .populate("category_id", "name color icon type");
+    const budgets = await Budget.find({
+      user_id: userId,
+      month_year: currentMonth,
+    }).populate("category_id", "name color icon type");
 
     const startOfMonth = new Date(`${currentMonth}-01T00:00:00.000Z`);
-    const endOfMonth = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth() + 1, 0, 23, 59, 59, 999);
+    const endOfMonth = new Date(
+      startOfMonth.getFullYear(),
+      startOfMonth.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
 
     const budgetsWithAnalytics = await Promise.all(
       budgets.map(async (b) => {
@@ -59,7 +71,10 @@ export const BudgetService = {
         ]);
 
         const totalSpent = spentResult[0]?.totalSpent || 0;
-        const percentage = Math.min(100, Math.round((totalSpent / b.amount) * 100));
+        const percentage = Math.min(
+          100,
+          Math.round((totalSpent / b.amount) * 100),
+        );
 
         return {
           ...b.toObject(),
@@ -68,14 +83,17 @@ export const BudgetService = {
           percentage,
           is_warning: percentage >= b.warning_threshold,
         };
-      })
+      }),
     );
 
     return budgetsWithAnalytics;
   },
 
   deleteBudget: async (userId: string, budgetId: string) => {
-    const budget = await Budget.findOneAndDelete({ _id: budgetId, user_id: userId });
+    const budget = await Budget.findOneAndDelete({
+      _id: budgetId,
+      user_id: userId,
+    });
     if (!budget) {
       throw new ApiError(httpStatus.NOT_FOUND, "Budget rule not found.");
     }

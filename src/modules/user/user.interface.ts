@@ -1,14 +1,14 @@
 import { Document, Types } from "mongoose";
 
 export enum UserRole {
-  USER = "user"
+  USER = "user",
 }
 
 export enum UserStatus {
   ACTIVE = "active",
   INACTIVE = "deactive",
   BANNED = "banned",
-  DELETED = "deleted"
+  DELETED = "deleted",
 }
 
 export interface IUser {
@@ -25,7 +25,7 @@ export interface IUser {
   user_country?: string;
   user_profile_image?: string;
   user_status: UserStatus;
-  
+
   currency: string;
   language: string;
   timezone: string;
@@ -36,10 +36,10 @@ export interface IUser {
   token_version: number;
   last_login?: Date;
   password_changed_at?: Date;
-  
+
   is_deleted: boolean;
   deleted_at?: Date;
-  
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -52,6 +52,7 @@ export interface IJwtPayload {
   user_email?: string;
   user_phone?: string;
   token_version: number;
+  isAdmin?: boolean;
 }
 
 export interface ILoginHistory {

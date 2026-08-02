@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { ICategoryDocument, CategoryType } from "./category.interface";
+import { CategoryType, ICategoryDocument } from "./category.interface";
 
 const categorySchema = new Schema<ICategoryDocument>(
   {
@@ -44,7 +44,7 @@ const categorySchema = new Schema<ICategoryDocument>(
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 categorySchema.index({ user_id: 1, type: 1, is_deleted: 1 });

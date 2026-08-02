@@ -1,7 +1,7 @@
-import multer from "multer";
+import { envConfig } from "@/config/env-config";
 import { v2 as cloudinary } from "cloudinary";
+import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
-import { envConfig } from "../config/env-config";
 
 // Configure Cloudinary
 if (envConfig.cloudinary.cloud_name) {

@@ -1,12 +1,14 @@
-import { Request, Response, NextFunction } from "express";
+import { sendResponse } from "@/helpers/send-response";
+import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { NotificationService } from "./notification.service";
-import { sendResponse } from "../../helpers/send-response";
 
 export const NotificationController = {
   getNotifications: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const notifications = await NotificationService.getUserNotifications(req.user!._id);
+      const notifications = await NotificationService.getUserNotifications(
+        req.user!._id,
+      );
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -19,7 +21,10 @@ export const NotificationController = {
 
   markAsRead: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const updated = await NotificationService.markAsRead(req.user!._id, req.params.id);
+      const updated = await NotificationService.markAsRead(
+        req.user!._id,
+        req.params.id as string,
+      );
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,

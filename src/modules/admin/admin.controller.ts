@@ -1,12 +1,13 @@
-import { Request, Response, NextFunction } from "express";
+import bcrypt from "bcrypt";
+import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import os from "os";
-import bcrypt from "bcrypt";
-import { User } from "../user/user.model";
-import { Admin } from "./admin.model";
+
+import { sendResponse } from "@/helpers/send-response";
 import { Transaction } from "../transaction/transaction.model";
-import { sendResponse } from "../../helpers/send-response";
+import { User } from "../user/user.model";
 import { AdminRole } from "./admin.interface";
+import { Admin } from "./admin.model";
 
 export const AdminController = {
   // --- USER MANAGEMENT ---
@@ -56,10 +57,17 @@ export const AdminController = {
 
       delete updateData.user_password;
 
-      const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true, runValidators: true }).select("-user_password");
+      const updatedUser = await User.findByIdAndUpdate(id, updateData, {
+        new: true,
+        runValidators: true,
+      }).select("-user_password");
 
       if (!updatedUser) {
-        return sendResponse(res, { statusCode: httpStatus.NOT_FOUND, success: false, message: "User not found" });
+        return sendResponse(res, {
+          statusCode: httpStatus.NOT_FOUND,
+          success: false,
+          message: "User not found",
+        });
       }
 
       sendResponse(res, {
@@ -76,15 +84,27 @@ export const AdminController = {
   deleteUser: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
-      
+
       if (req.user?.user_role !== AdminRole.SUPER_ADMIN) {
-        return sendResponse(res, { statusCode: httpStatus.FORBIDDEN, success: false, message: "Only super_admin can delete users" });
+        return sendResponse(res, {
+          statusCode: httpStatus.FORBIDDEN,
+          success: false,
+          message: "Only super_admin can delete users",
+        });
       }
 
-      const deletedUser = await User.findByIdAndUpdate(id, { is_deleted: true, user_status: "deleted" }, { new: true });
-      
+      const deletedUser = await User.findByIdAndUpdate(
+        id,
+        { is_deleted: true, user_status: "deleted" },
+        { new: true },
+      );
+
       if (!deletedUser) {
-        return sendResponse(res, { statusCode: httpStatus.NOT_FOUND, success: false, message: "User not found" });
+        return sendResponse(res, {
+          statusCode: httpStatus.NOT_FOUND,
+          success: false,
+          message: "User not found",
+        });
       }
 
       sendResponse(res, {
@@ -102,10 +122,18 @@ export const AdminController = {
       const { id } = req.params;
       const { status } = req.body;
 
-      const updatedUser = await User.findByIdAndUpdate(id, { user_status: status }, { new: true }).select("-user_password");
+      const updatedUser = await User.findByIdAndUpdate(
+        id,
+        { user_status: status },
+        { new: true },
+      ).select("-user_password");
 
       if (!updatedUser) {
-        return sendResponse(res, { statusCode: httpStatus.NOT_FOUND, success: false, message: "User not found" });
+        return sendResponse(res, {
+          statusCode: httpStatus.NOT_FOUND,
+          success: false,
+          message: "User not found",
+        });
       }
 
       sendResponse(res, {
@@ -122,7 +150,9 @@ export const AdminController = {
   // --- ADMIN MANAGEMENT ---
   getAdmins: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const admins = await Admin.find({ is_deleted: false }).select("-admin_password").sort({ createdAt: -1 });
+      const admins = await Admin.find({ is_deleted: false })
+        .select("-admin_password")
+        .sort({ createdAt: -1 });
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -136,10 +166,14 @@ export const AdminController = {
   createAdmin: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { admin_name, admin_email, admin_password, admin_role } = req.body;
-      
+
       const existingAdmin = await Admin.findOne({ admin_email });
       if (existingAdmin) {
-        return sendResponse(res, { statusCode: httpStatus.BAD_REQUEST, success: false, message: "Admin email already exists" });
+        return sendResponse(res, {
+          statusCode: httpStatus.BAD_REQUEST,
+          success: false,
+          message: "Admin email already exists",
+        });
       }
 
       const hashedPassword = await bcrypt.hash(admin_password, 12);
@@ -165,20 +199,36 @@ export const AdminController = {
     }
   },
 
-  updateAdminStatus: async (req: Request, res: Response, next: NextFunction) => {
+  updateAdminStatus: async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const { id } = req.params;
       const { status } = req.body;
 
       // Prevent super admin from changing their own status to inactive/banned
       if (req.user?._id === id) {
-        return sendResponse(res, { statusCode: httpStatus.BAD_REQUEST, success: false, message: "You cannot change your own status." });
+        return sendResponse(res, {
+          statusCode: httpStatus.BAD_REQUEST,
+          success: false,
+          message: "You cannot change your own status.",
+        });
       }
 
-      const updatedAdmin = await Admin.findByIdAndUpdate(id, { admin_status: status }, { new: true }).select("-admin_password");
+      const updatedAdmin = await Admin.findByIdAndUpdate(
+        id,
+        { admin_status: status },
+        { new: true },
+      ).select("-admin_password");
 
       if (!updatedAdmin) {
-        return sendResponse(res, { statusCode: httpStatus.NOT_FOUND, success: false, message: "Admin not found" });
+        return sendResponse(res, {
+          statusCode: httpStatus.NOT_FOUND,
+          success: false,
+          message: "Admin not found",
+        });
       }
 
       sendResponse(res, {
@@ -234,12 +284,12 @@ export const AdminController = {
   testNotification: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const io = req.app.get("io");
-      
+
       const notificationData = {
         title: "Test Notification",
         message: "Socket.IO is working perfectly!",
         time: new Date().toISOString(),
-        type: "success"
+        type: "success",
       };
 
       if (io) {
@@ -255,6 +305,5 @@ export const AdminController = {
     } catch (error) {
       next(error);
     }
-  }
+  },
 };
-

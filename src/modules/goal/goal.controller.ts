@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from "express";
+import { sendResponse } from "@/helpers/send-response";
+import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { GoalService } from "./goal.service";
-import { sendResponse } from "../../helpers/send-response";
 
 export const GoalController = {
   createGoal: async (req: Request, res: Response, next: NextFunction) => {
@@ -34,7 +34,11 @@ export const GoalController = {
   depositToGoal: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { amount } = req.body;
-      const goal = await GoalService.depositToGoal(req.user!._id, req.params.id, amount);
+      const goal = await GoalService.depositToGoal(
+        req.user!._id,
+        req.params.id as string,
+        amount,
+      );
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -48,7 +52,7 @@ export const GoalController = {
 
   deleteGoal: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await GoalService.deleteGoal(req.user!._id, req.params.id);
+      await GoalService.deleteGoal(req.user!._id, req.params.id as string);
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,

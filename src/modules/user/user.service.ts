@@ -1,9 +1,9 @@
+import ApiError from "@/helpers/api-error";
 import bcrypt from "bcrypt";
 import httpStatus from "http-status";
-import ApiError from "../../helpers/api-error";
-import { User } from "./user.model";
 import { LoginHistory } from "./login-history.model";
 import { UserStatus } from "./user.interface";
+import { User } from "./user.model";
 
 export const UserService = {
   getProfile: async (userId: string) => {
@@ -15,7 +15,10 @@ export const UserService = {
   },
 
   updateProfile: async (userId: string, payload: any) => {
-    const user = await User.findByIdAndUpdate(userId, payload, { new: true, runValidators: true }).select("-user_password");
+    const user = await User.findByIdAndUpdate(userId, payload, {
+      new: true,
+      runValidators: true,
+    }).select("-user_password");
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, "User not found.");
     }
@@ -26,12 +29,16 @@ export const UserService = {
     const user = await User.findByIdAndUpdate(
       userId,
       { user_profile_image: imageUrl },
-      { new: true }
+      { new: true },
     ).select("-user_password");
     return user;
   },
 
-  changePassword: async (userId: string, currentPassword: string, newPassword: string) => {
+  changePassword: async (
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) => {
     const user = await User.findById(userId).select("+user_password");
     if (!user) {
       throw new ApiError(httpStatus.NOT_FOUND, "User not found.");
@@ -39,7 +46,10 @@ export const UserService = {
 
     const isMatch = await bcrypt.compare(currentPassword, user.user_password!);
     if (!isMatch) {
-      throw new ApiError(httpStatus.BAD_REQUEST, "Current password is incorrect.");
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "Current password is incorrect.",
+      );
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
@@ -65,7 +75,7 @@ export const UserService = {
         user_status: UserStatus.DELETED,
         deleted_at: new Date(),
       },
-      { new: true }
+      { new: true },
     );
     return !!user;
   },

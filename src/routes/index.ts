@@ -1,16 +1,16 @@
+import { accountRoutes } from "@/modules/account/account.route";
+import { adminAuthRoutes } from "@/modules/admin/admin-auth.route";
+import { adminRoutes } from "@/modules/admin/admin.route";
+import { authRoutes } from "@/modules/auth/auth.route";
+import { billRoutes } from "@/modules/bill/bill.route";
+import { budgetRoutes } from "@/modules/budget/budget.route";
+import { categoryRoutes } from "@/modules/category/category.route";
+import { goalRoutes } from "@/modules/goal/goal.route";
+import { notificationRoutes } from "@/modules/notification/notification.route";
+import { transactionRoutes } from "@/modules/transaction/transaction.route";
+import { transferRoutes } from "@/modules/transfer/transfer.route";
+import { userRoutes } from "@/modules/user/user.route";
 import { Router } from "express";
-import { authRoutes } from "../modules/auth/auth.route";
-import { adminAuthRoutes } from "../modules/admin/admin-auth.route";
-import { userRoutes } from "../modules/user/user.route";
-import { accountRoutes } from "../modules/account/account.route";
-import { categoryRoutes } from "../modules/category/category.route";
-import { transactionRoutes } from "../modules/transaction/transaction.route";
-import { transferRoutes } from "../modules/transfer/transfer.route";
-import { budgetRoutes } from "../modules/budget/budget.route";
-import { goalRoutes } from "../modules/goal/goal.route";
-import { billRoutes } from "../modules/bill/bill.route";
-import { notificationRoutes } from "../modules/notification/notification.route";
-import { adminRoutes } from "../modules/admin/admin.route";
 
 const router = Router();
 

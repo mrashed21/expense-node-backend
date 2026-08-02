@@ -1,15 +1,15 @@
+import { AdminRole, AdminStatus } from "@/modules/admin/admin.interface";
+import { Admin } from "@/modules/admin/admin.model";
 import bcrypt from "bcrypt";
-import { Admin } from "../modules/admin/admin.model";
-import { AdminRole, AdminStatus } from "../modules/admin/admin.interface";
-import { log } from "../server";
-
 export const seedSuperAdmin = async () => {
   try {
     const superAdminEmail = "super-admin@expense.com";
-    const existingSuperAdmin = await Admin.findOne({ admin_email: superAdminEmail });
+    const existingSuperAdmin = await Admin.findOne({
+      admin_email: superAdminEmail,
+    });
 
     if (existingSuperAdmin) {
-      log.info("Super admin already exists, skipping insertion.");
+      console.log("Super admin already exists, skipping insertion.");
       return;
     }
 
@@ -23,8 +23,8 @@ export const seedSuperAdmin = async () => {
       admin_status: AdminStatus.ACTIVE,
     });
 
-    log.success("Super admin created successfully.");
+    console.log("Super admin created successfully.");
   } catch (error) {
-    log.error(`Error seeding super admin: ${(error as Error).message}`);
+    console.error(`Error seeding super admin: ${(error as Error).message}`);
   }
 };

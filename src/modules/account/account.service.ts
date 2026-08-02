@@ -1,5 +1,6 @@
 import httpStatus from "http-status";
-import ApiError from "../../helpers/api-error";
+
+import ApiError from "@/helpers/api-error";
 import { Account } from "./account.model";
 
 export const AccountService = {
@@ -14,11 +15,17 @@ export const AccountService = {
   },
 
   getUserAccounts: async (userId: string) => {
-    return Account.find({ user_id: userId, is_deleted: false }).sort({ createdAt: -1 });
+    return Account.find({ user_id: userId, is_deleted: false }).sort({
+      createdAt: -1,
+    });
   },
 
   getAccountById: async (userId: string, accountId: string) => {
-    const account = await Account.findOne({ _id: accountId, user_id: userId, is_deleted: false });
+    const account = await Account.findOne({
+      _id: accountId,
+      user_id: userId,
+      is_deleted: false,
+    });
     if (!account) {
       throw new ApiError(httpStatus.NOT_FOUND, "Account not found.");
     }
@@ -29,7 +36,7 @@ export const AccountService = {
     const account = await Account.findOneAndUpdate(
       { _id: accountId, user_id: userId, is_deleted: false },
       payload,
-      { new: true }
+      { new: true },
     );
     if (!account) {
       throw new ApiError(httpStatus.NOT_FOUND, "Account not found.");
@@ -41,7 +48,7 @@ export const AccountService = {
     const account = await Account.findOneAndUpdate(
       { _id: accountId, user_id: userId, is_deleted: false },
       { is_deleted: true, status: "archived" },
-      { new: true }
+      { new: true },
     );
     if (!account) {
       throw new ApiError(httpStatus.NOT_FOUND, "Account not found.");

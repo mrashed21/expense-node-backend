@@ -23,7 +23,7 @@ async function promoteAdmin() {
       process.exit(1);
     }
 
-    user.user_role = UserRole.ADMIN;
+    user.user_role = UserRole.USER; // Change this to UserRole.ADMIN if you have an ADMIN role defined
     await user.save();
 
     console.log(`✅ Success! User ${email} has been promoted to ADMIN.`);

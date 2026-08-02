@@ -39,7 +39,7 @@ const goalSchema = new Schema<IGoalDocument>(
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 goalSchema.index({ user_id: 1, status: 1 });

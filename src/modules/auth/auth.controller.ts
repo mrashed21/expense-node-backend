@@ -1,8 +1,13 @@
-import { Request, Response, NextFunction } from "express";
+import { sendResponse } from "@/helpers/send-response";
+import {
+  clearAccessTokenCookie,
+  clearRefreshTokenCookie,
+  setAccessTokenCookie,
+  setRefreshTokenCookie,
+} from "@/utils/cookie";
+import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { AuthService } from "./auth.service";
-import { sendResponse } from "../../helpers/send-response";
-import { setRefreshTokenCookie, clearRefreshTokenCookie, setAccessTokenCookie, clearAccessTokenCookie } from "../../utils/cookie";
 
 export const AuthController = {
   register: async (req: Request, res: Response, next: NextFunction) => {
@@ -11,7 +16,8 @@ export const AuthController = {
       sendResponse(res, {
         statusCode: httpStatus.CREATED,
         success: true,
-        message: "Registration successful. Please verify your email with the OTP sent.",
+        message:
+          "Registration successful. Please verify your email with the OTP sent.",
         data: result,
       });
     } catch (error) {
@@ -159,7 +165,8 @@ export const AuthController = {
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
-        message: "Password reset successfully. Please log in with your new password.",
+        message:
+          "Password reset successfully. Please log in with your new password.",
       });
     } catch (error) {
       next(error);

@@ -120,7 +120,7 @@ const userSchema = new Schema<IUserDocument>(
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 userSchema.index({ user_email: 1 });

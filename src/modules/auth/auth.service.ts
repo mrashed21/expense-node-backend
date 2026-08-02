@@ -1,18 +1,26 @@
 import bcrypt from "bcrypt";
 import httpStatus from "http-status";
-import ApiError from "../../helpers/api-error";
+import { UAParser } from "ua-parser-js";
+import { envConfig } from "@/config/env-config";
+import ApiError from "@/helpers/api-error";
+import { generateToken, verifyToken } from "@/utils/jwt";
+import { sendEmail } from "@/utils/send-email";
+import { LoginHistory } from "../user/login-history.model";
+import { UserStatus } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { Otp } from "./auth.model";
-import { LoginHistory } from "../user/login-history.model";
-import { generateToken, verifyToken } from "../../utils/jwt";
-import { envConfig } from "../../config/env-config";
-import { sendEmail } from "../../utils/send-email";
-import { UserStatus } from "../user/user.interface";
-import uaparsed from "ua-parser-js";
 
 export const AuthService = {
   register: async (payload: any) => {
-    let { user_email, user_password, user_name, user_phone, user_area, user_city, user_country } = payload;
+    let {
+      user_email,
+      user_password,
+      user_name,
+      user_phone,
+      user_area,
+      user_city,
+      user_country,
+    } = payload;
 
     if (!user_phone || user_phone.trim() === "") {
       user_phone = undefined;
@@ -55,7 +63,7 @@ export const AuthService = {
         <h2>Welcome to Expense Tracker!</h2>
         <p>Your email verification OTP code is: <strong style="font-size: 24px; color: #4F46E5;">${otpCode}</strong></p>
         <p>This code expires in 10 minutes.</p>
-      </div>`
+      </div>`,
     ).catch(console.error);
 
     return {
@@ -70,7 +78,10 @@ export const AuthService = {
   resendOtp: async (user_email: string) => {
     const user = await User.findOne({ user_email, is_deleted: false });
     if (!user) {
-      throw new ApiError(httpStatus.NOT_FOUND, "User with this email not found.");
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        "User with this email not found.",
+      );
     }
     if (user.email_verified) {
       throw new ApiError(httpStatus.BAD_REQUEST, "Email is already verified.");
@@ -80,7 +91,10 @@ export const AuthService = {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
     // Invalidate old OTPs
-    await Otp.updateMany({ user_email, otp_type: "email_verify" }, { is_used: true });
+    await Otp.updateMany(
+      { user_email, otp_type: "email_verify" },
+      { is_used: true },
+    );
 
     await Otp.create({
       user_email,
@@ -98,7 +112,7 @@ export const AuthService = {
         <h2>Expense Tracker Verification Code</h2>
         <p>Your new OTP code is: <strong style="font-size: 24px; color: #4F46E5;">${otpCode}</strong></p>
         <p>This code expires in 10 minutes.</p>
-      </div>`
+      </div>`,
     ).catch(console.error);
 
     return true;
@@ -115,7 +129,10 @@ export const AuthService = {
     });
 
     if (!otpRecord) {
-      throw new ApiError(httpStatus.BAD_REQUEST, "Invalid or expired OTP code.");
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "Invalid or expired OTP code.",
+      );
     }
 
     otpRecord.is_used = true;
@@ -127,7 +144,10 @@ export const AuthService = {
   },
 
   // 3. Login User
-  login: async (payload: any, clientInfo: { ip: string; userAgent: string }) => {
+  login: async (
+    payload: any,
+    clientInfo: { ip: string; userAgent: string },
+  ) => {
     const { user_email, user_password } = payload;
 
     const user = await User.findOne({ user_email }).select("+user_password");
@@ -136,7 +156,10 @@ export const AuthService = {
     }
 
     if (user.user_status !== UserStatus.ACTIVE) {
-      throw new ApiError(httpStatus.FORBIDDEN, "Your account has been deactivated or banned.");
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        "Your account has been deactivated or banned.",
+      );
     }
 
     const isMatch = await bcrypt.compare(user_password, user.user_password!);
@@ -144,9 +167,13 @@ export const AuthService = {
       throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid email or password.");
     }
 
-    const ua = uaparsed(clientInfo.userAgent);
-    const deviceInfo = `${ua.device.vendor || "Desktop"} ${ua.device.model || ""}`.trim() || "Desktop";
-    const browserInfo = `${ua.browser.name || "Unknown Browser"} ${ua.browser.version || ""}`.trim();
+    const parser = new UAParser(clientInfo.userAgent);
+    const ua = parser.getResult();
+    const deviceInfo =
+      `${ua.device.vendor || "Desktop"} ${ua.device.model || ""}`.trim() ||
+      "Desktop";
+    const browserInfo =
+      `${ua.browser.name || "Unknown Browser"} ${ua.browser.version || ""}`.trim();
 
     await LoginHistory.create({
       user_id: user._id,
@@ -167,8 +194,16 @@ export const AuthService = {
       token_version: user.token_version,
     };
 
-    const accessToken = generateToken(jwtPayload, envConfig.jwt.access_secret, envConfig.jwt.access_expires_in);
-    const refreshToken = generateToken(jwtPayload, envConfig.jwt.refresh_secret, envConfig.jwt.refresh_expires_in);
+    const accessToken = generateToken(
+      jwtPayload,
+      envConfig.jwt.access_secret,
+      envConfig.jwt.access_expires_in,
+    );
+    const refreshToken = generateToken(
+      jwtPayload,
+      envConfig.jwt.refresh_secret,
+      envConfig.jwt.refresh_expires_in,
+    );
 
     return {
       user: {
@@ -200,7 +235,10 @@ export const AuthService = {
     }
 
     if (user.token_version !== decoded.token_version) {
-      throw new ApiError(httpStatus.UNAUTHORIZED, "Refresh token invalidated due to device logout.");
+      throw new ApiError(
+        httpStatus.UNAUTHORIZED,
+        "Refresh token invalidated due to device logout.",
+      );
     }
 
     const jwtPayload = {
@@ -210,8 +248,16 @@ export const AuthService = {
       token_version: user.token_version,
     };
 
-    const newAccessToken = generateToken(jwtPayload, envConfig.jwt.access_secret, envConfig.jwt.access_expires_in);
-    const newRefreshToken = generateToken(jwtPayload, envConfig.jwt.refresh_secret, envConfig.jwt.refresh_expires_in);
+    const newAccessToken = generateToken(
+      jwtPayload,
+      envConfig.jwt.access_secret,
+      envConfig.jwt.access_expires_in,
+    );
+    const newRefreshToken = generateToken(
+      jwtPayload,
+      envConfig.jwt.refresh_secret,
+      envConfig.jwt.refresh_expires_in,
+    );
 
     return {
       accessToken: newAccessToken,
@@ -260,7 +306,10 @@ export const AuthService = {
   forgotPassword: async (user_email: string) => {
     const user = await User.findOne({ user_email, is_deleted: false });
     if (!user) {
-      throw new ApiError(httpStatus.NOT_FOUND, "No account registered with this email.");
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        "No account registered with this email.",
+      );
     }
 
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -282,7 +331,7 @@ export const AuthService = {
         <h2>Password Reset Request</h2>
         <p>Your password reset OTP code is: <strong style="font-size: 24px; color: #EF4444;">${otpCode}</strong></p>
         <p>This code expires in 10 minutes.</p>
-      </div>`
+      </div>`,
     ).catch(console.error);
 
     return true;
@@ -301,7 +350,10 @@ export const AuthService = {
     });
 
     if (!otpRecord) {
-      throw new ApiError(httpStatus.BAD_REQUEST, "Invalid or expired reset code.");
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "Invalid or expired reset code.",
+      );
     }
 
     otpRecord.is_used = true;
@@ -314,7 +366,7 @@ export const AuthService = {
         user_password: hashedPassword,
         password_changed_at: new Date(),
         $inc: { token_version: 1 },
-      }
+      },
     );
 
     return true;

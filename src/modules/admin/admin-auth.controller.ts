@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from "express";
+import { sendResponse } from "@/helpers/send-response";
+import { clearAccessTokenCookie, clearRefreshTokenCookie, setAccessTokenCookie, setRefreshTokenCookie } from "@/utils/cookie";
+import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { AdminAuthService } from "./admin-auth.service";
-import { sendResponse } from "../../helpers/send-response";
-import { setRefreshTokenCookie, clearRefreshTokenCookie, setAccessTokenCookie, clearAccessTokenCookie } from "../../utils/cookie";
 
 export const AdminAuthController = {
   login: async (req: Request, res: Response, next: NextFunction) => {

@@ -1,12 +1,15 @@
-import { Request, Response, NextFunction } from "express";
+import { sendResponse } from "@/helpers/send-response";
+import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { TransferService } from "./transfer.service";
-import { sendResponse } from "../../helpers/send-response";
 
 export const TransferController = {
   createTransfer: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const transfer = await TransferService.createTransfer(req.user!._id, req.body);
+      const transfer = await TransferService.createTransfer(
+        req.user!._id,
+        req.body,
+      );
       sendResponse(res, {
         statusCode: httpStatus.CREATED,
         success: true,

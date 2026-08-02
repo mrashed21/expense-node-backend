@@ -36,7 +36,9 @@ export const resetPasswordSchema = z.object({
   body: z.object({
     user_email: z.string().email("Invalid email address"),
     otp_code: z.string().length(6, "OTP must be 6 digits"),
-    new_password: z.string().min(8, "New password must be at least 8 characters"),
+    new_password: z
+      .string()
+      .min(8, "New password must be at least 8 characters"),
   }),
 });
 
@@ -45,4 +47,3 @@ export const resendOtpSchema = z.object({
     user_email: z.string().email("Invalid email address"),
   }),
 });
-

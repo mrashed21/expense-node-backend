@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
+import os from "os";
+import { Server } from "socket.io";
 import app from "./app";
 import { envConfig } from "./config/env-config";
-import { Server } from "socket.io";
-import os from "os";
 
 const banner = (port: number | string) => {
   const url = `http://localhost:${port}`;
@@ -53,18 +53,18 @@ async function main() {
     log.info("Connecting to MongoDB Atlas...");
     await mongoose.connect(envConfig.database_url);
     log.success("Successfully connected to MongoDB database.");
-    
+
     // Sync indexes to clean up obsolete ones (e.g. duplicate or renamed schema indexes)
     try {
-      const { Category } = await import("./modules/category/category.model");
+      const { Category } = await import("./modules/category/category.model.js");
       await Category.syncIndexes();
-      const { Admin } = await import("./modules/admin/admin.model");
+      const { Admin } = await import("./modules/admin/admin.model.js");
       await Admin.syncIndexes();
       log.success("Successfully synced database indexes.");
     } catch (err) {
       log.warn("Failed to sync indexes: " + err);
     }
-    
+
     // Seed Super Admin
     const { seedSuperAdmin } = await import("./utils/seed-super-admin.js");
     await seedSuperAdmin();
@@ -92,7 +92,7 @@ async function main() {
 
     io.on("connection", (socket) => {
       console.log(`🔌 New client connected: ${socket.id}`);
-      
+
       socket.on("disconnect", () => {
         console.log(`🔴 Client disconnected: ${socket.id}`);
       });
@@ -104,7 +104,7 @@ async function main() {
       const freeMem = os.freemem();
       const usedMem = totalMem - freeMem;
       const memUsagePercent = (usedMem / totalMem) * 100;
-      
+
       // Simple mock CPU load derived from loadavg
       const loadAvg = os.loadavg();
       const cpuUsagePercent = (loadAvg[0] / os.cpus().length) * 100;

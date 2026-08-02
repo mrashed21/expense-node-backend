@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IAdminDocument, AdminRole, AdminStatus } from "./admin.interface";
+import { AdminRole, AdminStatus, IAdminDocument } from "./admin.interface";
 
 const adminSchema = new Schema<IAdminDocument>(
   {
@@ -67,7 +67,7 @@ const adminSchema = new Schema<IAdminDocument>(
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 adminSchema.index({ is_deleted: 1 });

@@ -1,7 +1,11 @@
+import { envConfig } from "@/config/env-config";
 import nodemailer from "nodemailer";
-import { envConfig } from "../config/env-config";
 
-export const sendEmail = async (to: string, subject: string, html: string): Promise<void> => {
+export const sendEmail = async (
+  to: string,
+  subject: string,
+  html: string,
+): Promise<void> => {
   const transporter = nodemailer.createTransport({
     host: envConfig.email.smtp_host,
     port: Number(envConfig.email.smtp_port) || 587,

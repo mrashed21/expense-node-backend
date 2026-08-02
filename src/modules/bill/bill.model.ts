@@ -40,7 +40,7 @@ const billSchema = new Schema<IBillDocument>(
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 billSchema.index({ user_id: 1, due_date: 1, status: 1 });

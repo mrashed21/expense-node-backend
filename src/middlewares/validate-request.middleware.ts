@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from "express";
-import { ZodSchema } from "zod";
+import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
+import { ZodSchema } from "zod";
 
 export const validateRequest = (schema: ZodSchema) => {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {

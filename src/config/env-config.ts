@@ -9,7 +9,8 @@ export const envConfig = {
   database_url: process.env.DATABASE_URL || "",
   jwt: {
     access_secret: process.env.ACCESS_TOKEN_SECRET || "default_access_secret",
-    refresh_secret: process.env.REFRESH_TOKEN_SECRET || "default_refresh_secret",
+    refresh_secret:
+      process.env.REFRESH_TOKEN_SECRET || "default_refresh_secret",
     access_expires_in: process.env.ACCESS_TOKEN_EXPIRES_IN || "15m",
     refresh_expires_in: process.env.REFRESH_TOKEN_EXPIRES_IN || "7d",
   },

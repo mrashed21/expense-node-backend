@@ -37,9 +37,12 @@ const loginHistorySchema = new Schema<ILoginHistoryDocument>(
   {
     timestamps: false,
     versionKey: false,
-  }
+  },
 );
 
 loginHistorySchema.index({ user_id: 1, timestamp: -1 });
 
-export const LoginHistory = model<ILoginHistoryDocument>("LoginHistory", loginHistorySchema);
+export const LoginHistory = model<ILoginHistoryDocument>(
+  "LoginHistory",
+  loginHistorySchema,
+);

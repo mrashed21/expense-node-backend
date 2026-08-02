@@ -1,12 +1,19 @@
-import { Request, Response, NextFunction } from "express";
+import { sendResponse } from "@/helpers/send-response";
+import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { TransactionService } from "./transaction.service";
-import { sendResponse } from "../../helpers/send-response";
 
 export const TransactionController = {
-  createTransaction: async (req: Request, res: Response, next: NextFunction) => {
+  createTransaction: async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
-      const transaction = await TransactionService.createTransaction(req.user!._id, req.body);
+      const transaction = await TransactionService.createTransaction(
+        req.user!._id,
+        req.body,
+      );
       sendResponse(res, {
         statusCode: httpStatus.CREATED,
         success: true,
@@ -20,11 +27,14 @@ export const TransactionController = {
 
   getTransactions: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await TransactionService.getTransactions(req.user!._id, req.query);
+      const result = await TransactionService.getTransactions(
+        req.user!._id,
+        req.query,
+      );
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
-        meta: result.meta,
+        meta: result.meta as any,
         data: result.data,
       });
     } catch (error) {
@@ -32,9 +42,16 @@ export const TransactionController = {
     }
   },
 
-  deleteTransaction: async (req: Request, res: Response, next: NextFunction) => {
+  deleteTransaction: async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
-      await TransactionService.deleteTransaction(req.user!._id, req.params.id);
+      await TransactionService.deleteTransaction(
+        req.user!._id,
+        req.params.id as string,
+      );
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,

@@ -37,9 +37,12 @@ const budgetSchema = new Schema<IBudgetDocument>(
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
-budgetSchema.index({ user_id: 1, month_year: 1, category_id: 1 }, { unique: true });
+budgetSchema.index(
+  { user_id: 1, month_year: 1, category_id: 1 },
+  { unique: true },
+);
 
 export const Budget = model<IBudgetDocument>("Budget", budgetSchema);

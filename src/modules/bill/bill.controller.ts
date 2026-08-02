@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from "express";
+import { sendResponse } from "@/helpers/send-response";
+import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { BillService } from "./bill.service";
-import { sendResponse } from "../../helpers/send-response";
 
 export const BillController = {
   createBill: async (req: Request, res: Response, next: NextFunction) => {
@@ -34,7 +34,11 @@ export const BillController = {
   payBill: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { account_id } = req.body;
-      const bill = await BillService.payBill(req.user!._id, req.params.id, account_id);
+      const bill = await BillService.payBill(
+        req.user!._id,
+        req.params.id as string,
+        account_id,
+      );
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -48,7 +52,7 @@ export const BillController = {
 
   deleteBill: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await BillService.deleteBill(req.user!._id, req.params.id);
+      await BillService.deleteBill(req.user!._id, req.params.id as string);
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,

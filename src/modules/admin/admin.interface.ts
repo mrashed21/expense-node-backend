@@ -2,14 +2,14 @@ import { Document, Types } from "mongoose";
 
 export enum AdminRole {
   ADMIN = "admin",
-  SUPER_ADMIN = "super_admin"
+  SUPER_ADMIN = "super_admin",
 }
 
 export enum AdminStatus {
   ACTIVE = "active",
   INACTIVE = "deactive",
   BANNED = "banned",
-  DELETED = "deleted"
+  DELETED = "deleted",
 }
 
 export interface IAdmin {
@@ -20,14 +20,14 @@ export interface IAdmin {
   admin_role: AdminRole;
   admin_profile_image?: string;
   admin_status: AdminStatus;
-  
+
   token_version: number;
   last_login?: Date;
   password_changed_at?: Date;
-  
+
   is_deleted: boolean;
   deleted_at?: Date;
-  
+
   createdAt: Date;
   updatedAt: Date;
 }

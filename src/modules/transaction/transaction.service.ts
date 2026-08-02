@@ -1,14 +1,18 @@
+import ApiError from "@/helpers/api-error";
 import httpStatus from "http-status";
-import ApiError from "../../helpers/api-error";
-import { Transaction } from "./transaction.model";
 import { Account } from "../account/account.model";
 import { TransactionType } from "./transaction.interface";
+import { Transaction } from "./transaction.model";
 
 export const TransactionService = {
   createTransaction: async (userId: string, payload: any) => {
     const { account_id, type, amount } = payload;
 
-    const account = await Account.findOne({ _id: account_id, user_id: userId, is_deleted: false });
+    const account = await Account.findOne({
+      _id: account_id,
+      user_id: userId,
+      is_deleted: false,
+    });
     if (!account) {
       throw new ApiError(httpStatus.NOT_FOUND, "Account not found.");
     }
@@ -19,7 +23,11 @@ export const TransactionService = {
     });
 
     let balanceDelta = 0;
-    if (type === TransactionType.INCOME || type === TransactionType.REFUND || type === TransactionType.OPENING_BALANCE) {
+    if (
+      type === TransactionType.INCOME ||
+      type === TransactionType.REFUND ||
+      type === TransactionType.OPENING_BALANCE
+    ) {
       balanceDelta = amount;
     } else if (type === TransactionType.EXPENSE) {
       balanceDelta = -amount;
@@ -47,7 +55,7 @@ export const TransactionService = {
       type?: string;
       accountId?: string;
       categoryId?: string;
-    }
+    },
   ) => {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
@@ -100,7 +108,11 @@ export const TransactionService = {
     } else if (query.dateRange === "thisYear") {
       const start = new Date(now.getFullYear(), 0, 1);
       filter.date = { $gte: start };
-    } else if (query.dateRange === "custom" && query.startDate && query.endDate) {
+    } else if (
+      query.dateRange === "custom" &&
+      query.startDate &&
+      query.endDate
+    ) {
       filter.date = {
         $gte: new Date(query.startDate),
         $lte: new Date(query.endDate),
@@ -127,7 +139,11 @@ export const TransactionService = {
   },
 
   deleteTransaction: async (userId: string, transactionId: string) => {
-    const transaction = await Transaction.findOne({ _id: transactionId, user_id: userId, is_deleted: false });
+    const transaction = await Transaction.findOne({
+      _id: transactionId,
+      user_id: userId,
+      is_deleted: false,
+    });
     if (!transaction) {
       throw new ApiError(httpStatus.NOT_FOUND, "Transaction not found.");
     }
@@ -137,7 +153,10 @@ export const TransactionService = {
 
     const account = await Account.findById(transaction.account_id);
     if (account) {
-      if (transaction.type === TransactionType.INCOME || transaction.type === TransactionType.REFUND) {
+      if (
+        transaction.type === TransactionType.INCOME ||
+        transaction.type === TransactionType.REFUND
+      ) {
         account.current_balance -= transaction.amount;
       } else if (transaction.type === TransactionType.EXPENSE) {
         account.current_balance += transaction.amount;

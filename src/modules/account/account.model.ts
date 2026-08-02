@@ -1,5 +1,5 @@
 import { Schema, model } from "mongoose";
-import { IAccountDocument, AccountType } from "./account.interface";
+import { AccountType, IAccountDocument } from "./account.interface";
 
 const accountSchema = new Schema<IAccountDocument>(
   {
@@ -52,7 +52,7 @@ const accountSchema = new Schema<IAccountDocument>(
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
 accountSchema.index({ user_id: 1, status: 1, is_deleted: 1 });
