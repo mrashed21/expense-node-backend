@@ -9,6 +9,7 @@ import { budgetRoutes } from "../modules/budget/budget.route";
 import { goalRoutes } from "../modules/goal/goal.route";
 import { billRoutes } from "../modules/bill/bill.route";
 import { notificationRoutes } from "../modules/notification/notification.route";
+import { adminRoutes } from "../modules/admin/admin.route";
 
 const router = Router();
 
@@ -23,6 +24,7 @@ const apiRoutes = [
   { path: "/goals", route: goalRoutes },
   { path: "/bills", route: billRoutes },
   { path: "/notifications", route: notificationRoutes },
+  { path: "/admin", route: adminRoutes },
 ];
 
 apiRoutes.forEach((route) => {
