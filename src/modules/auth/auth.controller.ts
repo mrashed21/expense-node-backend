@@ -125,6 +125,7 @@ export const AuthController = {
       if (!req.user?._id) throw new Error("Unauthorized");
       await AuthService.logoutAllDevices(req.user._id);
       clearRefreshTokenCookie(res);
+      clearAccessTokenCookie(res);
 
       sendResponse(res, {
         statusCode: httpStatus.OK,

@@ -5,6 +5,8 @@ import { verifyToken } from "../utils/jwt";
 import { envConfig } from "../config/env-config";
 import { User } from "../modules/user/user.model";
 import { UserRole, UserStatus } from "../modules/user/user.interface";
+import { Admin } from "../modules/admin/admin.model";
+import { AdminRole, AdminStatus } from "../modules/admin/admin.interface";
 
 declare global {
   namespace Express {
@@ -54,6 +56,56 @@ export const checkAuth = (...requiredRoles: UserRole[]) => {
         user_role: userExists.user_role,
         user_email: userExists.user_email,
         token_version: userExists.token_version,
+      };
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+};
+
+export const checkAdminAuth = (...requiredRoles: AdminRole[]) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      let token: string | undefined;
+
+      if (req.cookies.accessToken) {
+        token = req.cookies.accessToken;
+      } else if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+        token = req.headers.authorization.split(" ")[1];
+      }
+
+      if (!token) {
+        throw new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized access. No token provided.");
+      }
+
+      const decoded = verifyToken(token, envConfig.jwt.access_secret);
+      
+      // If token payload says it's not an admin token, reject
+      if (!decoded.isAdmin) {
+        throw new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized. Not an admin token.");
+      }
+
+      const adminExists = await Admin.findById(decoded._id);
+
+      if (!adminExists || adminExists.is_deleted || adminExists.admin_status !== AdminStatus.ACTIVE) {
+        throw new ApiError(httpStatus.UNAUTHORIZED, "Admin account is suspended, deleted or non-existent.");
+      }
+
+      if (adminExists.token_version !== decoded.token_version) {
+        throw new ApiError(httpStatus.UNAUTHORIZED, "Session expired or logged out from all devices. Please log in again.");
+      }
+
+      if (requiredRoles.length > 0 && !requiredRoles.includes(adminExists.admin_role as AdminRole)) {
+        throw new ApiError(httpStatus.FORBIDDEN, "Forbidden. You do not have permission to access this resource.");
+      }
+
+      req.user = {
+        _id: adminExists._id.toString(),
+        user_role: adminExists.admin_role,
+        user_email: adminExists.admin_email,
+        token_version: adminExists.token_version,
       };
 
       next();

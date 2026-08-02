@@ -54,6 +54,17 @@ async function main() {
     await mongoose.connect(envConfig.database_url);
     log.success("Successfully connected to MongoDB database.");
     
+    // Sync indexes to clean up obsolete ones (e.g. duplicate or renamed schema indexes)
+    try {
+      const { Category } = await import("./modules/category/category.model");
+      await Category.syncIndexes();
+      const { Admin } = await import("./modules/admin/admin.model");
+      await Admin.syncIndexes();
+      log.success("Successfully synced database indexes.");
+    } catch (err) {
+      log.warn("Failed to sync indexes: " + err);
+    }
+    
     // Seed Super Admin
     const { seedSuperAdmin } = await import("./utils/seed-super-admin.js");
     await seedSuperAdmin();

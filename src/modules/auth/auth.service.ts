@@ -11,9 +11,12 @@ import { UserStatus } from "../user/user.interface";
 import uaparsed from "ua-parser-js";
 
 export const AuthService = {
-  // 1. Register User
   register: async (payload: any) => {
-    const { user_email, user_password, user_name, user_phone, user_area, user_city, user_country } = payload;
+    let { user_email, user_password, user_name, user_phone, user_area, user_city, user_country } = payload;
+
+    if (!user_phone || user_phone.trim() === "") {
+      user_phone = undefined;
+    }
 
     const existingUser = await User.findOne({ user_email });
     if (existingUser) {
@@ -248,6 +251,8 @@ export const AuthService = {
   // 5. Logout All Devices
   logoutAllDevices: async (userId: string) => {
     await User.findByIdAndUpdate(userId, { $inc: { token_version: 1 } });
+    // Clear all login history when logging out from all devices
+    await LoginHistory.deleteMany({ user_id: userId });
     return true;
   },
 

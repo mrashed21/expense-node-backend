@@ -1,12 +1,12 @@
 import bcrypt from "bcrypt";
-import { User } from "../modules/user/user.model";
-import { UserRole, UserStatus } from "../modules/user/user.interface";
+import { Admin } from "../modules/admin/admin.model";
+import { AdminRole, AdminStatus } from "../modules/admin/admin.interface";
 import { log } from "../server";
 
 export const seedSuperAdmin = async () => {
   try {
     const superAdminEmail = "super-admin@expense.com";
-    const existingSuperAdmin = await User.findOne({ user_email: superAdminEmail });
+    const existingSuperAdmin = await Admin.findOne({ admin_email: superAdminEmail });
 
     if (existingSuperAdmin) {
       log.info("Super admin already exists, skipping insertion.");
@@ -15,14 +15,12 @@ export const seedSuperAdmin = async () => {
 
     const hashedPassword = await bcrypt.hash("superadmin", 12);
 
-    await User.create({
-      user_name: "Super Admin",
-      user_email: superAdminEmail,
-      user_password: hashedPassword,
-      user_role: UserRole.SUPER_ADMIN,
-      user_status: UserStatus.ACTIVE,
-      email_verified: true,
-      phone_verified: true,
+    await Admin.create({
+      admin_name: "Super Admin",
+      admin_email: superAdminEmail,
+      admin_password: hashedPassword,
+      admin_role: AdminRole.SUPER_ADMIN,
+      admin_status: AdminStatus.ACTIVE,
     });
 
     log.success("Super admin created successfully.");
