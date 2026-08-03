@@ -21,6 +21,8 @@ export interface IAccount {
   user_id: Types.ObjectId;
   name: string;
   type: AccountType;
+  currency: string;
+  is_credit: boolean;
   opening_balance: number;
   current_balance: number;
   color: string;

@@ -1,6 +1,7 @@
 import { accountRoutes } from "@/modules/account/account.route";
 import { adminAuthRoutes } from "@/modules/admin/admin-auth.route";
 import { adminRoutes } from "@/modules/admin/admin.route";
+import { analyticsRoutes } from "@/modules/analytics/analytics.route";
 import { authRoutes } from "@/modules/auth/auth.route";
 import { billRoutes } from "@/modules/bill/bill.route";
 import { budgetRoutes } from "@/modules/budget/budget.route";
@@ -28,6 +29,7 @@ const apiRoutes = [
   { path: "/bills", route: billRoutes },
   { path: "/data", route: dataRoutes },
   { path: "/notifications", route: notificationRoutes },
+  { path: "/analytics", route: analyticsRoutes },
   { path: "/admin", route: adminRoutes },
 ];
 
