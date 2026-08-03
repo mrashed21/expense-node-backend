@@ -1,20 +1,12 @@
-import { authGuard } from "@/middlewares/auth";
+import { checkAuth } from "@/middlewares/auth.middleware";
 import { UserRole } from "@/modules/user/user.interface";
-import express from "express";
+import { Router } from "express";
 import { DataController } from "./data.controller";
 
-const router = express.Router();
+const router = Router();
+router.use(checkAuth(UserRole.USER));
 
-router.get(
-  "/backup",
-  authGuard(UserRole.USER),
-  DataController.exportBackup
-);
-
-router.post(
-  "/restore",
-  authGuard(UserRole.USER),
-  DataController.restoreBackup
-);
+router.get("/backup", DataController.exportBackup);
+router.post("/restore", DataController.restoreBackup);
 
 export const dataRoutes = router;

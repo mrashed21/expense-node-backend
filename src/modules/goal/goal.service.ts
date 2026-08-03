@@ -1,5 +1,6 @@
 import ApiError from "@/helpers/api-error";
 import httpStatus from "http-status";
+import { createAndEmitNotification } from "../notification/notification.helper";
 import { Goal } from "./goal.model";
 
 export const GoalService = {
@@ -32,10 +33,28 @@ export const GoalService = {
     }
 
     goal.current_amount += amount;
+    const wasCompleted = goal.status !== "completed";
     if (goal.current_amount >= goal.target_amount) {
       goal.status = "completed";
     }
     await goal.save();
+
+    // Fire goal-milestone notification when goal just reached 100%
+    if (goal.status === "completed" && wasCompleted) {
+      setImmediate(async () => {
+        try {
+          const { default: app } = await import("../../app");
+          const io = app.get("io") ?? null;
+          await createAndEmitNotification(io, userId, {
+            title: "Goal Achieved! 🎉",
+            message: `Congratulations! You've reached your goal: "${goal.title}".`,
+            type: "goal_milestone",
+          });
+        } catch (e) {
+          console.error("[GoalMilestone] Failed to send notification:", e);
+        }
+      });
+    }
 
     return goal;
   },

@@ -91,21 +91,27 @@ async function main() {
     app.set("io", io);
 
     io.on("connection", (socket) => {
-      console.log(`🔌 New client connected: ${socket.id}`);
+      const userId = socket.handshake.auth?.userId as string | undefined;
+
+      if (userId) {
+        // Place the client in their private room for targeted notifications
+        socket.join(userId);
+        log.event(`Socket ${socket.id} joined room: ${userId}`);
+      } else {
+        console.warn(`[Socket] Client connected without userId: ${socket.id}`);
+      }
 
       socket.on("disconnect", () => {
-        console.log(`🔴 Client disconnected: ${socket.id}`);
+        log.event(`Socket disconnected: ${socket.id}`);
       });
     });
 
-    // Real-time system health emitter
+    // Real-time system health emitter (admin panel)
     setInterval(() => {
       const totalMem = os.totalmem();
       const freeMem = os.freemem();
       const usedMem = totalMem - freeMem;
       const memUsagePercent = (usedMem / totalMem) * 100;
-
-      // Simple mock CPU load derived from loadavg
       const loadAvg = os.loadavg();
       const cpuUsagePercent = (loadAvg[0] / os.cpus().length) * 100;
 
@@ -118,6 +124,62 @@ async function main() {
 
       io.emit("system_health_update", systemHealth);
     }, 2000);
+
+    // Bill reminder scheduler — runs every 24 h after startup
+    const scheduleBillReminders = async () => {
+      try {
+        const { Bill } = await import("./modules/bill/bill.model.js");
+        const { createAndEmitNotification } = await import(
+          "./modules/notification/notification.helper.js"
+        );
+        const { Notification } = await import(
+          "./modules/notification/notification.model.js"
+        );
+
+        const threeDaysFromNow = new Date();
+        threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        const dueBills = await Bill.find({
+          status: "pending",
+          due_date: { $lte: threeDaysFromNow },
+        }).lean();
+
+        let notified = 0;
+        for (const bill of dueBills) {
+          // Skip if we already sent a reminder for this bill today
+          const alreadyNotified = await Notification.exists({
+            user_id: bill.user_id,
+            type: "bill_reminder",
+            message: { $regex: `"${bill.title}"` },
+            createdAt: { $gte: todayStart },
+          });
+
+          if (alreadyNotified) continue;
+
+          const dueDate = new Date(bill.due_date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+          await createAndEmitNotification(io, bill.user_id.toString(), {
+            title: "Bill Due Soon",
+            message: `Your bill "${bill.title}" of ${bill.amount} is due on ${dueDate}.`,
+            type: "bill_reminder",
+          });
+          notified++;
+        }
+
+        log.info(`[BillReminder] Sent ${notified} new reminder(s) out of ${dueBills.length} due bill(s).`);
+      } catch (err) {
+        log.warn(`[BillReminder] Scheduler error: ${err}`);
+      }
+    };
+
+    // Run once immediately at startup, then every 24 hours
+    scheduleBillReminders();
+    setInterval(scheduleBillReminders, 24 * 60 * 60 * 1000);
 
     const exitHandler = () => {
       if (server) {
