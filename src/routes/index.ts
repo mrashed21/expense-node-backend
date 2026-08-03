@@ -5,6 +5,7 @@ import { authRoutes } from "@/modules/auth/auth.route";
 import { billRoutes } from "@/modules/bill/bill.route";
 import { budgetRoutes } from "@/modules/budget/budget.route";
 import { categoryRoutes } from "@/modules/category/category.route";
+import { dataRoutes } from "@/modules/data/data.route";
 import { goalRoutes } from "@/modules/goal/goal.route";
 import { notificationRoutes } from "@/modules/notification/notification.route";
 import { transactionRoutes } from "@/modules/transaction/transaction.route";
@@ -25,6 +26,7 @@ const apiRoutes = [
   { path: "/budgets", route: budgetRoutes },
   { path: "/goals", route: goalRoutes },
   { path: "/bills", route: billRoutes },
+  { path: "/data", route: dataRoutes },
   { path: "/notifications", route: notificationRoutes },
   { path: "/admin", route: adminRoutes },
 ];
