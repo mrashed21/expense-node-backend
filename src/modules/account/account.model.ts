@@ -19,6 +19,14 @@ const accountSchema = new Schema<IAccountDocument>(
       enum: Object.values(AccountType),
       required: true,
     },
+    currency: {
+      type: String,
+      default: "BDT",
+    },
+    is_credit: {
+      type: Boolean,
+      default: false,
+    },
     opening_balance: {
       type: Number,
       default: 0,

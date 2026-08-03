@@ -16,6 +16,12 @@ export interface ITransaction {
   subcategory_id?: Types.ObjectId;
   type: TransactionType;
   amount: number;
+  foreign_currency?: string;
+  foreign_amount?: number;
+  exchange_rate?: number;
+  splits?: Array<{ category_id: Types.ObjectId; amount: number; notes?: string }>;
+  is_installment?: boolean;
+  installment_id?: Types.ObjectId;
   date: Date;
   time?: string;
   payment_method?: string;
