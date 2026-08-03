@@ -169,7 +169,7 @@ export const UserController = {
 
   revokeDevice: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await UserService.revokeDevice(req.user!._id, req.params.id);
+      await UserService.revokeDevice(req.user!._id, req.params.id as string);
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,

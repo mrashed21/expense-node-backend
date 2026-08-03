@@ -27,7 +27,7 @@ const getDebts = catchAsync(async (req: Request, res: Response) => {
 const updateDebt = catchAsync(async (req: Request, res: Response) => {
   const result = await DebtService.updateDebt(
     req.user!._id,
-    req.params.id,
+    req.params.id as string,
     req.body,
   );
   sendResponse(res, {
@@ -39,7 +39,7 @@ const updateDebt = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteDebt = catchAsync(async (req: Request, res: Response) => {
-  await DebtService.deleteDebt(req.user!._id, req.params.id);
+  await DebtService.deleteDebt(req.user!._id, req.params.id as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

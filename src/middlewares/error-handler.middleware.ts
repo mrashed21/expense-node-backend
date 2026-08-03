@@ -36,7 +36,7 @@ export const globalErrorHandler: ErrorRequestHandler = (
       method: req.method,
       message: message,
       stack: err.stack,
-      user_id: req.user?._id || req.admin?._id,
+      user_id: req.user?._id || (req as any).admin?._id,
     }).catch(console.error); // Do not await, fire and forget
   }
 

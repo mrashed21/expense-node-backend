@@ -26,7 +26,7 @@ const getFilters = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteFilter = catchAsync(async (req: Request, res: Response) => {
-  const result = await SavedFilterService.deleteFilter(req.user!._id, req.params.id);
+  const result = await SavedFilterService.deleteFilter(req.user!._id, req.params.id as string);
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

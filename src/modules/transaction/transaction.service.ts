@@ -1,17 +1,21 @@
 import ApiError from "@/helpers/api-error";
 import httpStatus from "http-status";
 import mongoose from "mongoose";
-import { createAndEmitNotification } from "../notification/notification.helper";
 import { Account } from "../account/account.model";
 import { Budget } from "../budget/budget.model";
+import { createAndEmitNotification } from "../notification/notification.helper";
 import { TransactionType } from "./transaction.interface";
 import { Transaction } from "./transaction.model";
 
 export const TransactionService = {
-  createTransaction: async (userId: string, payload: any, externalSession?: mongoose.ClientSession) => {
+  createTransaction: async (
+    userId: string,
+    payload: any,
+    externalSession?: mongoose.ClientSession,
+  ) => {
     const { account_id, type, amount } = payload;
 
-    const session = externalSession || await mongoose.startSession();
+    const session = externalSession || (await mongoose.startSession());
     if (!externalSession) {
       session.startTransaction();
     }
@@ -33,7 +37,7 @@ export const TransactionService = {
             user_id: userId,
           },
         ],
-        { session }
+        { session },
       );
       const transaction = created[0];
 
@@ -82,7 +86,9 @@ export const TransactionService = {
                 {
                   $match: {
                     user_id: new mongoose.Types.ObjectId(userId),
-                    category_id: new mongoose.Types.ObjectId(payload.category_id),
+                    category_id: new mongoose.Types.ObjectId(
+                      payload.category_id,
+                    ),
                     type: TransactionType.EXPENSE,
                     is_deleted: false,
                     date: { $gte: startOfMonth },
@@ -95,12 +101,13 @@ export const TransactionService = {
               const percentage = Math.round((totalSpent / budget.amount) * 100);
 
               // Get io from global app (set via app.set('io', io) in server.ts)
-              const { default: app } = await import("../../app");
-              const io = app.get("io") ?? null;
+              const { default: app } = await import("../../app.js");
+              const io = (app as any).get("io") ?? null;
 
               // Deduplication: only fire once per threshold breach per month.
               // Check if an alert already exists for this budget this month.
-              const { Notification } = await import("../notification/notification.model");
+              const { Notification } =
+                await import("../notification/notification.model.js");
               const monthStart = new Date(`${currentMonth}-01T00:00:00.000Z`);
               const alreadyAlerted = await Notification.exists({
                 user_id: userId,
@@ -246,14 +253,22 @@ export const TransactionService = {
       const tx = await Transaction.findOneAndUpdate(
         { _id: transactionId, user_id: userId, is_deleted: true },
         { $set: { is_deleted: false } },
-        { new: true, session }
+        { new: true, session },
       );
-      if (!tx) throw new ApiError(httpStatus.NOT_FOUND, "Transaction not found or already restored");
-      
+      if (!tx)
+        throw new ApiError(
+          httpStatus.NOT_FOUND,
+          "Transaction not found or already restored",
+        );
+
       const multiplier = tx.type === TransactionType.EXPENSE ? -1 : 1;
-      await Account.findByIdAndUpdate(tx.account_id, {
-        $inc: { current_balance: tx.amount * multiplier },
-      }, { session });
+      await Account.findByIdAndUpdate(
+        tx.account_id,
+        {
+          $inc: { current_balance: tx.amount * multiplier },
+        },
+        { session },
+      );
 
       await session.commitTransaction();
       session.endSession();
@@ -285,7 +300,7 @@ export const TransactionService = {
       await Transaction.updateMany(
         { _id: { $in: transactionIds }, user_id: userId, is_deleted: true },
         { $set: { is_deleted: false } },
-        { session }
+        { session },
       );
 
       const accountBalanceChanges = new Map<string, number>();
@@ -293,15 +308,20 @@ export const TransactionService = {
         const multiplier = tx.type === TransactionType.EXPENSE ? -1 : 1;
         const change = tx.amount * multiplier;
         const accId = tx.account_id.toString();
-        accountBalanceChanges.set(accId, (accountBalanceChanges.get(accId) || 0) + change);
+        accountBalanceChanges.set(
+          accId,
+          (accountBalanceChanges.get(accId) || 0) + change,
+        );
       }
 
-      const bulkAccountOps = Array.from(accountBalanceChanges.entries()).map(([accId, change]) => ({
-        updateOne: {
-          filter: { _id: accId },
-          update: { $inc: { current_balance: change } },
-        },
-      }));
+      const bulkAccountOps = Array.from(accountBalanceChanges.entries()).map(
+        ([accId, change]) => ({
+          updateOne: {
+            filter: { _id: accId },
+            update: { $inc: { current_balance: change } },
+          },
+        }),
+      );
 
       if (bulkAccountOps.length > 0) {
         await Account.bulkWrite(bulkAccountOps, { session });
@@ -327,7 +347,7 @@ export const TransactionService = {
         user_id: userId,
         is_deleted: false,
       }).session(session);
-      
+
       if (transactions.length === 0) {
         await session.abortTransaction();
         session.endSession();
@@ -337,7 +357,7 @@ export const TransactionService = {
       await Transaction.updateMany(
         { _id: { $in: transactionIds }, user_id: userId, is_deleted: false },
         { $set: { is_deleted: true } },
-        { session }
+        { session },
       );
 
       const accountBalanceChanges = new Map<string, number>();
@@ -345,15 +365,20 @@ export const TransactionService = {
         const multiplier = tx.type === TransactionType.EXPENSE ? 1 : -1;
         const change = tx.amount * multiplier;
         const accId = tx.account_id.toString();
-        accountBalanceChanges.set(accId, (accountBalanceChanges.get(accId) || 0) + change);
+        accountBalanceChanges.set(
+          accId,
+          (accountBalanceChanges.get(accId) || 0) + change,
+        );
       }
 
-      const bulkAccountOps = Array.from(accountBalanceChanges.entries()).map(([accId, change]) => ({
-        updateOne: {
-          filter: { _id: accId },
-          update: { $inc: { current_balance: change } },
-        },
-      }));
+      const bulkAccountOps = Array.from(accountBalanceChanges.entries()).map(
+        ([accId, change]) => ({
+          updateOne: {
+            filter: { _id: accId },
+            update: { $inc: { current_balance: change } },
+          },
+        }),
+      );
 
       if (bulkAccountOps.length > 0) {
         await Account.bulkWrite(bulkAccountOps, { session });
@@ -386,7 +411,9 @@ export const TransactionService = {
       transaction.is_deleted = true;
       await transaction.save({ session });
 
-      const account = await Account.findById(transaction.account_id).session(session);
+      const account = await Account.findById(transaction.account_id).session(
+        session,
+      );
       if (account) {
         if (
           transaction.type === TransactionType.INCOME ||
@@ -408,5 +435,44 @@ export const TransactionService = {
       session.endSession();
       throw error;
     }
+  },
+
+  getTransactionById: async (userId: string, transactionId: string) => {
+    const tx = await Transaction.findOne({
+      _id: transactionId,
+      user_id: userId,
+      is_deleted: false,
+    })
+      .populate("account_id", "name type color icon")
+      .populate("category_id", "name type icon color")
+      .lean();
+    if (!tx) throw new ApiError(httpStatus.NOT_FOUND, "Transaction not found.");
+    return tx;
+  },
+
+  updateTransaction: async (
+    userId: string,
+    transactionId: string,
+    payload: any,
+  ) => {
+    const tx = await Transaction.findOneAndUpdate(
+      { _id: transactionId, user_id: userId, is_deleted: false },
+      { $set: payload },
+      { new: true },
+    );
+    if (!tx) throw new ApiError(httpStatus.NOT_FOUND, "Transaction not found.");
+    return tx;
+  },
+
+  bulkEditTransactions: async (
+    userId: string,
+    transactionIds: string[],
+    payload: any,
+  ) => {
+    const result = await Transaction.updateMany(
+      { _id: { $in: transactionIds }, user_id: userId, is_deleted: false },
+      { $set: payload },
+    );
+    return { updatedCount: result.modifiedCount };
   },
 };

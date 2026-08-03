@@ -12,7 +12,9 @@ export const GoalService = {
   },
 
   getGoals: async (userId: string) => {
-    const goals = await Goal.find({ user_id: userId }).sort({ createdAt: -1 }).lean();
+    const goals = await Goal.find({ user_id: userId })
+      .sort({ createdAt: -1 })
+      .lean();
 
     return goals.map((g) => {
       const percentage = Math.min(
@@ -43,8 +45,8 @@ export const GoalService = {
     if (goal.status === "completed" && wasCompleted) {
       setImmediate(async () => {
         try {
-          const { default: app } = await import("../../app");
-          const io = app.get("io") ?? null;
+          const { default: app } = await import("../../app.js");
+          const io = (app as any).get("io") ?? null;
           await createAndEmitNotification(io, userId, {
             title: "Goal Achieved! 🎉",
             message: `Congratulations! You've reached your goal: "${goal.title}".`,

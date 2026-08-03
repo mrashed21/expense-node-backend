@@ -186,7 +186,7 @@ export const AuthService = {
 
     // 2FA Check
     if (user.two_factor_enabled) {
-      const tempPayload = { _id: user._id.toString(), type: "2fa_temp" };
+      const tempPayload = { _id: user._id.toString(), type: "2fa_temp" } as any;
       const tempToken = generateToken(tempPayload, envConfig.jwt.access_secret, "5m");
       return { requires2FA: true, tempToken };
     }

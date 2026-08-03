@@ -143,7 +143,7 @@ async function main() {
         todayStart.setHours(0, 0, 0, 0);
 
         const dueBills = await Bill.find({
-          status: "pending",
+          status: "unpaid",
           due_date: { $lte: threeDaysFromNow },
         }).lean();
 

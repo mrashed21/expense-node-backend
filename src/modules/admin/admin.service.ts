@@ -8,6 +8,7 @@ import { Admin } from "./admin.model";
 import { AuditLog } from "./audit-log.model";
 import { ErrorLog } from "./error-log.model";
 import { Notification } from "../notification/notification.model";
+import { UserStatus } from "../user/user.interface";
 import os from "os";
 
 export const AdminService = {
@@ -214,7 +215,7 @@ export const AdminService = {
   },
 
   broadcastNotification: async (payload: { title: string; message: string; type: string }, currentAdminId: string, io: any) => {
-    const activeUsers = await User.find({ user_status: "active", is_deleted: false }).select("_id");
+    const activeUsers = await User.find({ user_status: UserStatus.ACTIVE, is_deleted: false }).select("_id");
     
     if (activeUsers.length === 0) return 0;
 

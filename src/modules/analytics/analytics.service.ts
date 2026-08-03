@@ -250,7 +250,7 @@ export const AnalyticsService = {
     // Find upcoming pending bills
     const upcomingBills = await Bill.find({
       user_id: uid,
-      status: "pending",
+      status: "unpaid",
       due_date: { $gte: now },
     }).lean();
 

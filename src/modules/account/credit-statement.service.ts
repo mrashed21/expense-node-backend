@@ -57,6 +57,13 @@ export const CreditStatementService = {
     const previousBalance = account.current_balance; // Simplification for current state
     const newBalance = previousBalance + totalSpent - totalPayments;
 
+    const transactions = await Transaction.find({
+      user_id: uid,
+      account_id: accId,
+      is_deleted: false,
+      date: { $gte: startDate, $lte: endDate },
+    }).lean();
+
     return {
       accountName: account.name,
       currency: account.currency,

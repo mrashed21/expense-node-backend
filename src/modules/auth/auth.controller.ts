@@ -81,33 +81,33 @@ export const AuthController = {
       const clientInfo = {
         ip: req.ip || req.socket.remoteAddress || "127.0.0.1",
         userAgent: req.headers["user-agent"] || "Unknown User Agent",
-        deviceId: req.cookies.deviceId
+        deviceId: req.cookies.deviceId,
       };
 
       const result = await AuthService.login(req.body, clientInfo);
-      
-      if (result.requires2FA) {
+
+      if ("requires2FA" in result && result.requires2FA) {
         sendResponse(res, {
           statusCode: httpStatus.OK,
           success: true,
           message: "2FA Verification Required",
           data: {
             requires2FA: true,
-            tempToken: result.tempToken
-          }
+            tempToken: result.tempToken,
+          },
         });
         return;
       }
 
-      setRefreshTokenCookie(res, result.refreshToken!);
-      setAccessTokenCookie(res, result.accessToken!);
-      
-      if (result.deviceId) {
-        res.cookie("deviceId", result.deviceId, {
+      setRefreshTokenCookie(res, (result as any).refreshToken);
+      setAccessTokenCookie(res, (result as any).accessToken);
+
+      if ((result as any).deviceId) {
+        res.cookie("deviceId", (result as any).deviceId, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: "strict",
-          maxAge: 365 * 24 * 60 * 60 * 1000 // 1 year
+          maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
         });
       }
 
@@ -116,7 +116,7 @@ export const AuthController = {
         success: true,
         message: "Login successful.",
         data: {
-          user: result.user,
+          user: (result as any).user,
         },
       });
     } catch (error) {
@@ -129,20 +129,20 @@ export const AuthController = {
       const clientInfo = {
         ip: req.ip || req.socket.remoteAddress || "127.0.0.1",
         userAgent: req.headers["user-agent"] || "Unknown User Agent",
-        deviceId: req.cookies.deviceId
+        deviceId: req.cookies.deviceId,
       };
 
       const result = await AuthService.verifyLogin2FA(req.body, clientInfo);
-      
-      setRefreshTokenCookie(res, result.refreshToken!);
-      setAccessTokenCookie(res, result.accessToken!);
-      
+
+      setRefreshTokenCookie(res, result.refreshToken as any);
+      setAccessTokenCookie(res, result.accessToken as any);
+
       if (result.deviceId) {
-        res.cookie("deviceId", result.deviceId, {
+        res.cookie("deviceId", result.deviceId as any, {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
           sameSite: "strict",
-          maxAge: 365 * 24 * 60 * 60 * 1000 // 1 year
+          maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
         });
       }
 

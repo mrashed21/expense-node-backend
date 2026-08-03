@@ -1,10 +1,7 @@
-import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
-import os from "os";
 
 import { sendResponse } from "@/helpers/send-response";
-import { AdminRole } from "./admin.interface";
 import { AdminService } from "./admin.service";
 
 export const AdminController = {
@@ -45,7 +42,10 @@ export const AdminController = {
       const { id } = req.params;
       const updateData = req.body;
 
-      const updatedUser = await AdminService.updateUser(id, updateData);
+      const updatedUser = await AdminService.updateUser(
+        id as string,
+        updateData,
+      );
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -64,7 +64,7 @@ export const AdminController = {
       const role = req.user?.user_role || "";
       const currentAdminId = req.user?._id as string;
 
-      await AdminService.deleteUser(id, currentAdminId, role);
+      await AdminService.deleteUser(id as string, currentAdminId, role);
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -82,7 +82,11 @@ export const AdminController = {
       const { status } = req.body;
       const currentAdminId = req.user?._id as string;
 
-      const updatedUser = await AdminService.updateUserStatus(id, status, currentAdminId);
+      const updatedUser = await AdminService.updateUserStatus(
+        id as string,
+        status,
+        currentAdminId,
+      );
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -135,7 +139,11 @@ export const AdminController = {
       const { status } = req.body;
       const currentAdminId = req.user?._id as string;
 
-      const updatedAdmin = await AdminService.updateAdminStatus(id, status, currentAdminId);
+      const updatedAdmin = await AdminService.updateAdminStatus(
+        id as string,
+        status,
+        currentAdminId,
+      );
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -203,7 +211,11 @@ export const AdminController = {
     }
   },
 
-  getDashboardStats: async (req: Request, res: Response, next: NextFunction) => {
+  getDashboardStats: async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const stats = await AdminService.getDashboardStats();
       sendResponse(res, {
@@ -257,13 +269,21 @@ export const AdminController = {
     }
   },
 
-  broadcastNotification: async (req: Request, res: Response, next: NextFunction) => {
+  broadcastNotification: async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const { title, message, type } = req.body;
       const io = req.app.get("io");
       const currentAdminId = req.user?._id as string;
 
-      const count = await AdminService.broadcastNotification({ title, message, type }, currentAdminId, io);
+      const count = await AdminService.broadcastNotification(
+        { title, message, type },
+        currentAdminId,
+        io,
+      );
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
