@@ -60,6 +60,13 @@ export const checkAuth = (...requiredRoles: UserRole[]) => {
         );
       }
 
+      if (!userExists.email_verified) {
+        throw new ApiError(
+          httpStatus.FORBIDDEN,
+          "Please verify your email address.",
+        );
+      }
+
       if (userExists.token_version !== decoded.token_version) {
         throw new ApiError(
           httpStatus.UNAUTHORIZED,

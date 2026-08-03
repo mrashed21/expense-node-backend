@@ -56,7 +56,7 @@ export const AuthService = {
 
     console.log(`[OTP DEBUG] Verification OTP for ${user_email}: ${otpCode}`);
 
-    sendEmail(
+    await sendEmail(
       user_email,
       "Verify Your Expense Tracker Account",
       `<div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -64,7 +64,7 @@ export const AuthService = {
         <p>Your email verification OTP code is: <strong style="font-size: 24px; color: #4F46E5;">${otpCode}</strong></p>
         <p>This code expires in 10 minutes.</p>
       </div>`,
-    ).catch(console.error);
+    );
 
     return {
       _id: newUser._id,
@@ -105,7 +105,7 @@ export const AuthService = {
 
     console.log(`[OTP DEBUG] Resent OTP for ${user_email}: ${otpCode}`);
 
-    sendEmail(
+    await sendEmail(
       user_email,
       "Verify Your Expense Tracker Account - New Code",
       `<div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -113,7 +113,7 @@ export const AuthService = {
         <p>Your new OTP code is: <strong style="font-size: 24px; color: #4F46E5;">${otpCode}</strong></p>
         <p>This code expires in 10 minutes.</p>
       </div>`,
-    ).catch(console.error);
+    );
 
     return true;
   },
@@ -159,6 +159,13 @@ export const AuthService = {
       throw new ApiError(
         httpStatus.FORBIDDEN,
         "Your account has been deactivated or banned.",
+      );
+    }
+
+    if (!user.email_verified) {
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        "Please verify your email address before logging in.",
       );
     }
 
@@ -324,7 +331,7 @@ export const AuthService = {
 
     console.log(`[OTP DEBUG] Reset password OTP for ${user_email}: ${otpCode}`);
 
-    sendEmail(
+    await sendEmail(
       user_email,
       "Password Reset Code - Expense Tracker",
       `<div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -332,7 +339,7 @@ export const AuthService = {
         <p>Your password reset OTP code is: <strong style="font-size: 24px; color: #EF4444;">${otpCode}</strong></p>
         <p>This code expires in 10 minutes.</p>
       </div>`,
-    ).catch(console.error);
+    );
 
     return true;
   },
