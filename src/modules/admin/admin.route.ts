@@ -43,8 +43,30 @@ router.patch(
 );
 
 // System
+router.get("/dashboard-stats", AdminController.getDashboardStats);
+router.get("/user-growth", AdminController.getUserGrowth);
+
 router.get("/system-health", AdminController.getSystemHealth);
 router.get("/activity", AdminController.getActivity);
 router.post("/test-notification", AdminController.testNotification);
+
+// Logs (Only SUPER_ADMIN)
+router.get(
+  "/error-logs",
+  checkAdminAuth(AdminRole.SUPER_ADMIN),
+  AdminController.getErrorLogs,
+);
+router.get(
+  "/audit-logs",
+  checkAdminAuth(AdminRole.SUPER_ADMIN),
+  AdminController.getAuditLogs,
+);
+
+// Broadcast (Only SUPER_ADMIN)
+router.post(
+  "/broadcast",
+  checkAdminAuth(AdminRole.SUPER_ADMIN),
+  AdminController.broadcastNotification,
+);
 
 export const adminRoutes = router;

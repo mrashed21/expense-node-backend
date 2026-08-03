@@ -33,3 +33,27 @@ export interface IAdmin {
 }
 
 export interface IAdminDocument extends IAdmin, Document {}
+
+export interface IAuditLog {
+  _id: Types.ObjectId;
+  admin_id: Types.ObjectId;
+  action: string;
+  target_id?: Types.ObjectId | string;
+  details?: Record<string, any>;
+  ip_address?: string;
+  createdAt: Date;
+}
+
+export interface IAuditLogDocument extends IAuditLog, Document {}
+
+export interface IErrorLog {
+  _id: Types.ObjectId;
+  path: string;
+  method: string;
+  message: string;
+  stack?: string;
+  user_id?: Types.ObjectId | string;
+  timestamp: Date;
+}
+
+export interface IErrorLogDocument extends IErrorLog, Document {}

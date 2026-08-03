@@ -26,7 +26,8 @@ export const AdminController = {
 
   createUser: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userObj = await AdminService.createUser(req.body);
+      const payload = { ...req.body, creatorId: req.user?._id };
+      const userObj = await AdminService.createUser(payload);
 
       sendResponse(res, {
         statusCode: httpStatus.CREATED,
@@ -61,8 +62,9 @@ export const AdminController = {
     try {
       const { id } = req.params;
       const role = req.user?.user_role || "";
+      const currentAdminId = req.user?._id as string;
 
-      await AdminService.deleteUser(id, role);
+      await AdminService.deleteUser(id, currentAdminId, role);
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -78,8 +80,9 @@ export const AdminController = {
     try {
       const { id } = req.params;
       const { status } = req.body;
+      const currentAdminId = req.user?._id as string;
 
-      const updatedUser = await AdminService.updateUserStatus(id, status);
+      const updatedUser = await AdminService.updateUserStatus(id, status, currentAdminId);
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -108,7 +111,8 @@ export const AdminController = {
 
   createAdmin: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const adminObj = await AdminService.createAdmin(req.body);
+      const payload = { ...req.body, creatorId: req.user?._id };
+      const adminObj = await AdminService.createAdmin(payload);
 
       sendResponse(res, {
         statusCode: httpStatus.CREATED,
@@ -193,6 +197,78 @@ export const AdminController = {
         success: true,
         message: "Test notification sent successfully",
         data: notificationData,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  getDashboardStats: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const stats = await AdminService.getDashboardStats();
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        data: stats,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  getUserGrowth: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const growth = await AdminService.getUserGrowth();
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        data: growth,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  getErrorLogs: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const limit = Number(req.query.limit) || 100;
+      const logs = await AdminService.getErrorLogs(limit);
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        data: logs,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  getAuditLogs: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const limit = Number(req.query.limit) || 100;
+      const logs = await AdminService.getAuditLogs(limit);
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        data: logs,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  broadcastNotification: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { title, message, type } = req.body;
+      const io = req.app.get("io");
+      const currentAdminId = req.user?._id as string;
+
+      const count = await AdminService.broadcastNotification({ title, message, type }, currentAdminId, io);
+
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: `Broadcast sent to ${count} active users.`,
       });
     } catch (error) {
       next(error);

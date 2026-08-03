@@ -140,5 +140,6 @@ userSchema.index(
   { unique: true, sparse: true }
 );
 userSchema.index({ is_deleted: 1, user_status: 1 });
+userSchema.index({ createdAt: -1 });
 
 export const User = model<IUserDocument>("User", userSchema);
