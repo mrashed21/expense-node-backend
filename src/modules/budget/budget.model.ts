@@ -30,7 +30,7 @@ const budgetSchema = new Schema<IBudgetDocument>(
     },
     warning_threshold: {
       type: Number,
-      enum: [50, 75, 90, 100],
+      enum: [50, 75, 80, 90, 100],
       default: 80,
     },
   },

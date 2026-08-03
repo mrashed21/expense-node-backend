@@ -33,11 +33,12 @@ export const BillController = {
 
   payBill: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { account_id } = req.body;
+      const { account_id, category_id } = req.body;
       const bill = await BillService.payBill(
         req.user!._id,
         req.params.id as string,
         account_id,
+        category_id
       );
       sendResponse(res, {
         statusCode: httpStatus.OK,

@@ -1,46 +1,74 @@
 import ApiError from "@/helpers/api-error";
 import httpStatus from "http-status";
+import mongoose from "mongoose";
 import { Account } from "../account/account.model";
 import { TransactionType } from "./transaction.interface";
 import { Transaction } from "./transaction.model";
 
 export const TransactionService = {
-  createTransaction: async (userId: string, payload: any) => {
+  createTransaction: async (userId: string, payload: any, externalSession?: mongoose.ClientSession) => {
     const { account_id, type, amount } = payload;
 
-    const account = await Account.findOne({
-      _id: account_id,
-      user_id: userId,
-      is_deleted: false,
-    });
-    if (!account) {
-      throw new ApiError(httpStatus.NOT_FOUND, "Account not found.");
+    const session = externalSession || await mongoose.startSession();
+    if (!externalSession) {
+      session.startTransaction();
     }
 
-    const transaction = await Transaction.create({
-      ...payload,
-      user_id: userId,
-    });
+    try {
+      const account = await Account.findOne({
+        _id: account_id,
+        user_id: userId,
+        is_deleted: false,
+      }).session(session);
+      if (!account) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Account not found.");
+      }
 
-    let balanceDelta = 0;
-    if (
-      type === TransactionType.INCOME ||
-      type === TransactionType.REFUND ||
-      type === TransactionType.OPENING_BALANCE
-    ) {
-      balanceDelta = amount;
-    } else if (type === TransactionType.EXPENSE) {
-      balanceDelta = -amount;
-    } else if (type === TransactionType.ADJUSTMENT) {
-      account.current_balance = amount;
-      await account.save();
+      const created = await Transaction.create(
+        [
+          {
+            ...payload,
+            user_id: userId,
+          },
+        ],
+        { session }
+      );
+      const transaction = created[0];
+
+      let balanceDelta = 0;
+      if (
+        type === TransactionType.INCOME ||
+        type === TransactionType.REFUND ||
+        type === TransactionType.OPENING_BALANCE
+      ) {
+        balanceDelta = amount;
+      } else if (type === TransactionType.EXPENSE) {
+        balanceDelta = -amount;
+      } else if (type === TransactionType.ADJUSTMENT) {
+        account.current_balance = amount;
+        await account.save({ session });
+        if (!externalSession) {
+          await session.commitTransaction();
+          session.endSession();
+        }
+        return transaction;
+      }
+
+      account.current_balance += balanceDelta;
+      await account.save({ session });
+
+      if (!externalSession) {
+        await session.commitTransaction();
+        session.endSession();
+      }
       return transaction;
+    } catch (error) {
+      if (!externalSession) {
+        await session.abortTransaction();
+        session.endSession();
+      }
+      throw error;
     }
-
-    account.current_balance += balanceDelta;
-    await account.save();
-
-    return transaction;
   },
 
   getTransactions: async (
@@ -139,31 +167,43 @@ export const TransactionService = {
   },
 
   deleteTransaction: async (userId: string, transactionId: string) => {
-    const transaction = await Transaction.findOne({
-      _id: transactionId,
-      user_id: userId,
-      is_deleted: false,
-    });
-    if (!transaction) {
-      throw new ApiError(httpStatus.NOT_FOUND, "Transaction not found.");
-    }
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    transaction.is_deleted = true;
-    await transaction.save();
-
-    const account = await Account.findById(transaction.account_id);
-    if (account) {
-      if (
-        transaction.type === TransactionType.INCOME ||
-        transaction.type === TransactionType.REFUND
-      ) {
-        account.current_balance -= transaction.amount;
-      } else if (transaction.type === TransactionType.EXPENSE) {
-        account.current_balance += transaction.amount;
+    try {
+      const transaction = await Transaction.findOne({
+        _id: transactionId,
+        user_id: userId,
+        is_deleted: false,
+      }).session(session);
+      if (!transaction) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Transaction not found.");
       }
-      await account.save();
-    }
 
-    return true;
+      transaction.is_deleted = true;
+      await transaction.save({ session });
+
+      const account = await Account.findById(transaction.account_id).session(session);
+      if (account) {
+        if (
+          transaction.type === TransactionType.INCOME ||
+          transaction.type === TransactionType.REFUND ||
+          transaction.type === TransactionType.OPENING_BALANCE
+        ) {
+          account.current_balance -= transaction.amount;
+        } else if (transaction.type === TransactionType.EXPENSE) {
+          account.current_balance += transaction.amount;
+        }
+        await account.save({ session });
+      }
+
+      await session.commitTransaction();
+      session.endSession();
+      return true;
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   },
 };

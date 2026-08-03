@@ -41,7 +41,7 @@ export const UserController = {
     next: NextFunction,
   ) => {
     try {
-      const imageUrl = req.file?.path || req.body.user_profile_image;
+      const imageUrl = req.file?.path;
       if (!imageUrl) {
         res.status(httpStatus.BAD_REQUEST).json({
           success: false,
