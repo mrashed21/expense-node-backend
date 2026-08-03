@@ -116,6 +116,18 @@ const userSchema = new Schema<IUserDocument>(
       type: Date,
       default: null,
     },
+    two_factor_enabled: {
+      type: Boolean,
+      default: false,
+    },
+    two_factor_secret: {
+      type: String,
+      select: false,
+    },
+    two_factor_recovery_codes: {
+      type: [String],
+      select: false,
+    },
   },
   {
     timestamps: true,

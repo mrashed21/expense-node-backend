@@ -35,6 +35,7 @@ router.post(
   AuthController.resendOtp,
 );
 router.post("/login", validateRequest(loginSchema), AuthController.login);
+router.post("/login/verify", AuthController.verifyLogin2FA);
 router.get("/me", checkAuth(), AuthController.getMe);
 router.post("/refresh-token", AuthController.refreshToken);
 router.post("/logout", AuthController.logout);

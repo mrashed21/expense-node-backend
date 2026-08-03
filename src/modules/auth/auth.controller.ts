@@ -81,11 +81,70 @@ export const AuthController = {
       const clientInfo = {
         ip: req.ip || req.socket.remoteAddress || "127.0.0.1",
         userAgent: req.headers["user-agent"] || "Unknown User Agent",
+        deviceId: req.cookies.deviceId
       };
 
       const result = await AuthService.login(req.body, clientInfo);
-      setRefreshTokenCookie(res, result.refreshToken);
-      setAccessTokenCookie(res, result.accessToken);
+      
+      if (result.requires2FA) {
+        sendResponse(res, {
+          statusCode: httpStatus.OK,
+          success: true,
+          message: "2FA Verification Required",
+          data: {
+            requires2FA: true,
+            tempToken: result.tempToken
+          }
+        });
+        return;
+      }
+
+      setRefreshTokenCookie(res, result.refreshToken!);
+      setAccessTokenCookie(res, result.accessToken!);
+      
+      if (result.deviceId) {
+        res.cookie("deviceId", result.deviceId, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 365 * 24 * 60 * 60 * 1000 // 1 year
+        });
+      }
+
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Login successful.",
+        data: {
+          user: result.user,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  verifyLogin2FA: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const clientInfo = {
+        ip: req.ip || req.socket.remoteAddress || "127.0.0.1",
+        userAgent: req.headers["user-agent"] || "Unknown User Agent",
+        deviceId: req.cookies.deviceId
+      };
+
+      const result = await AuthService.verifyLogin2FA(req.body, clientInfo);
+      
+      setRefreshTokenCookie(res, result.refreshToken!);
+      setAccessTokenCookie(res, result.accessToken!);
+      
+      if (result.deviceId) {
+        res.cookie("deviceId", result.deviceId, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: 365 * 24 * 60 * 60 * 1000 // 1 year
+        });
+      }
 
       sendResponse(res, {
         statusCode: httpStatus.OK,

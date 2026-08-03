@@ -113,4 +113,70 @@ export const UserController = {
       next(error);
     }
   },
+
+  generate2FA: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await UserService.generate2FA(req.user!._id, req.user!.user_email || "user@expensevault.com");
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  verify2FA: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await UserService.verify2FA(req.user!._id, req.body.code);
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "2FA enabled successfully",
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  disable2FA: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await UserService.disable2FA(req.user!._id);
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "2FA disabled successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  getDevices: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const devices = await UserService.getDevices(req.user!._id);
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        data: devices,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  revokeDevice: async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await UserService.revokeDevice(req.user!._id, req.params.id);
+      sendResponse(res, {
+        statusCode: httpStatus.OK,
+        success: true,
+        message: "Device revoked successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 };

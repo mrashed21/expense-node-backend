@@ -8,7 +8,10 @@ import { sendEmail } from "@/utils/send-email";
 import { LoginHistory } from "../user/login-history.model";
 import { UserStatus } from "../user/user.interface";
 import { User } from "../user/user.model";
+import { Device } from "../user/device.model";
 import { Otp } from "./auth.model";
+import { verifyToken as verifyTotp } from "@/helpers/totp.helper";
+import crypto from "crypto";
 
 export const AuthService = {
   register: async (payload: any) => {
@@ -143,14 +146,13 @@ export const AuthService = {
     return true;
   },
 
-  // 3. Login User
   login: async (
     payload: any,
-    clientInfo: { ip: string; userAgent: string },
+    clientInfo: { ip: string; userAgent: string; deviceId?: string },
   ) => {
     const { user_email, user_password } = payload;
 
-    const user = await User.findOne({ user_email }).select("+user_password");
+    const user = await User.findOne({ user_email }).select("+user_password +two_factor_secret");
     if (!user || user.is_deleted) {
       throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid email or password.");
     }
@@ -176,17 +178,128 @@ export const AuthService = {
 
     const parser = new UAParser(clientInfo.userAgent);
     const ua = parser.getResult();
-    const deviceInfo =
+    const deviceName =
       `${ua.device.vendor || "Desktop"} ${ua.device.model || ""}`.trim() ||
       "Desktop";
     const browserInfo =
       `${ua.browser.name || "Unknown Browser"} ${ua.browser.version || ""}`.trim();
 
+    // 2FA Check
+    if (user.two_factor_enabled) {
+      const tempPayload = { _id: user._id.toString(), type: "2fa_temp" };
+      const tempToken = generateToken(tempPayload, envConfig.jwt.access_secret, "5m");
+      return { requires2FA: true, tempToken };
+    }
+
+    return await AuthService.finalizeLogin(user, clientInfo, deviceName, browserInfo);
+  },
+
+  verifyLogin2FA: async (
+    payload: { tempToken: string; code: string },
+    clientInfo: { ip: string; userAgent: string; deviceId?: string },
+  ) => {
+    const { tempToken, code } = payload;
+    let decoded: any;
+    try {
+      decoded = verifyToken(tempToken, envConfig.jwt.access_secret);
+    } catch (err) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid or expired temporary token");
+    }
+
+    if (decoded.type !== "2fa_temp") {
+      throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid token type");
+    }
+
+    const user = await User.findById(decoded._id).select("+two_factor_secret +two_factor_recovery_codes");
+    if (!user || !user.two_factor_enabled || !user.two_factor_secret) {
+      throw new ApiError(httpStatus.BAD_REQUEST, "2FA is not enabled for this account");
+    }
+
+    // Check TOTP code or Recovery Code
+    let isValid = verifyTotp(user.two_factor_secret, code);
+    
+    if (!isValid && user.two_factor_recovery_codes?.includes(code)) {
+      isValid = true;
+      // Remove used recovery code
+      user.two_factor_recovery_codes = user.two_factor_recovery_codes.filter(c => c !== code);
+      await user.save();
+    }
+
+    if (!isValid) {
+      throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid 2FA code");
+    }
+
+    const parser = new UAParser(clientInfo.userAgent);
+    const ua = parser.getResult();
+    const deviceName =
+      `${ua.device.vendor || "Desktop"} ${ua.device.model || ""}`.trim() ||
+      "Desktop";
+    const browserInfo =
+      `${ua.browser.name || "Unknown Browser"} ${ua.browser.version || ""}`.trim();
+
+    return await AuthService.finalizeLogin(user, clientInfo, deviceName, browserInfo);
+  },
+
+  finalizeLogin: async (
+    user: any,
+    clientInfo: { ip: string; userAgent: string; deviceId?: string },
+    deviceName: string,
+    browserInfo: string,
+  ) => {
+    // Device Tracking
+    let deviceId = clientInfo.deviceId;
+    let isNewDevice = false;
+
+    if (!deviceId) {
+      deviceId = crypto.randomUUID();
+      isNewDevice = true;
+    } else {
+      const existingDevice = await Device.findOne({ user_id: user._id, device_id: deviceId });
+      if (!existingDevice) {
+        isNewDevice = true;
+      }
+    }
+
+    // Upsert Device
+    await Device.findOneAndUpdate(
+      { user_id: user._id, device_id: deviceId },
+      { 
+        device_name: deviceName, 
+        last_active: new Date(), 
+        ip_address: clientInfo.ip,
+        is_trusted: true // Once logged in successfully, we trust it for now
+      },
+      { upsert: true }
+    );
+
+    // Send New Login Alert
+    if (isNewDevice) {
+      try {
+        await sendEmail(
+          user.user_email,
+          "New Login Detected - Expense Tracker",
+          `<div style="font-family: Arial, sans-serif; padding: 20px;">
+            <h2>New Login Alert</h2>
+            <p>We detected a new login to your account from an unrecognized device.</p>
+            <ul>
+              <li><strong>Device:</strong> ${deviceName}</li>
+              <li><strong>Browser:</strong> ${browserInfo}</li>
+              <li><strong>IP Address:</strong> ${clientInfo.ip}</li>
+              <li><strong>Time:</strong> ${new Date().toUTCString()}</li>
+            </ul>
+            <p>If this was you, you can ignore this email. If you don't recognize this activity, please reset your password immediately.</p>
+          </div>`
+        );
+      } catch (err) {
+        console.error("Failed to send login alert email:", err);
+      }
+    }
+
     await LoginHistory.create({
       user_id: user._id,
       ip_address: clientInfo.ip,
       user_agent: clientInfo.userAgent,
-      device_info: deviceInfo,
+      device_info: deviceName,
       browser: browserInfo,
       timestamp: new Date(),
     });
@@ -225,6 +338,7 @@ export const AuthService = {
       },
       accessToken,
       refreshToken,
+      deviceId,
     };
   },
 

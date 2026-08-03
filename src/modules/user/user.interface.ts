@@ -40,6 +40,10 @@ export interface IUser {
   is_deleted: boolean;
   deleted_at?: Date;
 
+  two_factor_enabled: boolean;
+  two_factor_secret?: string;
+  two_factor_recovery_codes?: string[];
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,3 +71,17 @@ export interface ILoginHistory {
 }
 
 export interface ILoginHistoryDocument extends ILoginHistory, Document {}
+
+export interface IDevice {
+  _id: Types.ObjectId;
+  user_id: Types.ObjectId;
+  device_id: string;
+  device_name: string;
+  is_trusted: boolean;
+  last_active: Date;
+  ip_address: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IDeviceDocument extends IDevice, Document {}
