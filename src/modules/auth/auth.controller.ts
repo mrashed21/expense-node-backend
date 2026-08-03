@@ -10,6 +10,14 @@ import httpStatus from "http-status";
 import { AuthService } from "./auth.service";
 
 export const AuthController = {
+  getCsrfToken: (req: Request, res: Response) => {
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "CSRF token retrieved",
+      data: { csrfToken: (req as any).csrfToken },
+    });
+  },
   register: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await AuthService.register(req.body);

@@ -5,6 +5,8 @@ import express, { Application, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
+import { csrfProtection } from "./middlewares/csrf.middleware";
+import { apiLimiter } from "./middlewares/rate-limiter.middleware";
 import { envConfig } from "./config/env-config";
 import {
   globalErrorHandler,
@@ -13,9 +15,35 @@ import {
 import routes from "./routes";
 
 const app: Application = express();
+app.set("trust proxy", 1);
 
 // Security Middlewares
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "res.cloudinary.com"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  crossOriginEmbedderPolicy: true,
+  crossOriginOpenerPolicy: true,
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  dnsPrefetchControl: { allow: false },
+  frameguard: { action: "deny" },
+  hidePoweredBy: true,
+  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+  ieNoOpen: true,
+  noSniff: true,
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+  xssFilter: true,
+}));
 app.use(
   cors({
     origin: [envConfig.frontend_url, "http://localhost:3000"],
@@ -24,18 +52,7 @@ app.use(
 );
 
 // Global Rate Limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300, // Limit each IP to 300 requests per windowMs
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    success: false,
-    message:
-      "Too many requests from this IP. Please try again after 15 minutes.",
-  },
-});
-app.use(limiter);
+app.use(apiLimiter);
 
 // Core Middlewares
 app.use(express.json({ limit: "10mb" }));
@@ -57,7 +74,7 @@ app.get("/health", (req: Request, res: Response) => {
 });
 
 // API Routes Version 1
-app.use("/api/v1", routes);
+app.use("/api/v1", csrfProtection, routes);
 
 // Global Error & Not Found Handlers
 app.use(notFoundHandler);

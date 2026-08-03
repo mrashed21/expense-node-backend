@@ -11,7 +11,13 @@ import {
   verifyOtpSchema,
 } from "./auth.validation";
 
+import { generateCsrfToken } from "@/middlewares/csrf.middleware";
+import { authLimiter } from "@/middlewares/rate-limiter.middleware";
+
 const router = Router();
+
+router.use(authLimiter);
+router.get("/csrf-token", generateCsrfToken, AuthController.getCsrfToken);
 
 router.post(
   "/register",
