@@ -34,6 +34,32 @@ const transactionSchema = new Schema<ITransactionDocument>(
       required: [true, "Transaction amount is required"],
       min: [0, "Amount must be positive"],
     },
+    foreign_currency: {
+      type: String,
+    },
+    foreign_amount: {
+      type: Number,
+    },
+    exchange_rate: {
+      type: Number,
+      default: 1,
+    },
+    splits: [
+      {
+        category_id: { type: Schema.Types.ObjectId, ref: "Category" },
+        amount: { type: Number },
+        notes: { type: String },
+        _id: false,
+      },
+    ],
+    is_installment: {
+      type: Boolean,
+      default: false,
+    },
+    installment_id: {
+      type: Schema.Types.ObjectId,
+      ref: "Installment",
+    },
     date: {
       type: Date,
       required: true,

@@ -13,6 +13,7 @@ export interface ICategory {
   type: CategoryType;
   icon: string;
   color: string;
+  is_tax_deductible?: boolean;
   is_default: boolean;
   is_deleted: boolean;
   createdAt: Date;

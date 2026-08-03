@@ -1,4 +1,5 @@
 import { Account } from "@/modules/account/account.model";
+import { Bill } from "@/modules/bill/bill.model";
 import { Budget } from "@/modules/budget/budget.model";
 import { Goal } from "@/modules/goal/goal.model";
 import { TransactionType } from "@/modules/transaction/transaction.interface";
@@ -242,6 +243,41 @@ export const AnalyticsService = {
         ? Math.round((netSavings / cyAgg.income) * 100)
         : 0;
 
+    // ── 10. Cash Flow Forecast (Next 30 Days) ──────────────────────────────
+    const forecast: Array<{ date: string; projectedBalance: number }> = [];
+    let projectedBalance = netWorth;
+    
+    // Find upcoming pending bills
+    const upcomingBills = await Bill.find({
+      user_id: uid,
+      status: "pending",
+      due_date: { $gte: now },
+    }).lean();
+
+    // Group bills by date string "MM/DD" for O(1) lookup
+    const billMap = new Map<string, number>();
+    for (const b of upcomingBills) {
+      if (!b.due_date) continue;
+      const d = new Date(b.due_date);
+      const key = `${d.getMonth() + 1}/${d.getDate()}`;
+      billMap.set(key, (billMap.get(key) || 0) + (b.amount || 0));
+    }
+
+    for (let i = 0; i < 30; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() + i);
+      const dStr = `${d.getMonth() + 1}/${d.getDate()}`;
+      
+      // Deduct any bills due on this day
+      const dailyBills = billMap.get(dStr) || 0;
+      projectedBalance -= dailyBills;
+      
+      forecast.push({
+        date: dStr,
+        projectedBalance: Math.round(projectedBalance * 100) / 100,
+      });
+    }
+
     return {
       monthlyComparison,
       yearlyComparison,
@@ -250,6 +286,7 @@ export const AnalyticsService = {
       categoryBreakdown,
       budgetAnalytics,
       goalAnalytics,
+      cashFlowForecast: forecast,
       kpi: {
         totalIncomeYear,
         totalExpenseYear,

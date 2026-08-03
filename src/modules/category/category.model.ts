@@ -30,7 +30,11 @@ const categorySchema = new Schema<ICategoryDocument>(
     },
     color: {
       type: String,
-      default: "#6366F1",
+      default: "#4F46E5",
+    },
+    is_tax_deductible: {
+      type: Boolean,
+      default: false,
     },
     is_default: {
       type: Boolean,

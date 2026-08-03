@@ -46,6 +46,8 @@ export interface IAnalyticsSummary {
     percentage: number;
     status: string;
   }>;
+  /** Cash Flow Forecast for next 30 days */
+  cashFlowForecast: Array<{ date: string; projectedBalance: number }>;
   /** Top KPIs */
   kpi: {
     totalIncomeYear: number;

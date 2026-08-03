@@ -7,6 +7,7 @@ import { billRoutes } from "@/modules/bill/bill.route";
 import { budgetRoutes } from "@/modules/budget/budget.route";
 import { categoryRoutes } from "@/modules/category/category.route";
 import { dataRoutes } from "@/modules/data/data.route";
+import { debtRoutes } from "@/modules/debt/debt.route";
 import { goalRoutes } from "@/modules/goal/goal.route";
 import { notificationRoutes } from "@/modules/notification/notification.route";
 import { transactionRoutes } from "@/modules/transaction/transaction.route";
@@ -27,6 +28,7 @@ const apiRoutes = [
   { path: "/budgets", route: budgetRoutes },
   { path: "/goals", route: goalRoutes },
   { path: "/bills", route: billRoutes },
+  { path: "/debts", route: debtRoutes },
   { path: "/data", route: dataRoutes },
   { path: "/notifications", route: notificationRoutes },
   { path: "/analytics", route: analyticsRoutes },
