@@ -10,6 +10,7 @@ import { dataRoutes } from "@/modules/data/data.route";
 import { debtRoutes } from "@/modules/debt/debt.route";
 import { goalRoutes } from "@/modules/goal/goal.route";
 import { notificationRoutes } from "@/modules/notification/notification.route";
+import { savedFilterRoutes } from "@/modules/saved-filter/saved-filter.route";
 import { transactionRoutes } from "@/modules/transaction/transaction.route";
 import { transferRoutes } from "@/modules/transfer/transfer.route";
 import { userRoutes } from "@/modules/user/user.route";
@@ -29,6 +30,7 @@ const apiRoutes = [
   { path: "/goals", route: goalRoutes },
   { path: "/bills", route: billRoutes },
   { path: "/debts", route: debtRoutes },
+  { path: "/saved-filters", route: savedFilterRoutes },
   { path: "/data", route: dataRoutes },
   { path: "/notifications", route: notificationRoutes },
   { path: "/analytics", route: analyticsRoutes },

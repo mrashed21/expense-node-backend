@@ -6,6 +6,7 @@ import { DataController } from "./data.controller";
 const router = Router();
 router.use(checkAuth(UserRole.USER));
 
+router.get("/search", DataController.searchData);
 router.get("/backup", DataController.exportBackup);
 router.post("/restore", DataController.restoreBackup);
 

@@ -238,6 +238,92 @@ export const TransactionService = {
     };
   },
 
+  restoreTransaction: async (userId: string, transactionId: string) => {
+    const tx = await Transaction.findOneAndUpdate(
+      { _id: transactionId, user_id: userId, is_deleted: true },
+      { $set: { is_deleted: false } },
+      { new: true }
+    );
+    if (!tx) throw new ApiError(httpStatus.NOT_FOUND, "Transaction not found or already restored");
+    
+    // Restore balance logic (reverse of delete logic)
+    const multiplier = tx.type === TransactionType.EXPENSE ? -1 : 1;
+    await Account.findByIdAndUpdate(tx.account_id, {
+      $inc: { current_balance: tx.amount * multiplier },
+    });
+    return tx;
+  },
+
+  bulkRestoreTransactions: async (userId: string, transactionIds: string[]) => {
+    const transactions = await Transaction.find({
+      _id: { $in: transactionIds },
+      user_id: userId,
+      is_deleted: true,
+    });
+    if (transactions.length === 0) return { restoredCount: 0 };
+
+    await Transaction.updateMany(
+      { _id: { $in: transactionIds }, user_id: userId, is_deleted: true },
+      { $set: { is_deleted: false } }
+    );
+
+    const accountBalanceChanges = new Map<string, number>();
+    for (const tx of transactions) {
+      const multiplier = tx.type === TransactionType.EXPENSE ? -1 : 1; // reverse of delete
+      const change = tx.amount * multiplier;
+      const accId = tx.account_id.toString();
+      accountBalanceChanges.set(accId, (accountBalanceChanges.get(accId) || 0) + change);
+    }
+
+    const bulkAccountOps = Array.from(accountBalanceChanges.entries()).map(([accId, change]) => ({
+      updateOne: {
+        filter: { _id: accId },
+        update: { $inc: { current_balance: change } },
+      },
+    }));
+
+    if (bulkAccountOps.length > 0) {
+      await Account.bulkWrite(bulkAccountOps);
+    }
+
+    return { restoredCount: transactions.length };
+  },
+
+  bulkDeleteTransactions: async (userId: string, transactionIds: string[]) => {
+    const transactions = await Transaction.find({
+      _id: { $in: transactionIds },
+      user_id: userId,
+      is_deleted: false,
+    });
+    if (transactions.length === 0) return { deletedCount: 0 };
+
+    await Transaction.updateMany(
+      { _id: { $in: transactionIds }, user_id: userId, is_deleted: false },
+      { $set: { is_deleted: true } }
+    );
+
+    const accountBalanceChanges = new Map<string, number>();
+    for (const tx of transactions) {
+      const multiplier = tx.type === TransactionType.EXPENSE ? 1 : -1;
+      const change = tx.amount * multiplier;
+      const accId = tx.account_id.toString();
+      accountBalanceChanges.set(accId, (accountBalanceChanges.get(accId) || 0) + change);
+    }
+
+    const bulkAccountOps = Array.from(accountBalanceChanges.entries()).map(([accId, change]) => ({
+      updateOne: {
+        filter: { _id: accId },
+        update: { $inc: { current_balance: change } },
+      },
+    }));
+
+    if (bulkAccountOps.length > 0) {
+      await Account.bulkWrite(bulkAccountOps);
+    }
+
+    return { deletedCount: transactions.length };
+  },
+
   deleteTransaction: async (userId: string, transactionId: string) => {
     const session = await mongoose.startSession();
     session.startTransaction();

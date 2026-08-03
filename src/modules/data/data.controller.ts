@@ -4,6 +4,19 @@ import { Request, Response } from "express";
 import httpStatus from "http-status";
 import { DataService } from "./data.service";
 
+const searchData = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user!._id;
+  const query = req.query.q as string;
+  const result = await DataService.searchData(userId, query);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Search completed successfully",
+    data: result,
+  });
+});
+
 const exportBackup = catchAsync(async (req: Request, res: Response) => {
   const userId = req.user!._id;
   const result = await DataService.exportData(userId);
@@ -30,6 +43,7 @@ const restoreBackup = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const DataController = {
+  searchData,
   exportBackup,
   restoreBackup,
 };

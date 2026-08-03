@@ -10,6 +10,47 @@ import { Transaction } from "../transaction/transaction.model";
 import { Transfer } from "../transfer/transfer.model";
 
 export const DataService = {
+  searchData: async (userId: string, query: string) => {
+    if (!query) return { transactions: [], accounts: [], categories: [] };
+    
+    const uid = new mongoose.Types.ObjectId(userId);
+    // Escape user input for regex to prevent ReDoS (Regular Expression Denial of Service)
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(escapedQuery, "i"); // Case-insensitive global search
+
+    const [transactions, accounts, categories] = await Promise.all([
+      Transaction.find({
+        user_id: uid,
+        is_deleted: false,
+        $or: [
+          { notes: { $regex: regex } },
+          { location: { $regex: regex } },
+          { tags: { $in: [regex] } },
+        ],
+      })
+        .populate("account_id", "name type color icon")
+        .populate("category_id", "name color icon")
+        .limit(10)
+        .lean(),
+      Account.find({
+        user_id: uid,
+        is_deleted: false,
+        name: { $regex: regex },
+      })
+        .limit(5)
+        .lean(),
+      Category.find({
+        user_id: uid,
+        is_deleted: false,
+        name: { $regex: regex },
+      })
+        .limit(5)
+        .lean(),
+    ]);
+
+    return { transactions, accounts, categories };
+  },
+
   exportData: async (userId: string) => {
     // Parallelize the queries to fetch all user data
     const [
