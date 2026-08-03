@@ -7,7 +7,7 @@ import { User } from "./user.model";
 
 export const UserService = {
   getProfile: async (userId: string) => {
-    const user = await User.findById(userId).select("-user_password");
+    const user = await User.findById(userId).select("-user_password").lean();
     if (!user || user.is_deleted) {
       throw new ApiError(httpStatus.NOT_FOUND, "User profile not found.");
     }
@@ -64,7 +64,8 @@ export const UserService = {
   getLoginHistory: async (userId: string, limit = 10) => {
     return LoginHistory.find({ user_id: userId })
       .sort({ timestamp: -1 })
-      .limit(limit);
+      .limit(limit)
+      .lean();
   },
 
   deleteAccount: async (userId: string) => {

@@ -15,9 +15,9 @@ export const AccountService = {
   },
 
   getUserAccounts: async (userId: string) => {
-    return Account.find({ user_id: userId, is_deleted: false }).sort({
-      createdAt: -1,
-    });
+    return Account.find({ user_id: userId, is_deleted: false })
+      .sort({ createdAt: -1 })
+      .lean();
   },
 
   getAccountById: async (userId: string, accountId: string) => {
@@ -25,7 +25,7 @@ export const AccountService = {
       _id: accountId,
       user_id: userId,
       is_deleted: false,
-    });
+    }).lean();
     if (!account) {
       throw new ApiError(httpStatus.NOT_FOUND, "Account not found.");
     }

@@ -153,7 +153,8 @@ export const TransactionService = {
       .populate("category_id", "name type icon color")
       .sort({ date: -1, createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     return {
       meta: {

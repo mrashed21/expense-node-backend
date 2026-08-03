@@ -17,7 +17,8 @@ export const AdminController = {
       const users = await User.find({ is_deleted: false })
         .select("-user_password")
         .sort({ createdAt: -1 })
-        .limit(limit);
+        .limit(limit)
+        .lean();
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -152,7 +153,8 @@ export const AdminController = {
     try {
       const admins = await Admin.find({ is_deleted: false })
         .select("-admin_password")
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .lean();
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -269,7 +271,8 @@ export const AdminController = {
       const recentTransactions = await Transaction.find()
         .populate("user_id", "user_name user_email user_profile_image")
         .sort({ createdAt: -1 })
-        .limit(20);
+        .limit(20)
+        .lean();
 
       sendResponse(res, {
         statusCode: httpStatus.OK,

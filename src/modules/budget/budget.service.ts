@@ -1,5 +1,6 @@
 import ApiError from "@/helpers/api-error";
 import httpStatus from "http-status";
+import mongoose from "mongoose";
 import { TransactionType } from "../transaction/transaction.interface";
 import { Transaction } from "../transaction/transaction.model";
 import { Budget } from "./budget.model";
@@ -37,7 +38,9 @@ export const BudgetService = {
     const budgets = await Budget.find({
       user_id: userId,
       month_year: currentMonth,
-    }).populate("category_id", "name color icon type");
+    })
+      .populate("category_id", "name color icon type")
+      .lean();
 
     const startOfMonth = new Date(`${currentMonth}-01T00:00:00.000Z`);
     const endOfMonth = new Date(
@@ -50,41 +53,45 @@ export const BudgetService = {
       999,
     );
 
-    const budgetsWithAnalytics = await Promise.all(
-      budgets.map(async (b) => {
-        const spentResult = await Transaction.aggregate([
-          {
-            $match: {
-              user_id: b.user_id,
-              category_id: b.category_id._id,
-              type: TransactionType.EXPENSE,
-              is_deleted: false,
-              date: { $gte: startOfMonth, $lte: endOfMonth },
-            },
-          },
-          {
-            $group: {
-              _id: null,
-              totalSpent: { $sum: "$amount" },
-            },
-          },
-        ]);
+    const categoryIds = budgets.map((b: any) => b.category_id._id);
 
-        const totalSpent = spentResult[0]?.totalSpent || 0;
-        const percentage = Math.min(
-          100,
-          Math.round((totalSpent / b.amount) * 100),
-        );
+    const spentResult = await Transaction.aggregate([
+      {
+        $match: {
+          user_id: new mongoose.Types.ObjectId(userId),
+          category_id: { $in: categoryIds },
+          type: TransactionType.EXPENSE,
+          is_deleted: false,
+          date: { $gte: startOfMonth, $lte: endOfMonth },
+        },
+      },
+      {
+        $group: {
+          _id: "$category_id",
+          totalSpent: { $sum: "$amount" },
+        },
+      },
+    ]);
 
-        return {
-          ...b.toObject(),
-          spent_amount: totalSpent,
-          remaining_amount: Math.max(0, b.amount - totalSpent),
-          percentage,
-          is_warning: percentage >= b.warning_threshold,
-        };
-      }),
+    const spentMap = new Map(
+      spentResult.map((res) => [res._id.toString(), res.totalSpent])
     );
+
+    const budgetsWithAnalytics = budgets.map((b: any) => {
+      const totalSpent = spentMap.get(b.category_id._id.toString()) || 0;
+      const percentage = Math.min(
+        100,
+        Math.round((totalSpent / b.amount) * 100),
+      );
+
+      return {
+        ...b,
+        spent_amount: totalSpent,
+        remaining_amount: Math.max(0, b.amount - totalSpent),
+        percentage,
+        is_warning: percentage >= b.warning_threshold,
+      };
+    });
 
     return budgetsWithAnalytics;
   },

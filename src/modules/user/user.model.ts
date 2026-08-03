@@ -123,7 +123,10 @@ const userSchema = new Schema<IUserDocument>(
   },
 );
 
-userSchema.index({ user_email: 1 });
-userSchema.index({ is_deleted: 1 });
+userSchema.index(
+  { user_phone: 1 },
+  { unique: true, sparse: true }
+);
+userSchema.index({ is_deleted: 1, user_status: 1 });
 
 export const User = model<IUserDocument>("User", userSchema);

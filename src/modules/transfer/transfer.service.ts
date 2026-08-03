@@ -107,6 +107,7 @@ export const TransferService = {
     return Transfer.find({ user_id: userId })
       .populate("from_account_id", "name type color icon")
       .populate("to_account_id", "name type color icon")
-      .sort({ date: -1, createdAt: -1 });
+      .sort({ date: -1, createdAt: -1 })
+      .lean();
   },
 };

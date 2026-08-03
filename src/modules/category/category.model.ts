@@ -48,5 +48,9 @@ const categorySchema = new Schema<ICategoryDocument>(
 );
 
 categorySchema.index({ user_id: 1, type: 1, is_deleted: 1 });
+categorySchema.index(
+  { user_id: 1, name: 1, type: 1 },
+  { unique: true, partialFilterExpression: { is_deleted: false } }
+);
 
 export const Category = model<ICategoryDocument>("Category", categorySchema);

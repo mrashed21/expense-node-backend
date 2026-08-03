@@ -11,7 +11,7 @@ export const GoalService = {
   },
 
   getGoals: async (userId: string) => {
-    const goals = await Goal.find({ user_id: userId }).sort({ createdAt: -1 });
+    const goals = await Goal.find({ user_id: userId }).sort({ createdAt: -1 }).lean();
 
     return goals.map((g) => {
       const percentage = Math.min(
@@ -19,7 +19,7 @@ export const GoalService = {
         Math.round((g.current_amount / g.target_amount) * 100),
       );
       return {
-        ...g.toObject(),
+        ...g,
         percentage,
       };
     });

@@ -4,7 +4,8 @@ export const NotificationService = {
   getUserNotifications: async (userId: string) => {
     return Notification.find({ user_id: userId })
       .sort({ createdAt: -1 })
-      .limit(30);
+      .limit(30)
+      .lean();
   },
 
   markAsRead: async (userId: string, notificationId: string) => {

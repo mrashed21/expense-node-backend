@@ -14,7 +14,7 @@ export const BillService = {
   },
 
   getBills: async (userId: string) => {
-    return Bill.find({ user_id: userId }).sort({ due_date: 1 });
+    return Bill.find({ user_id: userId }).sort({ due_date: 1 }).lean();
   },
 
   payBill: async (userId: string, billId: string, accountId: string, categoryId?: string) => {

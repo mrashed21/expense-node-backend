@@ -8,7 +8,6 @@ const otpSchema = new Schema<IOtpDocument>(
       required: true,
       lowercase: true,
       trim: true,
-      index: true,
     },
     otp_code: {
       type: String,
@@ -35,5 +34,6 @@ const otpSchema = new Schema<IOtpDocument>(
 );
 
 otpSchema.index({ expires_at: 1 }, { expireAfterSeconds: 0 });
+otpSchema.index({ user_email: 1, otp_type: 1, is_used: 1 });
 
 export const Otp = model<IOtpDocument>("Otp", otpSchema);
