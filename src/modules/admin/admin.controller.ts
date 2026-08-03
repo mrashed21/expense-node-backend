@@ -4,21 +4,15 @@ import httpStatus from "http-status";
 import os from "os";
 
 import { sendResponse } from "@/helpers/send-response";
-import { Transaction } from "../transaction/transaction.model";
-import { User } from "../user/user.model";
 import { AdminRole } from "./admin.interface";
-import { Admin } from "./admin.model";
+import { AdminService } from "./admin.service";
 
 export const AdminController = {
   // --- USER MANAGEMENT ---
   getUsers: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const limit = Number(req.query.limit) || 50;
-      const users = await User.find({ is_deleted: false })
-        .select("-user_password")
-        .sort({ createdAt: -1 })
-        .limit(limit)
-        .lean();
+      const users = await AdminService.getUsers(limit);
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -32,13 +26,7 @@ export const AdminController = {
 
   createUser: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const newUser = await User.create({
-        ...req.body,
-        email_verified: true, // Auto verify if admin creates
-      });
-
-      const userObj = newUser.toObject();
-      delete userObj.user_password;
+      const userObj = await AdminService.createUser(req.body);
 
       sendResponse(res, {
         statusCode: httpStatus.CREATED,
@@ -56,20 +44,7 @@ export const AdminController = {
       const { id } = req.params;
       const updateData = req.body;
 
-      delete updateData.user_password;
-
-      const updatedUser = await User.findByIdAndUpdate(id, updateData, {
-        new: true,
-        runValidators: true,
-      }).select("-user_password");
-
-      if (!updatedUser) {
-        return sendResponse(res, {
-          statusCode: httpStatus.NOT_FOUND,
-          success: false,
-          message: "User not found",
-        });
-      }
+      const updatedUser = await AdminService.updateUser(id, updateData);
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -85,28 +60,9 @@ export const AdminController = {
   deleteUser: async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
+      const role = req.user?.user_role || "";
 
-      if (req.user?.user_role !== AdminRole.SUPER_ADMIN) {
-        return sendResponse(res, {
-          statusCode: httpStatus.FORBIDDEN,
-          success: false,
-          message: "Only super_admin can delete users",
-        });
-      }
-
-      const deletedUser = await User.findByIdAndUpdate(
-        id,
-        { is_deleted: true, user_status: "deleted" },
-        { new: true },
-      );
-
-      if (!deletedUser) {
-        return sendResponse(res, {
-          statusCode: httpStatus.NOT_FOUND,
-          success: false,
-          message: "User not found",
-        });
-      }
+      await AdminService.deleteUser(id, role);
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -123,19 +79,7 @@ export const AdminController = {
       const { id } = req.params;
       const { status } = req.body;
 
-      const updatedUser = await User.findByIdAndUpdate(
-        id,
-        { user_status: status },
-        { new: true },
-      ).select("-user_password");
-
-      if (!updatedUser) {
-        return sendResponse(res, {
-          statusCode: httpStatus.NOT_FOUND,
-          success: false,
-          message: "User not found",
-        });
-      }
+      const updatedUser = await AdminService.updateUserStatus(id, status);
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -151,10 +95,7 @@ export const AdminController = {
   // --- ADMIN MANAGEMENT ---
   getAdmins: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const admins = await Admin.find({ is_deleted: false })
-        .select("-admin_password")
-        .sort({ createdAt: -1 })
-        .lean();
+      const admins = await AdminService.getAdmins();
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
@@ -167,28 +108,7 @@ export const AdminController = {
 
   createAdmin: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { admin_name, admin_email, admin_password, admin_role } = req.body;
-
-      const existingAdmin = await Admin.findOne({ admin_email });
-      if (existingAdmin) {
-        return sendResponse(res, {
-          statusCode: httpStatus.BAD_REQUEST,
-          success: false,
-          message: "Admin email already exists",
-        });
-      }
-
-      const hashedPassword = await bcrypt.hash(admin_password, 12);
-
-      const newAdmin = await Admin.create({
-        admin_name,
-        admin_email,
-        admin_password: hashedPassword,
-        admin_role: admin_role || AdminRole.ADMIN,
-      });
-
-      const adminObj = newAdmin.toObject();
-      delete adminObj.admin_password;
+      const adminObj = await AdminService.createAdmin(req.body);
 
       sendResponse(res, {
         statusCode: httpStatus.CREATED,
@@ -209,29 +129,9 @@ export const AdminController = {
     try {
       const { id } = req.params;
       const { status } = req.body;
+      const currentAdminId = req.user?._id as string;
 
-      // Prevent super admin from changing their own status to inactive/banned
-      if (req.user?._id === id) {
-        return sendResponse(res, {
-          statusCode: httpStatus.BAD_REQUEST,
-          success: false,
-          message: "You cannot change your own status.",
-        });
-      }
-
-      const updatedAdmin = await Admin.findByIdAndUpdate(
-        id,
-        { admin_status: status },
-        { new: true },
-      ).select("-admin_password");
-
-      if (!updatedAdmin) {
-        return sendResponse(res, {
-          statusCode: httpStatus.NOT_FOUND,
-          success: false,
-          message: "Admin not found",
-        });
-      }
+      const updatedAdmin = await AdminService.updateAdminStatus(id, status, currentAdminId);
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -247,14 +147,7 @@ export const AdminController = {
   // --- SYSTEM & OTHERS ---
   getSystemHealth: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const health = {
-        uptime: os.uptime(),
-        totalMemory: os.totalmem(),
-        freeMemory: os.freemem(),
-        cpus: os.cpus().length,
-        loadAvg: os.loadavg(),
-        platform: os.platform(),
-      };
+      const health = AdminService.getSystemHealth();
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
@@ -268,11 +161,7 @@ export const AdminController = {
 
   getActivity: async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const recentTransactions = await Transaction.find()
-        .populate("user_id", "user_name user_email user_profile_image")
-        .sort({ createdAt: -1 })
-        .limit(20)
-        .lean();
+      const recentTransactions = await AdminService.getActivity();
 
       sendResponse(res, {
         statusCode: httpStatus.OK,
