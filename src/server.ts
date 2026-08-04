@@ -4,6 +4,7 @@ import { Server } from "socket.io";
 import app from "./app";
 import { envConfig } from "./config/env-config";
 import { initRecurringCron } from "./modules/recurring/recurring.cron";
+import { initReminderCron } from "./modules/reminder/reminder.cron";
 
 const banner = (port: number | string) => {
   const url = `http://localhost:${port}`;
@@ -75,6 +76,7 @@ async function main() {
 
     // Initialize Background Workers
     initRecurringCron();
+    initReminderCron();
 
     const server = app.listen(envConfig.port, () => {
       banner(envConfig.port);
