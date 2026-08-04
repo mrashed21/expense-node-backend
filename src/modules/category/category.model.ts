@@ -7,7 +7,6 @@ const categorySchema = new Schema<ICategoryDocument>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     parent_id: {
       type: Schema.Types.ObjectId,

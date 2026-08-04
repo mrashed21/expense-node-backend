@@ -7,18 +7,15 @@ const transactionSchema = new Schema<ITransactionDocument>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     account_id: {
       type: Schema.Types.ObjectId,
       ref: "Account",
       required: true,
-      index: true,
     },
     category_id: {
       type: Schema.Types.ObjectId,
       ref: "Category",
-      index: true,
     },
     subcategory_id: {
       type: Schema.Types.ObjectId,
@@ -64,7 +61,6 @@ const transactionSchema = new Schema<ITransactionDocument>(
       type: Date,
       required: true,
       default: Date.now,
-      index: true,
     },
     time: {
       type: String,
@@ -111,6 +107,9 @@ const transactionSchema = new Schema<ITransactionDocument>(
 
 transactionSchema.index({ user_id: 1, date: -1, type: 1, is_deleted: 1 });
 transactionSchema.index({ user_id: 1, account_id: 1, date: -1 });
+transactionSchema.index({ user_id: 1, category_id: 1, date: -1 });
+transactionSchema.index({ user_id: 1, date: -1, createdAt: -1 }); // Pagination
+transactionSchema.index({ notes: "text", location: "text", reference_number: "text", tags: "text" }); // Search
 
 export const Transaction = model<ITransactionDocument>(
   "Transaction",

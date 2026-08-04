@@ -29,20 +29,27 @@ export const GoalService = {
   },
 
   depositToGoal: async (userId: string, goalId: string, amount: number) => {
-    const goal = await Goal.findOne({ _id: goalId, user_id: userId });
+    let goal = await Goal.findOneAndUpdate(
+      { _id: goalId, user_id: userId },
+      { $inc: { current_amount: amount } },
+      { new: true }
+    );
+    
     if (!goal) {
       throw new ApiError(httpStatus.NOT_FOUND, "Goal not found.");
     }
 
-    goal.current_amount += amount;
-    const wasCompleted = goal.status !== "completed";
-    if (goal.current_amount >= goal.target_amount) {
+    const wasCompleted = goal.status === "completed";
+    let newlyCompleted = false;
+
+    if (goal.current_amount >= goal.target_amount && !wasCompleted) {
       goal.status = "completed";
+      await goal.save();
+      newlyCompleted = true;
     }
-    await goal.save();
 
     // Fire goal-milestone notification when goal just reached 100%
-    if (goal.status === "completed" && wasCompleted) {
+    if (newlyCompleted) {
       setImmediate(async () => {
         try {
           const { default: app } = await import("../../app.js");

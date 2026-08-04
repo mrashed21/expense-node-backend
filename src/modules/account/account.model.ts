@@ -7,7 +7,6 @@ const accountSchema = new Schema<IAccountDocument>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     name: {
       type: String,
@@ -63,6 +62,7 @@ const accountSchema = new Schema<IAccountDocument>(
   },
 );
 
+accountSchema.index({ user_id: 1, type: 1, is_deleted: 1 });
 accountSchema.index({ user_id: 1, status: 1, is_deleted: 1 });
 
 export const Account = model<IAccountDocument>("Account", accountSchema);

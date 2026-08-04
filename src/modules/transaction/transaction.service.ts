@@ -182,12 +182,7 @@ export const TransactionService = {
     }
 
     if (query.search) {
-      filter.$or = [
-        { notes: { $regex: query.search, $options: "i" } },
-        { location: { $regex: query.search, $options: "i" } },
-        { reference_number: { $regex: query.search, $options: "i" } },
-        { tags: { $in: [new RegExp(query.search, "i")] } },
-      ];
+      filter.$text = { $search: query.search };
     }
 
     const now = new Date();
