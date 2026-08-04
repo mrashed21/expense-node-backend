@@ -3,7 +3,7 @@ import rateLimit from "express-rate-limit";
 // Limit for sensitive auth routes (login, register, otp, csrf)
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 requests per window
+  max: 10000, // Temporarily increased for testing
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -16,7 +16,7 @@ export const authLimiter = rateLimit({
 // Stricter limit for password reset routes (forgot-password, reset-password)
 export const passwordResetLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 3, // Limit each IP to 3 requests per window
+  max: 3000, // Temporarily increased for testing
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -29,7 +29,7 @@ export const passwordResetLimiter = rateLimit({
 // Limit for general API routes
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 300, // Limit each IP to 300 requests per window
+  max: 30000, // Temporarily increased for testing
   standardHeaders: true,
   legacyHeaders: false,
   message: {

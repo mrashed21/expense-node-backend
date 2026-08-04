@@ -54,7 +54,7 @@ app.use(
 );
 
 // Global Rate Limiting
-app.use(apiLimiter);
+// app.use(apiLimiter);
 
 // Core Middlewares
 app.use(express.json({ limit: "50mb" }));
