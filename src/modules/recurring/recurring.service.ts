@@ -1,4 +1,4 @@
-import { Recurring, IRecurring } from "./recurring.model";
+import { Recurring, IRecurring, RecurringStatus } from "./recurring.model";
 import mongoose from "mongoose";
 
 export const RecurringService = {
@@ -37,7 +37,7 @@ export const RecurringService = {
 
     if (!recurring) throw new Error("Recurring item not found");
 
-    recurring.status = recurring.status === "active" ? "paused" : "active";
+    recurring.status = recurring.status === RecurringStatus.ACTIVE ? RecurringStatus.PAUSED : RecurringStatus.ACTIVE;
     // @ts-ignore
     return await recurring.save();
   },

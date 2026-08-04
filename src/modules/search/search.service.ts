@@ -24,7 +24,7 @@ export const SearchService = {
       user_id: uid,
       is_deleted: false,
       $or: [
-        { title: { $regex: regex } },
+        { notes: { $regex: regex } },
         { reference: { $regex: regex } },
         { tags: { $in: [regex] } }, // Assuming tags is an array of strings
       ],
@@ -34,7 +34,7 @@ export const SearchService = {
       results.push({
         id: tx._id.toString(),
         type: "transaction",
-        title: tx.title || "Transaction",
+        title: tx.notes || "Transaction",
         subtitle: `Amount: ${tx.amount} • ${new Date(tx.date).toLocaleDateString()}`,
         url: `/transactions?search=${tx._id}`,
       });
@@ -69,7 +69,7 @@ export const SearchService = {
         id: acc._id.toString(),
         type: "account",
         title: acc.name,
-        subtitle: `Account • Balance: ${acc.balance}`,
+        subtitle: `Account • Balance: ${acc.current_balance}`,
         url: `/accounts`,
       });
     });

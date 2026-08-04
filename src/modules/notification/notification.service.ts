@@ -3,6 +3,10 @@ import httpStatus from "http-status";
 import { Notification } from "./notification.model";
 
 export const NotificationService = {
+  createNotification: async (userId: string, data: any) => {
+    return Notification.create({ user_id: userId, ...data });
+  },
+
   getUserNotifications: async (userId: string) => {
     return Notification.find({ user_id: userId })
       .sort({ createdAt: -1 })

@@ -1,15 +1,13 @@
 import { Router } from "express";
 import { RecurringController } from "./recurring.controller";
-import { authMiddleware } from "@/middlewares/auth.middleware";
+import { auth } from "@/middlewares/auth.middleware";
 
 const router = Router();
 
-router.use(authMiddleware);
-
-router.post("/", RecurringController.create);
-router.get("/", RecurringController.getAll);
-router.patch("/:id", RecurringController.update);
-router.patch("/:id/toggle", RecurringController.toggleStatus);
-router.delete("/:id", RecurringController.delete);
+router.post("/", auth, RecurringController.create);
+router.get("/", auth, RecurringController.getAll);
+router.patch("/:id", auth, RecurringController.update);
+router.patch("/:id/toggle", auth, RecurringController.toggleStatus);
+router.delete("/:id", auth, RecurringController.delete);
 
 export const RecurringRoutes = router;

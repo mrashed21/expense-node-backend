@@ -1,4 +1,4 @@
-import { catchAsync } from "@/utils/catchAsync";
+import catchAsync from "@/helpers/catch-async";
 import { CalendarService } from "./calendar.service";
 
 export const CalendarController = {
@@ -13,7 +13,7 @@ export const CalendarController = {
     // Default to last day of current month
     const endDate = endStr ? new Date(endStr) : new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
 
-    const data = await CalendarService.getEvents(req.user.userId, startDate, endDate);
+    const data = await CalendarService.getEvents(req.user!._id, startDate, endDate);
     
     res.status(200).json({
       success: true,

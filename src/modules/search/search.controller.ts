@@ -1,4 +1,4 @@
-import { catchAsync } from "@/utils/catchAsync";
+import catchAsync from "@/helpers/catch-async";
 import { SearchService } from "./search.service";
 
 export const SearchController = {
@@ -13,7 +13,7 @@ export const SearchController = {
       });
     }
 
-    const data = await SearchService.globalSearch(req.user.userId, query);
+    const data = await SearchService.globalSearch(req.user!._id, query);
     
     res.status(200).json({
       success: true,

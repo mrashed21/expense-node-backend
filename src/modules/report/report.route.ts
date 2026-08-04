@@ -1,13 +1,11 @@
 import { Router } from "express";
 import { ReportController } from "./report.controller";
-import { authMiddleware } from "@/middlewares/auth.middleware";
+import { auth } from "@/middlewares/auth.middleware";
 
 const router = Router();
 
-router.use(authMiddleware);
-
-router.get("/balance-sheet", ReportController.getBalanceSheet);
-router.get("/cash-flow", ReportController.getCashFlowReport);
-router.get("/tax", ReportController.getTaxReport);
+router.get("/balance-sheet", auth, ReportController.getBalanceSheet);
+router.get("/cash-flow", auth, ReportController.getCashFlowReport);
+router.get("/tax-report", auth, ReportController.getTaxReport);
 
 export const ReportRoutes = router;

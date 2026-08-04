@@ -22,9 +22,9 @@ const notifyUser = async (userId: string, title: string, message: string, type: 
 
     // 2. Email Notification
     const user = await User.findById(userId);
-    if (user && user.email) {
+    if (user && user.user_email) {
       await sendEmail(
-        user.email,
+        user.user_email,
         title,
         `<div style="font-family: sans-serif; padding: 20px;">
           <h2>${title}</h2>
@@ -82,7 +82,7 @@ const checkEMIs = async (now: Date, targetDate: Date) => {
       await notifyUser(
         emi.user_id.toString(),
         "Upcoming EMI Reminder",
-        `Your EMI for "${emi.title}" of ${emi.monthly_installment} is due on ${new Date(emi.next_payment_date).toLocaleDateString()}.`,
+        `Your EMI for "${emi.title}" of ${emi.monthly_amount} is due on ${new Date(emi.start_date).toLocaleDateString()}.`,
         "emi_due"
       );
     }

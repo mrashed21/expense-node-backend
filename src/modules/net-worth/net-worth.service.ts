@@ -22,7 +22,7 @@ export const NetWorthService = {
   calculateCurrentNetWorth: async (userId: string) => {
     // 1. Accounts
     const accounts = await Account.find({ user_id: userId }).lean();
-    const totalCash = accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+    const totalCash = accounts.reduce((sum, acc) => sum + (acc.current_balance || 0), 0);
 
     // 2. Assets
     const assets = await Asset.find({ user_id: userId, is_deleted: false }).lean();

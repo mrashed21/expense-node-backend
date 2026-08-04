@@ -163,3 +163,5 @@ export const checkAdminAuth = (...requiredRoles: AdminRole[]) => {
     }
   };
 };
+
+export const auth = checkAuth();

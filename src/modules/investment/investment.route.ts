@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { auth } from "../../middlewares/auth.middleware";
-import validateRequest from "../../middlewares/validate-request";
+import { validateRequest } from "../../middlewares/validate-request.middleware";
 import { InvestmentController } from "./investment.controller";
 import { createInvestmentSchema, updateInvestmentSchema } from "./investment.validation";
 

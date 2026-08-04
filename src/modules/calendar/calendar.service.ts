@@ -31,7 +31,7 @@ export const CalendarService = {
       
       events.push({
         id: tx._id.toString(),
-        title: tx.title || "Transaction",
+        title: tx.notes || "Transaction",
         date: tx.date,
         amount: tx.amount,
         type: evType,
@@ -71,8 +71,8 @@ export const CalendarService = {
         events.push({
           id: emi._id.toString(),
           title: `EMI: ${emi.title}`,
-          date: emi.next_payment_date,
-          amount: emi.monthly_installment,
+          date: emi.start_date,
+          amount: emi.monthly_amount,
           type: "emi",
           source: "installment",
         });

@@ -1,10 +1,9 @@
-import { Account } from "@/modules/account/account.model";
 import { Bill } from "@/modules/bill/bill.model";
 import { Budget } from "@/modules/budget/budget.model";
 import { Goal } from "@/modules/goal/goal.model";
+import { NetWorthService } from "@/modules/net-worth/net-worth.service";
 import { TransactionType } from "@/modules/transaction/transaction.interface";
 import { Transaction } from "@/modules/transaction/transaction.model";
-import { NetWorthService } from "@/modules/net-worth/net-worth.service";
 import mongoose from "mongoose";
 
 const MONTH_NAMES = [
@@ -212,7 +211,7 @@ export const AnalyticsService = {
     );
 
     const budgetAnalytics = budgets.map((b: any) => {
-      const spent = budgetSpentMap.get(b.category_id._id.toString()) ?? 0;
+      const spent = Number(budgetSpentMap.get(b.category_id._id.toString()) || 0);
       const pct = Math.round((spent / b.amount) * 100);
       return {
         categoryName: b.category_id.name,
@@ -266,7 +265,7 @@ export const AnalyticsService = {
 
     // ── Format: Cash Flow Forecast (Next 30 Days) ─────────────────────────
     const forecast: Array<{ date: string; projectedBalance: number }> = [];
-    let projectedBalance = netWorth;
+    let projectedBalance = currentNetWorthData.net_worth;
     
     const upcomingBills = await Bill.find({
       user_id: uid,

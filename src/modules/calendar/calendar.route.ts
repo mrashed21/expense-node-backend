@@ -1,11 +1,9 @@
 import { Router } from "express";
 import { CalendarController } from "./calendar.controller";
-import { authMiddleware } from "@/middlewares/auth.middleware";
+import { auth } from "@/middlewares/auth.middleware";
 
 const router = Router();
 
-router.use(authMiddleware);
-
-router.get("/events", CalendarController.getEvents);
+router.get("/", auth, CalendarController.getEvents);
 
 export const CalendarRoutes = router;

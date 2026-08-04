@@ -1,4 +1,4 @@
-import { catchAsync } from "@/helpers/catch-async";
+import catchAsync from "@/helpers/catch-async";
 import { sendResponse } from "@/helpers/send-response";
 import {
   clearAccessTokenCookie,
