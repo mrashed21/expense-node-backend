@@ -1,13 +1,17 @@
 import { AuthService } from "./auth.service";
 import { User } from "../user/user.model";
-import { Admin } from "../admin/admin.model";
+import { Otp } from "./auth.model";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import httpStatus from "http-status";
 
 jest.mock("../user/user.model");
 jest.mock("../admin/admin.model");
+jest.mock("./auth.model");
 jest.mock("bcrypt");
 jest.mock("jsonwebtoken");
+jest.mock("@/utils/email", () => ({
+  sendEmail: jest.fn().mockResolvedValue(true),
+}));
 
 describe("AuthService", () => {
   beforeEach(() => {
@@ -15,12 +19,19 @@ describe("AuthService", () => {
   });
 
   describe("login", () => {
+    const clientInfo = {
+      ip: "127.0.0.1",
+      userAgent: "jest",
+    };
+
     it("should throw an error if the user is not found", async () => {
       (User.findOne as jest.Mock).mockResolvedValue(null);
-      (Admin.findOne as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        AuthService.login({ email: "test@example.com", password: "password", role: "user" })
+        AuthService.login(
+          { user_email: "test@example.com", user_password: "password" },
+          clientInfo,
+        ),
       ).rejects.toThrow("Invalid credentials");
     });
 
@@ -30,24 +41,32 @@ describe("AuthService", () => {
         user_email: "test@example.com",
         user_password: "hashedPassword",
         is_deleted: false,
+        user_status: "active",
       };
 
-      (User.findOne as jest.Mock).mockResolvedValue(mockUser);
+      (User.findOne as jest.Mock).mockReturnValue({
+        select: jest.fn().mockResolvedValue(mockUser),
+      });
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
       await expect(
-        AuthService.login({ email: "test@example.com", password: "wrongpassword", role: "user" })
+        AuthService.login(
+          { user_email: "test@example.com", user_password: "wrongpassword" },
+          clientInfo,
+        ),
       ).rejects.toThrow("Invalid credentials");
     });
   });
 
   describe("verifyOtp", () => {
-    it("should throw error if user not found for OTP validation", async () => {
-      (User.findOne as jest.Mock).mockResolvedValue(null);
+    it("should throw error if OTP is invalid", async () => {
+      (Otp.findOne as jest.Mock).mockReturnValue({
+        sort: jest.fn().mockResolvedValue(null),
+      });
 
       await expect(
-        AuthService.verifyOtp({ email: "notfound@example.com", otp: "123456" })
-      ).rejects.toThrow("User not found");
+        AuthService.verifyOtp("notfound@example.com", "123456"),
+      ).rejects.toThrow("Invalid or expired OTP code.");
     });
   });
 });

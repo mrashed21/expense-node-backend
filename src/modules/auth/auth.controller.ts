@@ -1,242 +1,192 @@
+import { catchAsync } from "@/helpers/catch-async";
 import { sendResponse } from "@/helpers/send-response";
 import {
   clearAccessTokenCookie,
+  clearDeviceIdCookie,
   clearRefreshTokenCookie,
   setAccessTokenCookie,
+  setDeviceIdCookie,
   setRefreshTokenCookie,
 } from "@/utils/cookie";
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import httpStatus from "http-status";
 import { AuthService } from "./auth.service";
 
 export const AuthController = {
-  getCsrfToken: (req: Request, res: Response) => {
+  getCsrfToken: catchAsync(async (req: Request, res: Response) => {
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: "CSRF token retrieved",
-      data: { csrfToken: (req as any).csrfToken },
+      data: { csrfToken: req.csrfToken },
     });
-  },
-  register: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const result = await AuthService.register(req.body);
-      sendResponse(res, {
-        statusCode: httpStatus.CREATED,
-        success: true,
-        message:
-          "Registration successful. Please verify your email with the OTP sent.",
-        data: result,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  }),
+  
+  register: catchAsync(async (req: Request, res: Response) => {
+    const result = await AuthService.register(req.body);
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message:
+        "Registration successful. Please verify your email with the OTP sent.",
+      data: result,
+    });
+  }),
 
-  resendOtp: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { user_email } = req.body;
-      await AuthService.resendOtp(user_email);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "A new OTP code has been sent to your email.",
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  resendOtp: catchAsync(async (req: Request, res: Response) => {
+    const { user_email } = req.body;
+    await AuthService.resendOtp(user_email);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "A new OTP code has been sent to your email.",
+    });
+  }),
 
-  getMe: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      if (!req.user?._id) throw new Error("Unauthorized");
-      const user = await AuthService.getMe(req.user._id);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "User profile retrieved successfully.",
-        data: { user },
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  getMe: catchAsync(async (req: Request, res: Response) => {
+    if (!req.user?._id) throw new Error("Unauthorized");
+    const user = await AuthService.getMe(req.user._id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "User profile retrieved successfully.",
+      data: { user },
+    });
+  }),
 
-  verifyOtp: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { user_email, otp_code } = req.body;
-      await AuthService.verifyOtp(user_email, otp_code);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Email verified successfully.",
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  verifyOtp: catchAsync(async (req: Request, res: Response) => {
+    const { user_email, otp_code } = req.body;
+    await AuthService.verifyOtp(user_email, otp_code);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Email verified successfully.",
+    });
+  }),
 
-  login: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const clientInfo = {
-        ip: req.ip || req.socket.remoteAddress || "127.0.0.1",
-        userAgent: req.headers["user-agent"] || "Unknown User Agent",
-        deviceId: req.cookies.deviceId,
-      };
+  login: catchAsync(async (req: Request, res: Response) => {
+    const clientInfo = {
+      ip: req.ip || req.socket.remoteAddress || "127.0.0.1",
+      userAgent: req.headers["user-agent"] || "Unknown User Agent",
+      deviceId: req.cookies.deviceId,
+    };
 
-      const result = await AuthService.login(req.body, clientInfo);
+    const result = await AuthService.login(req.body, clientInfo);
 
-      if ("requires2FA" in result && result.requires2FA) {
-        sendResponse(res, {
-          statusCode: httpStatus.OK,
-          success: true,
-          message: "2FA Verification Required",
-          data: {
-            requires2FA: true,
-            tempToken: result.tempToken,
-          },
-        });
-        return;
-      }
-
-      setRefreshTokenCookie(res, (result as any).refreshToken);
-      setAccessTokenCookie(res, (result as any).accessToken);
-
-      if ((result as any).deviceId) {
-        res.cookie("deviceId", (result as any).deviceId, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-          maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
-        });
-      }
-
+    if ("requires2FA" in result && result.requires2FA) {
       sendResponse(res, {
         statusCode: httpStatus.OK,
         success: true,
-        message: "Login successful.",
+        message: "2FA Verification Required",
         data: {
-          user: (result as any).user,
+          requires2FA: true,
+          tempToken: result.tempToken,
         },
       });
-    } catch (error) {
-      next(error);
+      return;
     }
-  },
 
-  verifyLogin2FA: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const clientInfo = {
-        ip: req.ip || req.socket.remoteAddress || "127.0.0.1",
-        userAgent: req.headers["user-agent"] || "Unknown User Agent",
-        deviceId: req.cookies.deviceId,
-      };
+    setRefreshTokenCookie(res, (result as any).refreshToken);
+    setAccessTokenCookie(res, (result as any).accessToken);
 
-      const result = await AuthService.verifyLogin2FA(req.body, clientInfo);
-
-      setRefreshTokenCookie(res, result.refreshToken as any);
-      setAccessTokenCookie(res, result.accessToken as any);
-
-      if (result.deviceId) {
-        res.cookie("deviceId", result.deviceId as any, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "strict",
-          maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
-        });
-      }
-
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Login successful.",
-        data: {
-          user: result.user,
-        },
-      });
-    } catch (error) {
-      next(error);
+    if ((result as any).deviceId) {
+      setDeviceIdCookie(res, (result as any).deviceId);
     }
-  },
 
-  refreshToken: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
-      const result = await AuthService.refreshToken(refreshToken);
-      setRefreshTokenCookie(res, result.refreshToken);
-      setAccessTokenCookie(res, result.accessToken);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Login successful.",
+      data: {
+        user: (result as any).user,
+      },
+    });
+  }),
 
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Token refreshed successfully.",
-        data: {
-          user: result.user,
-        },
-      });
-    } catch (error) {
-      next(error);
+  verifyLogin2FA: catchAsync(async (req: Request, res: Response) => {
+    const clientInfo = {
+      ip: req.ip || req.socket.remoteAddress || "127.0.0.1",
+      userAgent: req.headers["user-agent"] || "Unknown User Agent",
+      deviceId: req.cookies.deviceId,
+    };
+
+    const result = await AuthService.verifyLogin2FA(req.body, clientInfo);
+
+    setRefreshTokenCookie(res, result.refreshToken as any);
+    setAccessTokenCookie(res, result.accessToken as any);
+
+    if (result.deviceId) {
+      setDeviceIdCookie(res, result.deviceId as any);
     }
-  },
 
-  logout: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      clearRefreshTokenCookie(res);
-      clearAccessTokenCookie(res);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Logged out successfully.",
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Login successful.",
+      data: {
+        user: result.user,
+      },
+    });
+  }),
 
-  logoutAllDevices: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      if (!req.user?._id) throw new Error("Unauthorized");
-      await AuthService.logoutAllDevices(req.user._id);
-      clearRefreshTokenCookie(res);
-      clearAccessTokenCookie(res);
+  refreshToken: catchAsync(async (req: Request, res: Response) => {
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    const result = await AuthService.refreshToken(refreshToken);
+    setRefreshTokenCookie(res, result.refreshToken);
+    setAccessTokenCookie(res, result.accessToken);
 
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Successfully logged out from all devices.",
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Token refreshed successfully.",
+      data: {
+        user: result.user,
+      },
+    });
+  }),
 
-  forgotPassword: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { user_email } = req.body;
-      await AuthService.forgotPassword(user_email);
+  logout: catchAsync(async (req: Request, res: Response) => {
+    clearRefreshTokenCookie(res);
+    clearAccessTokenCookie(res);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Logged out successfully.",
+    });
+  }),
 
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Password reset OTP sent to your email.",
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  logoutAllDevices: catchAsync(async (req: Request, res: Response) => {
+    if (!req.user?._id) throw new Error("Unauthorized");
+    await AuthService.logoutAllDevices(req.user._id);
+    clearRefreshTokenCookie(res);
+    clearAccessTokenCookie(res);
 
-  resetPassword: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await AuthService.resetPassword(req.body);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Successfully logged out from all devices.",
+    });
+  }),
 
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message:
-          "Password reset successfully. Please log in with your new password.",
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  forgotPassword: catchAsync(async (req: Request, res: Response) => {
+    const { user_email } = req.body;
+    await AuthService.forgotPassword(user_email);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Password reset OTP sent to your email.",
+    });
+  }),
+
+  resetPassword: catchAsync(async (req: Request, res: Response) => {
+    await AuthService.resetPassword(req.body);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message:
+        "Password reset successfully. Please log in with your new password.",
+    });
+  }),
 };

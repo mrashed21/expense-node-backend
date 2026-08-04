@@ -9,6 +9,7 @@ import {
   resendOtpSchema,
   resetPasswordSchema,
   verifyOtpSchema,
+  verifyLogin2FASchema,
 } from "./auth.validation";
 
 import { generateCsrfToken } from "@/middlewares/csrf.middleware";
@@ -35,7 +36,11 @@ router.post(
   AuthController.resendOtp,
 );
 router.post("/login", validateRequest(loginSchema), AuthController.login);
-router.post("/login/verify", AuthController.verifyLogin2FA);
+router.post(
+  "/login/verify",
+  validateRequest(verifyLogin2FASchema),
+  AuthController.verifyLogin2FA,
+);
 router.get("/me", checkAuth(), AuthController.getMe);
 router.post("/refresh-token", AuthController.refreshToken);
 router.post("/logout", AuthController.logout);

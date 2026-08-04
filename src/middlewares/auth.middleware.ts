@@ -21,31 +21,35 @@ declare global {
   }
 }
 
+/**
+ * Extracts JWT from cookie or Authorization header.
+ */
+const extractToken = (req: Request): string => {
+  if (req.cookies.accessToken) {
+    return req.cookies.accessToken;
+  }
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer ")
+  ) {
+    return req.headers.authorization.split(" ")[1];
+  }
+
+  throw new ApiError(
+    httpStatus.UNAUTHORIZED,
+    "Unauthorized access. No token provided.",
+  );
+};
+
 export const checkAuth = (...requiredRoles: UserRole[]) => {
   return async (
     req: Request,
-    res: Response,
+    _res: Response,
     next: NextFunction,
   ): Promise<void> => {
     try {
-      let token: string | undefined;
-
-      if (req.cookies.accessToken) {
-        token = req.cookies.accessToken;
-      } else if (
-        req.headers.authorization &&
-        req.headers.authorization.startsWith("Bearer ")
-      ) {
-        token = req.headers.authorization.split(" ")[1];
-      }
-
-      if (!token) {
-        throw new ApiError(
-          httpStatus.UNAUTHORIZED,
-          "Unauthorized access. No token provided.",
-        );
-      }
-
+      const token = extractToken(req);
       const decoded = verifyToken(token, envConfig.jwt.access_secret);
       const userExists = await User.findById(decoded._id);
 
@@ -101,28 +105,11 @@ export const checkAuth = (...requiredRoles: UserRole[]) => {
 export const checkAdminAuth = (...requiredRoles: AdminRole[]) => {
   return async (
     req: Request,
-    res: Response,
+    _res: Response,
     next: NextFunction,
   ): Promise<void> => {
     try {
-      let token: string | undefined;
-
-      if (req.cookies.accessToken) {
-        token = req.cookies.accessToken;
-      } else if (
-        req.headers.authorization &&
-        req.headers.authorization.startsWith("Bearer ")
-      ) {
-        token = req.headers.authorization.split(" ")[1];
-      }
-
-      if (!token) {
-        throw new ApiError(
-          httpStatus.UNAUTHORIZED,
-          "Unauthorized access. No token provided.",
-        );
-      }
-
+      const token = extractToken(req);
       const decoded = verifyToken(token, envConfig.jwt.access_secret);
 
       // If token payload says it's not an admin token, reject

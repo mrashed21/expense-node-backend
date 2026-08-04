@@ -12,9 +12,15 @@ import { Device } from "../user/device.model";
 import { Otp } from "./auth.model";
 import { verifyToken as verifyTotp } from "@/helpers/totp.helper";
 import crypto from "crypto";
+import {
+  IClientInfo,
+  ILoginPayload,
+  IRegisterPayload,
+  IResetPasswordPayload,
+} from "./auth.interface";
 
 export const AuthService = {
-  register: async (payload: any) => {
+  register: async (payload: IRegisterPayload) => {
     let {
       user_email,
       user_password,
@@ -47,17 +53,16 @@ export const AuthService = {
       email_verified: false,
     });
 
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const hashedOtp = await bcrypt.hash(otpCode, 10);
 
     await Otp.create({
       user_email,
-      otp_code: otpCode,
+      otp_code: hashedOtp,
       otp_type: "email_verify",
       expires_at: expiresAt,
     });
-
-    console.log(`[OTP DEBUG] Verification OTP for ${user_email}: ${otpCode}`);
 
     await sendEmail(
       user_email,
@@ -90,8 +95,9 @@ export const AuthService = {
       throw new ApiError(httpStatus.BAD_REQUEST, "Email is already verified.");
     }
 
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const hashedOtp = await bcrypt.hash(otpCode, 10);
 
     // Invalidate old OTPs
     await Otp.updateMany(
@@ -101,12 +107,10 @@ export const AuthService = {
 
     await Otp.create({
       user_email,
-      otp_code: otpCode,
+      otp_code: hashedOtp,
       otp_type: "email_verify",
       expires_at: expiresAt,
     });
-
-    console.log(`[OTP DEBUG] Resent OTP for ${user_email}: ${otpCode}`);
 
     await sendEmail(
       user_email,
@@ -121,17 +125,23 @@ export const AuthService = {
     return true;
   },
 
-  // 2. Verify OTP
   verifyOtp: async (user_email: string, otp_code: string) => {
     const otpRecord = await Otp.findOne({
       user_email,
-      otp_code,
       otp_type: "email_verify",
       is_used: false,
       expires_at: { $gt: new Date() },
-    });
+    }).sort({ createdAt: -1 });
 
     if (!otpRecord) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "Invalid or expired OTP code.",
+      );
+    }
+
+    const isValidOtp = await bcrypt.compare(otp_code, otpRecord.otp_code);
+    if (!isValidOtp) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
         "Invalid or expired OTP code.",
@@ -147,8 +157,8 @@ export const AuthService = {
   },
 
   login: async (
-    payload: any,
-    clientInfo: { ip: string; userAgent: string; deviceId?: string },
+    payload: ILoginPayload,
+    clientInfo: IClientInfo,
   ) => {
     const { user_email, user_password } = payload;
 
@@ -196,7 +206,7 @@ export const AuthService = {
 
   verifyLogin2FA: async (
     payload: { tempToken: string; code: string },
-    clientInfo: { ip: string; userAgent: string; deviceId?: string },
+    clientInfo: IClientInfo,
   ) => {
     const { tempToken, code } = payload;
     let decoded: any;
@@ -242,7 +252,7 @@ export const AuthService = {
 
   finalizeLogin: async (
     user: any,
-    clientInfo: { ip: string; userAgent: string; deviceId?: string },
+    clientInfo: IClientInfo,
     deviceName: string,
     browserInfo: string,
   ) => {
@@ -423,27 +433,29 @@ export const AuthService = {
     return true;
   },
 
-  // 6. Forgot Password
   forgotPassword: async (user_email: string) => {
     const user = await User.findOne({ user_email, is_deleted: false });
     if (!user) {
-      throw new ApiError(
-        httpStatus.NOT_FOUND,
-        "No account registered with this email.",
-      );
+      // Prevent user enumeration: act as if email was sent
+      return true;
     }
 
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpCode = crypto.randomInt(100000, 1000000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    const hashedOtp = await bcrypt.hash(otpCode, 10);
+
+    // Invalidate old OTPs
+    await Otp.updateMany(
+      { user_email, otp_type: "forgot_password" },
+      { is_used: true },
+    );
 
     await Otp.create({
       user_email,
-      otp_code: otpCode,
+      otp_code: hashedOtp,
       otp_type: "forgot_password",
       expires_at: expiresAt,
     });
-
-    console.log(`[OTP DEBUG] Reset password OTP for ${user_email}: ${otpCode}`);
 
     await sendEmail(
       user_email,
@@ -458,19 +470,25 @@ export const AuthService = {
     return true;
   },
 
-  // 7. Reset Password
-  resetPassword: async (payload: any) => {
+  resetPassword: async (payload: IResetPasswordPayload) => {
     const { user_email, otp_code, new_password } = payload;
 
     const otpRecord = await Otp.findOne({
       user_email,
-      otp_code,
       otp_type: "forgot_password",
       is_used: false,
       expires_at: { $gt: new Date() },
-    });
+    }).sort({ createdAt: -1 });
 
     if (!otpRecord) {
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "Invalid or expired reset code.",
+      );
+    }
+
+    const isValidOtp = await bcrypt.compare(otp_code, otpRecord.otp_code);
+    if (!isValidOtp) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
         "Invalid or expired reset code.",
