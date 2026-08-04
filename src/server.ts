@@ -51,7 +51,10 @@ async function main() {
     }
 
     log.info("Connecting to MongoDB Atlas...");
-    await mongoose.connect(envConfig.database_url);
+    await mongoose.connect(envConfig.database_url, {
+      maxPoolSize: 50,
+      minPoolSize: 10,
+    });
     log.success("Successfully connected to MongoDB database.");
 
     // Sync indexes to clean up obsolete ones (e.g. duplicate or renamed schema indexes)
@@ -97,6 +100,16 @@ async function main() {
         // Place the client in their private room for targeted notifications
         socket.join(userId);
         log.event(`Socket ${socket.id} joined room: ${userId}`);
+
+        // If user is an admin, join the admin_room for system health updates
+        import("./modules/admin/admin.model.js").then(({ Admin }) => {
+          Admin.exists({ _id: userId }).then((isAdmin) => {
+            if (isAdmin) {
+              socket.join("admin_room");
+              log.event(`Socket ${socket.id} joined admin_room`);
+            }
+          }).catch(() => {}); // Ignore invalid ID casts
+        });
       } else {
         console.warn(`[Socket] Client connected without userId: ${socket.id}`);
       }
@@ -122,7 +135,7 @@ async function main() {
         uptime: os.uptime(),
       };
 
-      io.emit("system_health_update", systemHealth);
+      io.to("admin_room").emit("system_health_update", systemHealth);
     }, 2000);
 
     // Bill reminder scheduler — runs every 24 h after startup
