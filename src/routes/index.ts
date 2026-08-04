@@ -47,6 +47,7 @@ const apiRoutes = [
   { path: "/net-worth", route: netWorthRoutes },
   { path: "/reports", route: ReportRoutes },
   { path: "/recurring", route: RecurringRoutes },
+  { path: "/calendar", route: CalendarRoutes },
 ];
 
 apiRoutes.forEach((route) => {
