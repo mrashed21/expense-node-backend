@@ -12,6 +12,7 @@ import { debtRoutes } from "@/modules/debt/debt.route";
 import { goalRoutes } from "@/modules/goal/goal.route";
 import { installmentRoutes } from "@/modules/installment/installment.route";
 import { InvestmentRoutes } from "@/modules/investment/investment.route";
+import { netWorthRoutes } from "@/modules/net-worth/net-worth.route";
 import { notificationRoutes } from "@/modules/notification/notification.route";
 import { savedFilterRoutes } from "@/modules/saved-filter/saved-filter.route";
 import { transactionRoutes } from "@/modules/transaction/transaction.route";
@@ -41,6 +42,7 @@ const apiRoutes = [
   { path: "/assets", route: AssetRoutes },
   { path: "/investments", route: InvestmentRoutes },
   { path: "/installments", route: installmentRoutes },
+  { path: "/net-worth", route: netWorthRoutes },
 ];
 
 apiRoutes.forEach((route) => {
