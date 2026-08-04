@@ -56,4 +56,21 @@ export interface IAnalyticsSummary {
     savingsRate: number;
     netWorth: number;
   };
+  /** Asset Distribution */
+  assetDistribution: Array<{
+    name: string;
+    value: number;
+    color: string;
+  }>;
+  /** Liability Distribution */
+  liabilityDistribution: Array<{
+    name: string;
+    value: number;
+    color: string;
+  }>;
+  /** Net Worth Trend */
+  netWorthTrend: Array<{
+    date: string;
+    netWorth: number;
+  }>;
 }

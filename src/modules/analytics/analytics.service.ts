@@ -4,6 +4,7 @@ import { Budget } from "@/modules/budget/budget.model";
 import { Goal } from "@/modules/goal/goal.model";
 import { TransactionType } from "@/modules/transaction/transaction.interface";
 import { Transaction } from "@/modules/transaction/transaction.model";
+import { NetWorthService } from "@/modules/net-worth/net-worth.service";
 import mongoose from "mongoose";
 
 const MONTH_NAMES = [
@@ -234,14 +235,34 @@ export const AnalyticsService = {
       status: g.status,
     }));
 
-    // ── Format: KPI ───────────────────────────────────────────────────────
-    const accounts = await Account.find({ user_id: uid }).lean();
-    const netWorth = accounts.reduce((s, a) => s + (a.current_balance || 0), 0);
+    // ── Format: KPI & Net Worth Data ──────────────────────────────────────
+    const currentNetWorthData = await NetWorthService.calculateCurrentNetWorth(userId);
+    const netWorthHistory = await NetWorthService.getNetWorthHistory(userId, { days: 90 });
     
     const totalIncomeYear = Math.round(cyTotals.income * 100) / 100;
     const totalExpenseYear = Math.round(cyTotals.expense * 100) / 100;
     const netSavings = Math.round((cyTotals.income - cyTotals.expense) * 100) / 100;
     const savingsRate = cyTotals.income > 0 ? Math.round((netSavings / cyTotals.income) * 100) : 0;
+    
+    const assetDistribution = [
+      { name: "Cash", value: currentNetWorthData.breakdown.assets.cash, color: "#10B981" },
+      { name: "Physical Assets", value: currentNetWorthData.breakdown.assets.physical_assets, color: "#8B5CF6" },
+      { name: "Investments", value: currentNetWorthData.breakdown.assets.investments, color: "#3B82F6" },
+      { name: "Money Lent", value: currentNetWorthData.breakdown.assets.money_lent, color: "#F59E0B" }
+    ].filter(a => a.value > 0);
+
+    const liabilityDistribution = [
+      { name: "Money Borrowed", value: currentNetWorthData.breakdown.liabilities.money_borrowed, color: "#EF4444" },
+      { name: "Remaining EMIs", value: currentNetWorthData.breakdown.liabilities.emi_remaining, color: "#F97316" }
+    ].filter(a => a.value > 0);
+
+    const netWorthTrend = netWorthHistory.map((h: any) => {
+      const d = new Date(h.date);
+      return {
+        date: `${d.getDate()} ${MONTH_NAMES[d.getMonth()]}`,
+        netWorth: h.net_worth
+      };
+    });
 
     // ── Format: Cash Flow Forecast (Next 30 Days) ─────────────────────────
     const forecast: Array<{ date: string; projectedBalance: number }> = [];
@@ -284,12 +305,15 @@ export const AnalyticsService = {
       budgetAnalytics,
       goalAnalytics,
       cashFlowForecast: forecast,
+      assetDistribution,
+      liabilityDistribution,
+      netWorthTrend,
       kpi: {
         totalIncomeYear,
         totalExpenseYear,
         netSavings,
         savingsRate,
-        netWorth: Math.round(netWorth * 100) / 100,
+        netWorth: currentNetWorthData.net_worth,
       },
     };
   },
