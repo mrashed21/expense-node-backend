@@ -4,6 +4,8 @@ import { Router } from "express";
 import { AdminController } from "./admin.controller";
 import { AdminRole } from "./admin.interface";
 import {
+  createAdminSchema,
+  createUserSchema,
   updateAdminStatusSchema,
   updateUserStatusSchema,
 } from "./admin.validation";
@@ -15,7 +17,7 @@ router.use(checkAdminAuth(AdminRole.ADMIN, AdminRole.SUPER_ADMIN));
 
 // User Management
 router.get("/users", AdminController.getUsers);
-router.post("/users", AdminController.createUser);
+router.post("/users", validateRequest(createUserSchema), AdminController.createUser);
 router.put("/users/:id", AdminController.updateUser);
 router.delete("/users/:id", AdminController.deleteUser);
 router.patch(
@@ -33,6 +35,7 @@ router.get(
 router.post(
   "/admins",
   checkAdminAuth(AdminRole.SUPER_ADMIN),
+  validateRequest(createAdminSchema),
   AdminController.createAdmin,
 );
 router.patch(

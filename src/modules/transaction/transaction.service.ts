@@ -455,13 +455,83 @@ export const TransactionService = {
     transactionId: string,
     payload: any,
   ) => {
-    const tx = await Transaction.findOneAndUpdate(
-      { _id: transactionId, user_id: userId, is_deleted: false },
-      { $set: payload },
-      { new: true },
-    );
-    if (!tx) throw new ApiError(httpStatus.NOT_FOUND, "Transaction not found.");
-    return tx;
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      const oldTx = await Transaction.findOne({
+        _id: transactionId,
+        user_id: userId,
+        is_deleted: false,
+      }).session(session);
+
+      if (!oldTx) {
+        throw new ApiError(httpStatus.NOT_FOUND, "Transaction not found.");
+      }
+
+      const amountChanged =
+        payload.amount !== undefined && payload.amount !== oldTx.amount;
+      const typeChanged =
+        payload.type !== undefined && payload.type !== oldTx.type;
+      const accountChanged =
+        payload.account_id !== undefined &&
+        payload.account_id.toString() !== oldTx.account_id.toString();
+
+      if (amountChanged || typeChanged || accountChanged) {
+        // Reverse old transaction effect
+        const oldAccount = await Account.findById(oldTx.account_id).session(
+          session,
+        );
+        if (oldAccount) {
+          if (
+            oldTx.type === TransactionType.INCOME ||
+            oldTx.type === TransactionType.REFUND ||
+            oldTx.type === TransactionType.OPENING_BALANCE
+          ) {
+            oldAccount.current_balance -= oldTx.amount;
+          } else if (oldTx.type === TransactionType.EXPENSE) {
+            oldAccount.current_balance += oldTx.amount;
+          }
+          await oldAccount.save({ session });
+        }
+
+        // Apply new transaction effect
+        const newAccountId = payload.account_id || oldTx.account_id;
+        const newType = payload.type || oldTx.type;
+        const newAmount =
+          payload.amount !== undefined ? payload.amount : oldTx.amount;
+
+        const newAccount = await Account.findById(newAccountId).session(
+          session,
+        );
+        if (newAccount) {
+          if (
+            newType === TransactionType.INCOME ||
+            newType === TransactionType.REFUND ||
+            newType === TransactionType.OPENING_BALANCE
+          ) {
+            newAccount.current_balance += newAmount;
+          } else if (newType === TransactionType.EXPENSE) {
+            newAccount.current_balance -= newAmount;
+          } else if (newType === TransactionType.ADJUSTMENT) {
+            newAccount.current_balance = newAmount;
+          }
+          await newAccount.save({ session });
+        }
+      }
+
+      Object.assign(oldTx, payload);
+      await oldTx.save({ session });
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return oldTx;
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   },
 
   bulkEditTransactions: async (
@@ -469,10 +539,31 @@ export const TransactionService = {
     transactionIds: string[],
     payload: any,
   ) => {
-    const result = await Transaction.updateMany(
-      { _id: { $in: transactionIds }, user_id: userId, is_deleted: false },
-      { $set: payload },
-    );
-    return { updatedCount: result.modifiedCount };
+    // If payload modifies amount, type, or account_id, we cannot simply use updateMany.
+    // We must do it transactionally for each document to adjust balances.
+    const affectsBalance =
+      payload.amount !== undefined ||
+      payload.type !== undefined ||
+      payload.account_id !== undefined;
+
+    if (!affectsBalance) {
+      const result = await Transaction.updateMany(
+        { _id: { $in: transactionIds }, user_id: userId, is_deleted: false },
+        { $set: payload },
+      );
+      return { updatedCount: result.modifiedCount };
+    }
+
+    // Fallback: loop through each and use updateTransaction (safest for balances)
+    let updatedCount = 0;
+    for (const id of transactionIds) {
+      try {
+        await TransactionService.updateTransaction(userId, id, payload);
+        updatedCount++;
+      } catch (e) {
+        // Skip those that fail (e.g. not found)
+      }
+    }
+    return { updatedCount };
   },
 };

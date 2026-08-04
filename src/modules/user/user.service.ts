@@ -18,7 +18,28 @@ export const UserService = {
   },
 
   updateProfile: async (userId: string, payload: any) => {
-    const user = await User.findByIdAndUpdate(userId, payload, {
+    const allowedKeys = [
+      "user_name",
+      "user_phone",
+      "user_area",
+      "user_city",
+      "user_country",
+      "currency",
+      "language",
+      "timezone",
+      "theme",
+      "date_format",
+      "number_format",
+    ];
+    
+    const sanitizedPayload = Object.keys(payload)
+      .filter((key) => allowedKeys.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = payload[key];
+        return obj;
+      }, {} as any);
+
+    const user = await User.findByIdAndUpdate(userId, sanitizedPayload, {
       new: true,
       runValidators: true,
     }).select("-user_password");
