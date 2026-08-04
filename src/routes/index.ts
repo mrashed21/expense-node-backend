@@ -14,6 +14,7 @@ import { installmentRoutes } from "@/modules/installment/installment.route";
 import { InvestmentRoutes } from "@/modules/investment/investment.route";
 import { netWorthRoutes } from "@/modules/net-worth/net-worth.route";
 import { notificationRoutes } from "@/modules/notification/notification.route";
+import { RecurringRoutes } from "@/modules/recurring/recurring.route";
 import { ReportRoutes } from "@/modules/report/report.route";
 import { savedFilterRoutes } from "@/modules/saved-filter/saved-filter.route";
 import { transactionRoutes } from "@/modules/transaction/transaction.route";
@@ -45,6 +46,7 @@ const apiRoutes = [
   { path: "/installments", route: installmentRoutes },
   { path: "/net-worth", route: netWorthRoutes },
   { path: "/reports", route: ReportRoutes },
+  { path: "/recurring", route: RecurringRoutes },
 ];
 
 apiRoutes.forEach((route) => {

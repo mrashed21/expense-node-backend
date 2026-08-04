@@ -3,6 +3,7 @@ import os from "os";
 import { Server } from "socket.io";
 import app from "./app";
 import { envConfig } from "./config/env-config";
+import { initRecurringCron } from "./modules/recurring/recurring.cron";
 
 const banner = (port: number | string) => {
   const url = `http://localhost:${port}`;
@@ -71,6 +72,9 @@ async function main() {
     // Seed Super Admin
     const { seedSuperAdmin } = await import("./utils/seed-super-admin.js");
     await seedSuperAdmin();
+
+    // Initialize Background Workers
+    initRecurringCron();
 
     const server = app.listen(envConfig.port, () => {
       banner(envConfig.port);
