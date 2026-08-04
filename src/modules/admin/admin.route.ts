@@ -8,6 +8,7 @@ import {
   createUserSchema,
   updateAdminStatusSchema,
   updateUserStatusSchema,
+  broadcastNotificationSchema,
 } from "./admin.validation";
 
 const router = Router();
@@ -69,6 +70,7 @@ router.get(
 router.post(
   "/broadcast",
   checkAdminAuth(AdminRole.SUPER_ADMIN),
+  validateRequest(broadcastNotificationSchema),
   AdminController.broadcastNotification,
 );
 
