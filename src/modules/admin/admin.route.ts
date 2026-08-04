@@ -1,5 +1,6 @@
 import { checkAdminAuth } from "@/middlewares/auth.middleware";
 import { validateRequest } from "@/middlewares/validate-request.middleware";
+import { upload } from "@/middlewares/upload.middleware";
 import { Router } from "express";
 import { AdminController } from "./admin.controller";
 import { AdminRole } from "./admin.interface";
@@ -15,6 +16,11 @@ const router = Router();
 
 // Apply auth middleware requiring ADMIN or SUPER_ADMIN
 router.use(checkAdminAuth(AdminRole.ADMIN, AdminRole.SUPER_ADMIN));
+
+// Profile & Search
+router.patch("/profile", AdminController.updateProfile);
+router.patch("/profile-image", upload.single("admin_profile_image"), AdminController.updateProfileImage);
+router.get("/search", AdminController.globalSearch);
 
 // User Management
 router.get("/users", AdminController.getUsers);

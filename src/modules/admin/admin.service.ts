@@ -12,6 +12,86 @@ import { UserStatus } from "../user/user.interface";
 import os from "os";
 
 export const AdminService = {
+  updateProfile: async (adminId: string, payload: any) => {
+    const allowedKeys = [
+      "admin_name",
+      "admin_phone",
+      "admin_area",
+      "admin_city",
+      "admin_country",
+      "currency",
+      "language",
+      "timezone",
+      "theme",
+      "date_format",
+      "number_format",
+    ];
+    
+    const sanitizedPayload = Object.keys(payload)
+      .filter((key) => allowedKeys.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = payload[key];
+        return obj;
+      }, {} as any);
+
+    const admin = await Admin.findByIdAndUpdate(adminId, sanitizedPayload, {
+      new: true,
+      runValidators: true,
+    }).select("-admin_password");
+    if (!admin) {
+      throw new ApiError(httpStatus.NOT_FOUND, "Admin not found.");
+    }
+    return admin;
+  },
+
+  updateProfileImage: async (adminId: string, imageUrl: string) => {
+    const admin = await Admin.findByIdAndUpdate(
+      adminId,
+      { admin_profile_image: imageUrl },
+      { new: true },
+    ).select("-admin_password");
+    if (!admin) {
+      throw new ApiError(httpStatus.NOT_FOUND, "Admin not found.");
+    }
+    return admin;
+  },
+
+  globalSearch: async (query: string) => {
+    const regex = new RegExp(query, "i");
+    const results: any[] = [];
+
+    const users = await User.find({
+      is_deleted: false,
+      $or: [{ user_name: { $regex: regex } }, { user_email: { $regex: regex } }]
+    }).limit(10).lean();
+
+    users.forEach(u => {
+      results.push({
+        id: u._id.toString(),
+        type: "user",
+        title: u.user_name || "Unknown User",
+        subtitle: `User • ${u.user_email}`,
+        url: `/admin/users`,
+      });
+    });
+
+    const admins = await Admin.find({
+      is_deleted: false,
+      $or: [{ admin_name: { $regex: regex } }, { admin_email: { $regex: regex } }]
+    }).limit(5).lean();
+
+    admins.forEach(a => {
+      results.push({
+        id: a._id.toString(),
+        type: "admin",
+        title: a.admin_name,
+        subtitle: `Admin • ${a.admin_role}`,
+        url: `/admin/admins`,
+      });
+    });
+
+    return results;
+  },
   getUsers: async (limit: number) => {
     return User.find({ is_deleted: false })
       .select("-user_password")

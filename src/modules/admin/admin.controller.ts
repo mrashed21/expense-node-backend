@@ -5,6 +5,50 @@ import { sendResponse } from "@/helpers/send-response";
 import { AdminService } from "./admin.service";
 
 export const AdminController = {
+  updateProfile: catchAsync(async (req: Request, res: Response) => {
+    const adminId = req.user?._id as string;
+    const updateData = req.body;
+    const updatedAdmin = await AdminService.updateProfile(adminId, updateData);
+    
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Admin profile updated successfully.",
+      data: updatedAdmin,
+    });
+  }),
+
+  updateProfileImage: catchAsync(async (req: Request, res: Response) => {
+    const adminId = req.user?._id as string;
+    const imageUrl = req.file?.path;
+    
+    if (!imageUrl) {
+      return sendResponse(res, {
+        statusCode: httpStatus.BAD_REQUEST,
+        success: false,
+        message: "No image file provided.",
+      });
+    }
+
+    const updatedAdmin = await AdminService.updateProfileImage(adminId, imageUrl);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Admin profile image updated successfully.",
+      data: updatedAdmin,
+    });
+  }),
+
+  globalSearch: catchAsync(async (req: Request, res: Response) => {
+    const query = (req.query.q as string) || "";
+    if (!query || query.length < 2) {
+      return res.status(200).json({ success: true, message: "Query too short", data: [] });
+    }
+
+    const data = await AdminService.globalSearch(query);
+    res.status(200).json({ success: true, message: "Search results", data });
+  }),
+
   // --- USER MANAGEMENT ---
   getUsers: catchAsync(async (req: Request, res: Response) => {
     const limit = Number(req.query.limit) || 50;
