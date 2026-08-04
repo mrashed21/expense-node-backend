@@ -20,6 +20,8 @@ import { savedFilterRoutes } from "@/modules/saved-filter/saved-filter.route";
 import { transactionRoutes } from "@/modules/transaction/transaction.route";
 import { transferRoutes } from "@/modules/transfer/transfer.route";
 import { userRoutes } from "@/modules/user/user.route";
+import { CalendarRoutes } from "@/modules/calendar/calendar.route";
+import { SearchRoutes } from "@/modules/search/search.route";
 import { Router } from "express";
 
 const router = Router();
@@ -48,6 +50,10 @@ const apiRoutes = [
   { path: "/reports", route: ReportRoutes },
   { path: "/recurring", route: RecurringRoutes },
   { path: "/calendar", route: CalendarRoutes },
+  {
+    path: "/search",
+    route: SearchRoutes,
+  }
 ];
 
 apiRoutes.forEach((route) => {
