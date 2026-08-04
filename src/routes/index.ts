@@ -10,6 +10,7 @@ import { categoryRoutes } from "@/modules/category/category.route";
 import { dataRoutes } from "@/modules/data/data.route";
 import { debtRoutes } from "@/modules/debt/debt.route";
 import { goalRoutes } from "@/modules/goal/goal.route";
+import { InvestmentRoutes } from "@/modules/investment/investment.route";
 import { notificationRoutes } from "@/modules/notification/notification.route";
 import { savedFilterRoutes } from "@/modules/saved-filter/saved-filter.route";
 import { transactionRoutes } from "@/modules/transaction/transaction.route";
@@ -37,6 +38,7 @@ const apiRoutes = [
   { path: "/analytics", route: analyticsRoutes },
   { path: "/admin", route: adminRoutes },
   { path: "/assets", route: AssetRoutes },
+  { path: "/investments", route: InvestmentRoutes },
 ];
 
 apiRoutes.forEach((route) => {
