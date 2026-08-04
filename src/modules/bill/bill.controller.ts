@@ -1,66 +1,51 @@
+import catchAsync from "@/helpers/catch-async";
 import { sendResponse } from "@/helpers/send-response";
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import httpStatus from "http-status";
 import { BillService } from "./bill.service";
 
 export const BillController = {
-  createBill: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const bill = await BillService.createBill(req.user!._id, req.body);
-      sendResponse(res, {
-        statusCode: httpStatus.CREATED,
-        success: true,
-        message: "Bill reminder registered.",
-        data: bill,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  createBill: catchAsync(async (req: Request, res: Response) => {
+    const bill = await BillService.createBill(req.user!._id, req.body);
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: "Bill reminder registered.",
+      data: bill,
+    });
+  }),
 
-  getBills: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const bills = await BillService.getBills(req.user!._id);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        data: bills,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  getBills: catchAsync(async (req: Request, res: Response) => {
+    const bills = await BillService.getBills(req.user!._id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      data: bills,
+    });
+  }),
 
-  payBill: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { account_id, category_id } = req.body;
-      const bill = await BillService.payBill(
-        req.user!._id,
-        req.params.id as string,
-        account_id,
-        category_id
-      );
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Bill paid and recorded as an expense transaction.",
-        data: bill,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  payBill: catchAsync(async (req: Request, res: Response) => {
+    const { account_id, category_id } = req.body;
+    const bill = await BillService.payBill(
+      req.user!._id,
+      req.params.id as string,
+      account_id,
+      category_id
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Bill paid and recorded as an expense transaction.",
+      data: bill,
+    });
+  }),
 
-  deleteBill: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await BillService.deleteBill(req.user!._id, req.params.id as string);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Bill deleted.",
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  deleteBill: catchAsync(async (req: Request, res: Response) => {
+    await BillService.deleteBill(req.user!._id, req.params.id as string);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Bill deleted.",
+    });
+  }),
 };

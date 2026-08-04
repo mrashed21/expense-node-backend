@@ -1,182 +1,135 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import httpStatus from "http-status";
+import catchAsync from "@/helpers/catch-async";
 import { sendResponse } from "@/helpers/send-response";
 import { clearRefreshTokenCookie } from "@/utils/cookie";
 import { UserService } from "./user.service";
 
 export const UserController = {
-  getProfile: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const user = await UserService.getProfile(req.user!._id);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        data: user,
+  getProfile: catchAsync(async (req: Request, res: Response) => {
+    const user = await UserService.getProfile(req.user!._id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      data: user,
+    });
+  }),
+
+  updateProfile: catchAsync(async (req: Request, res: Response) => {
+    const updatedUser = await UserService.updateProfile(
+      req.user!._id,
+      req.body,
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Profile updated successfully.",
+      data: updatedUser,
+    });
+  }),
+
+  updateProfileImage: catchAsync(async (req: Request, res: Response) => {
+    const imageUrl = req.file?.path;
+    if (!imageUrl) {
+      res.status(httpStatus.BAD_REQUEST).json({
+        success: false,
+        message: "No image file or URL provided.",
       });
-    } catch (error) {
-      next(error);
+      return;
     }
-  },
 
-  updateProfile: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const updatedUser = await UserService.updateProfile(
-        req.user!._id,
-        req.body,
-      );
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Profile updated successfully.",
-        data: updatedUser,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+    const updatedUser = await UserService.updateProfileImage(
+      req.user!._id,
+      imageUrl,
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Profile image updated successfully.",
+      data: updatedUser,
+    });
+  }),
 
-  updateProfileImage: async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    try {
-      const imageUrl = req.file?.path;
-      if (!imageUrl) {
-        res.status(httpStatus.BAD_REQUEST).json({
-          success: false,
-          message: "No image file or URL provided.",
-        });
-        return;
-      }
+  changePassword: catchAsync(async (req: Request, res: Response) => {
+    const { current_password, new_password } = req.body;
+    await UserService.changePassword(
+      req.user!._id,
+      current_password,
+      new_password,
+    );
 
-      const updatedUser = await UserService.updateProfileImage(
-        req.user!._id,
-        imageUrl,
-      );
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Profile image updated successfully.",
-        data: updatedUser,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+    clearRefreshTokenCookie(res);
 
-  changePassword: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const { current_password, new_password } = req.body;
-      await UserService.changePassword(
-        req.user!._id,
-        current_password,
-        new_password,
-      );
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Password changed successfully. Please log in again.",
+    });
+  }),
 
-      clearRefreshTokenCookie(res);
+  getLoginHistory: catchAsync(async (req: Request, res: Response) => {
+    const history = await UserService.getLoginHistory(req.user!._id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      data: history,
+    });
+  }),
 
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Password changed successfully. Please log in again.",
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  deleteAccount: catchAsync(async (req: Request, res: Response) => {
+    await UserService.deleteAccount(req.user!._id);
+    clearRefreshTokenCookie(res);
 
-  getLoginHistory: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const history = await UserService.getLoginHistory(req.user!._id);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        data: history,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Your account has been deleted.",
+    });
+  }),
 
-  deleteAccount: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await UserService.deleteAccount(req.user!._id);
-      clearRefreshTokenCookie(res);
+  generate2FA: catchAsync(async (req: Request, res: Response) => {
+    const result = await UserService.generate2FA(req.user!._id, req.user!.user_email || "user@expensevault.com");
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      data: result,
+    });
+  }),
 
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Your account has been deleted.",
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  verify2FA: catchAsync(async (req: Request, res: Response) => {
+    const result = await UserService.verify2FA(req.user!._id, req.body.code);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "2FA enabled successfully",
+      data: result,
+    });
+  }),
 
-  generate2FA: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const result = await UserService.generate2FA(req.user!._id, req.user!.user_email || "user@expensevault.com");
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        data: result,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  disable2FA: catchAsync(async (req: Request, res: Response) => {
+    await UserService.disable2FA(req.user!._id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "2FA disabled successfully",
+    });
+  }),
 
-  verify2FA: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const result = await UserService.verify2FA(req.user!._id, req.body.code);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "2FA enabled successfully",
-        data: result,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  getDevices: catchAsync(async (req: Request, res: Response) => {
+    const devices = await UserService.getDevices(req.user!._id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      data: devices,
+    });
+  }),
 
-  disable2FA: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await UserService.disable2FA(req.user!._id);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "2FA disabled successfully",
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  getDevices: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const devices = await UserService.getDevices(req.user!._id);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        data: devices,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
-
-  revokeDevice: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      await UserService.revokeDevice(req.user!._id, req.params.id as string);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Device revoked successfully",
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+  revokeDevice: catchAsync(async (req: Request, res: Response) => {
+    await UserService.revokeDevice(req.user!._id, req.params.id as string);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Device revoked successfully",
+    });
+  })
 };

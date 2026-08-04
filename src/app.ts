@@ -5,6 +5,8 @@ import express, { Application, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import morgan from "morgan";
+import fs from "fs";
+import path from "path";
 import { csrfProtection } from "./middlewares/csrf.middleware";
 import { apiLimiter } from "./middlewares/rate-limiter.middleware";
 import { envConfig } from "./config/env-config";
@@ -62,6 +64,14 @@ app.use(compression());
 
 if (envConfig.env === "development") {
   app.use(morgan("dev"));
+} else {
+  // Ensure logs directory exists
+  const logDir = path.join(process.cwd(), "logs");
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+  const accessLogStream = fs.createWriteStream(path.join(logDir, "access.log"), { flags: "a" });
+  app.use(morgan("combined", { stream: accessLogStream }));
 }
 
 // Health Check

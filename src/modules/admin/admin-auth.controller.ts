@@ -1,92 +1,73 @@
+import catchAsync from "@/helpers/catch-async";
 import { sendResponse } from "@/helpers/send-response";
 import { clearAccessTokenCookie, clearRefreshTokenCookie, setAccessTokenCookie, setRefreshTokenCookie } from "@/utils/cookie";
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import httpStatus from "http-status";
 import { AdminAuthService } from "./admin-auth.service";
 
 export const AdminAuthController = {
-  login: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const result = await AdminAuthService.login(req.body);
-      setRefreshTokenCookie(res, result.refreshToken);
-      setAccessTokenCookie(res, result.accessToken);
+  login: catchAsync(async (req: Request, res: Response) => {
+    const result = await AdminAuthService.login(req.body);
+    setRefreshTokenCookie(res, result.refreshToken);
+    setAccessTokenCookie(res, result.accessToken);
 
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Admin login successful.",
-        data: {
-          admin: result.admin,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Admin login successful.",
+      data: {
+        admin: result.admin,
+      },
+    });
+  }),
 
-  refreshToken: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
-      const result = await AdminAuthService.refreshToken(refreshToken);
-      setRefreshTokenCookie(res, result.refreshToken);
-      setAccessTokenCookie(res, result.accessToken);
+  refreshToken: catchAsync(async (req: Request, res: Response) => {
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
+    const result = await AdminAuthService.refreshToken(refreshToken);
+    setRefreshTokenCookie(res, result.refreshToken);
+    setAccessTokenCookie(res, result.accessToken);
 
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Admin token refreshed successfully.",
-        data: {
-          admin: result.admin,
-        },
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Admin token refreshed successfully.",
+      data: {
+        admin: result.admin,
+      },
+    });
+  }),
 
-  getMe: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      if (!req.user?._id) throw new Error("Unauthorized");
-      const admin = await AdminAuthService.getMe(req.user._id);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Admin profile retrieved successfully.",
-        data: { admin },
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  getMe: catchAsync(async (req: Request, res: Response) => {
+    if (!req.user?._id) throw new Error("Unauthorized");
+    const admin = await AdminAuthService.getMe(req.user._id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Admin profile retrieved successfully.",
+      data: { admin },
+    });
+  }),
 
-  logout: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      clearRefreshTokenCookie(res);
-      clearAccessTokenCookie(res);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Admin logged out successfully.",
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  logout: catchAsync(async (req: Request, res: Response) => {
+    clearRefreshTokenCookie(res);
+    clearAccessTokenCookie(res);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Admin logged out successfully.",
+    });
+  }),
 
-  logoutAllDevices: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      if (!req.user?._id) throw new Error("Unauthorized");
-      await AdminAuthService.logoutAllDevices(req.user._id);
-      clearRefreshTokenCookie(res);
-      clearAccessTokenCookie(res);
+  logoutAllDevices: catchAsync(async (req: Request, res: Response) => {
+    if (!req.user?._id) throw new Error("Unauthorized");
+    await AdminAuthService.logoutAllDevices(req.user._id);
+    clearRefreshTokenCookie(res);
+    clearAccessTokenCookie(res);
 
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        message: "Admin successfully logged out from all devices.",
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Admin successfully logged out from all devices.",
+    });
+  }),
 };

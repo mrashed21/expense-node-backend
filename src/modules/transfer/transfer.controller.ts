@@ -1,36 +1,29 @@
+import catchAsync from "@/helpers/catch-async";
 import { sendResponse } from "@/helpers/send-response";
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import httpStatus from "http-status";
 import { TransferService } from "./transfer.service";
 
 export const TransferController = {
-  createTransfer: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const transfer = await TransferService.createTransfer(
-        req.user!._id,
-        req.body,
-      );
-      sendResponse(res, {
-        statusCode: httpStatus.CREATED,
-        success: true,
-        message: "Funds transferred successfully.",
-        data: transfer,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  createTransfer: catchAsync(async (req: Request, res: Response) => {
+    const transfer = await TransferService.createTransfer(
+      req.user!._id,
+      req.body,
+    );
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: "Funds transferred successfully.",
+      data: transfer,
+    });
+  }),
 
-  getTransfers: async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const transfers = await TransferService.getTransfers(req.user!._id);
-      sendResponse(res, {
-        statusCode: httpStatus.OK,
-        success: true,
-        data: transfers,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  getTransfers: catchAsync(async (req: Request, res: Response) => {
+    const transfers = await TransferService.getTransfers(req.user!._id);
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      data: transfers,
+    });
+  }),
 };
