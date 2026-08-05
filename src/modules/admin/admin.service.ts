@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import httpStatus from "http-status";
 import { Transaction } from "../transaction/transaction.model";
 import { User } from "../user/user.model";
+import { Category } from "../category/category.model";
 import { AdminRole } from "./admin.interface";
 import { Admin } from "./admin.model";
 import { AuditLog } from "./audit-log.model";
@@ -92,12 +93,55 @@ export const AdminService = {
 
     return results;
   },
-  getUsers: async (limit: number) => {
-    return User.find({ is_deleted: false })
-      .select("-user_password")
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .lean();
+  getUsers: async (limit: number, page: number = 1, search: string = "", filter: string = "all") => {
+    const query: any = { is_deleted: false };
+    
+    if (search) {
+      query.$or = [
+        { user_name: { $regex: search, $options: "i" } },
+        { user_email: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    if (filter === "active") query.user_status = "active";
+    if (filter === "inactive") query.user_status = { $ne: "active" };
+
+    const skip = (page - 1) * limit;
+
+    const [users, totalCount] = await Promise.all([
+      User.find(query)
+        .select("-user_password -two_factor_secret -two_factor_recovery_codes")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      User.countDocuments(query)
+    ]);
+
+    // Fetch counts in parallel for the paginated users
+    const usersWithStats = await Promise.all(
+      users.map(async (user) => {
+        const [totalTransactions, totalCategories] = await Promise.all([
+          Transaction.countDocuments({ user_id: user._id }),
+          Category.countDocuments({ user_id: user._id, is_deleted: false })
+        ]);
+        return {
+          ...user,
+          total_transactions: totalTransactions,
+          total_categories: totalCategories
+        };
+      })
+    );
+
+    return {
+      users: usersWithStats,
+      pagination: {
+        total: totalCount,
+        page,
+        limit,
+        totalPages: Math.ceil(totalCount / limit)
+      }
+    };
   },
 
   createUser: async (payload: any) => {
@@ -325,5 +369,58 @@ export const AdminService = {
     }).catch(console.error);
 
     return activeUsers.length;
+  },
+
+  createGlobalCategory: async (payload: any, currentAdminId: string) => {
+    const newCategory = await Category.create({
+      ...payload,
+      is_default: true,
+      user_id: null,
+    });
+    
+    AuditLog.create({
+      admin_id: currentAdminId,
+      action: "CREATE_GLOBAL_CATEGORY",
+      target_id: newCategory._id,
+      details: { name: payload.name },
+    }).catch(console.error);
+
+    return newCategory;
+  },
+
+  updateGlobalCategory: async (categoryId: string, payload: any, currentAdminId: string) => {
+    const updatedCategory = await Category.findOneAndUpdate(
+      { _id: categoryId, is_default: true, is_deleted: false },
+      payload,
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedCategory) throw new ApiError(httpStatus.NOT_FOUND, "Global category not found");
+
+    AuditLog.create({
+      admin_id: currentAdminId,
+      action: "UPDATE_GLOBAL_CATEGORY",
+      target_id: categoryId,
+    }).catch(console.error);
+
+    return updatedCategory;
+  },
+
+  deleteGlobalCategory: async (categoryId: string, currentAdminId: string) => {
+    const deletedCategory = await Category.findOneAndUpdate(
+      { _id: categoryId, is_default: true, is_deleted: false },
+      { is_deleted: true },
+      { new: true }
+    );
+
+    if (!deletedCategory) throw new ApiError(httpStatus.NOT_FOUND, "Global category not found");
+
+    AuditLog.create({
+      admin_id: currentAdminId,
+      action: "DELETE_GLOBAL_CATEGORY",
+      target_id: categoryId,
+    }).catch(console.error);
+
+    return true;
   },
 };

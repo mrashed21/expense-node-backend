@@ -29,7 +29,7 @@ const notifyUser = async (userId: string, title: string, message: string, type: 
         `<div style="font-family: sans-serif; padding: 20px;">
           <h2>${title}</h2>
           <p>${message}</p>
-          <p style="color: #666; font-size: 12px; margin-top: 20px;">This is an automated reminder from ExpenseVault.</p>
+          <p style="color: #666; font-size: 12px; margin-top: 20px;">This is an automated reminder from Expense Tracker.</p>
         </div>`
       );
     }

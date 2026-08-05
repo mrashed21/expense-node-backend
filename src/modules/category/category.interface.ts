@@ -7,7 +7,7 @@ export enum CategoryType {
 
 export interface ICategory {
   _id: Types.ObjectId;
-  user_id: Types.ObjectId;
+  user_id?: Types.ObjectId;
   parent_id?: Types.ObjectId;
   name: string;
   type: CategoryType;

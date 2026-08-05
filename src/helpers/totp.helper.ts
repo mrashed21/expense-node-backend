@@ -54,7 +54,7 @@ export function generateSecret(length = 20): string {
 /**
  * Generate an otpauth:// URI for QR Code generation
  */
-export function generateAuthURI(secret: string, accountName: string, issuer = 'ExpenseVault'): string {
+export function generateAuthURI(secret: string, accountName: string, issuer = 'Expense Tracker'): string {
   return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(accountName)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=6&period=30`;
 }
 

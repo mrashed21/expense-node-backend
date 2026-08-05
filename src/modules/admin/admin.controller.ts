@@ -1,7 +1,7 @@
-import { Request, Response } from "express";
-import httpStatus from "http-status";
 import catchAsync from "@/helpers/catch-async";
 import { sendResponse } from "@/helpers/send-response";
+import { Request, Response } from "express";
+import httpStatus from "http-status";
 import { AdminService } from "./admin.service";
 
 export const AdminController = {
@@ -51,13 +51,17 @@ export const AdminController = {
 
   // --- USER MANAGEMENT ---
   getUsers: catchAsync(async (req: Request, res: Response) => {
-    const limit = Number(req.query.limit) || 50;
-    const users = await AdminService.getUsers(limit);
+    const limit = Number(req.query.limit) || 10;
+    const page = Number(req.query.page) || 1;
+    const search = req.query.search as string || "";
+    const filter = req.query.filter as string || "all";
+
+    const result = await AdminService.getUsers(limit, page, search, filter);
 
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      data: users,
+      data: result,
     });
   }),
 
@@ -258,6 +262,44 @@ export const AdminController = {
       statusCode: httpStatus.OK,
       success: true,
       message: `Broadcast sent to ${count} active users.`,
+    });
+  }),
+
+  // --- GLOBAL CATEGORY MANAGEMENT ---
+  createGlobalCategory: catchAsync(async (req: Request, res: Response) => {
+    const currentAdminId = req.user?._id as string;
+    const category = await AdminService.createGlobalCategory(req.body, currentAdminId);
+
+    sendResponse(res, {
+      statusCode: httpStatus.CREATED,
+      success: true,
+      message: "Global category created successfully.",
+      data: category,
+    });
+  }),
+
+  updateGlobalCategory: catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const currentAdminId = req.user?._id as string;
+    const category = await AdminService.updateGlobalCategory(id as string, req.body, currentAdminId);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Global category updated successfully.",
+      data: category,
+    });
+  }),
+
+  deleteGlobalCategory: catchAsync(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const currentAdminId = req.user?._id as string;
+    await AdminService.deleteGlobalCategory(id as string, currentAdminId);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Global category deleted successfully.",
     });
   }),
 };

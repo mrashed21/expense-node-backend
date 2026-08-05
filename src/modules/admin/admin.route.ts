@@ -80,4 +80,9 @@ router.post(
   AdminController.broadcastNotification,
 );
 
+// Global Categories
+router.post("/categories", AdminController.createGlobalCategory);
+router.patch("/categories/:id", AdminController.updateGlobalCategory);
+router.delete("/categories/:id", AdminController.deleteGlobalCategory);
+
 export const adminRoutes = router;

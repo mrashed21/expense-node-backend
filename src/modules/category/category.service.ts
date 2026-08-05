@@ -95,18 +95,24 @@ const DEFAULT_CATEGORIES = [
 export const CategoryService = {
   getUserCategories: async (userId: string) => {
     let categories = await Category.find({
-      user_id: userId,
-      is_deleted: false,
+      $or: [
+        { user_id: userId, is_deleted: false },
+        { is_default: true, is_deleted: false }
+      ]
     }).sort({ name: 1 }).lean();
 
-    if (categories.length === 0) {
+    const globalCategories = categories.filter(c => c.is_default);
+
+    if (globalCategories.length === 0) {
       const defaults = DEFAULT_CATEGORIES.map((cat) => ({
         ...cat,
-        user_id: new Types.ObjectId(userId),
         is_default: true,
       }));
       const docs = await Category.insertMany(defaults);
-      categories = docs.map(d => d.toObject()) as any;
+      const newGlobalCategories = docs.map(d => d.toObject()) as any;
+      categories = [...categories, ...newGlobalCategories];
+      // Sort again after merging
+      categories.sort((a, b) => a.name.localeCompare(b.name));
     }
 
     return categories;
