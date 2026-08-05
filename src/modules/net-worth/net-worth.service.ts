@@ -1,19 +1,19 @@
 import { Account } from "../account/account.model";
 import { Asset } from "../asset/asset.model";
-import { Investment } from "../investment/investment.model";
+import { DebtType } from "../debt/debt.interface";
 import { Debt } from "../debt/debt.model";
-import { DebtType, DebtStatus } from "../debt/debt.interface";
 import { Installment } from "../installment/installment.model";
+import { Investment } from "../investment/investment.model";
 import { NetWorthHistory } from "./net-worth-history.model";
-import ApiError from "@/helpers/api-error";
-import httpStatus from "http-status";
 
 const calculateDebtInterest = (debt: any) => {
   let accruedInterest = 0;
   if (debt.interest_rate && debt.interest_rate > 0) {
     const msInYear = 1000 * 60 * 60 * 24 * 365;
-    const timeInYears = (Date.now() - new Date(debt.createdAt).getTime()) / msInYear;
-    accruedInterest = debt.amount * (debt.interest_rate / 100) * Math.max(0, timeInYears);
+    const timeInYears =
+      (Date.now() - new Date(debt.createdAt).getTime()) / msInYear;
+    accruedInterest =
+      debt.amount * (debt.interest_rate / 100) * Math.max(0, timeInYears);
   }
   return Math.max(0, debt.remaining_amount + accruedInterest);
 };
@@ -22,22 +22,40 @@ export const NetWorthService = {
   calculateCurrentNetWorth: async (userId: string) => {
     // 1. Accounts
     const accounts = await Account.find({ user_id: userId }).lean();
-    const totalCash = accounts.reduce((sum, acc) => sum + (acc.current_balance || 0), 0);
+    const totalCash = accounts.reduce(
+      (sum, acc) => sum + (acc.current_balance || 0),
+      0,
+    );
 
     // 2. Assets
-    const assets = await Asset.find({ user_id: userId, is_deleted: false }).lean();
-    const totalPhysicalAssets = assets.reduce((sum, ast) => sum + (ast.value || 0), 0);
+    const assets = await Asset.find({
+      user_id: userId,
+      is_deleted: false,
+    }).lean();
+    const totalPhysicalAssets = assets.reduce(
+      (sum, ast) => sum + (ast.value || 0),
+      0,
+    );
 
     // 3. Investments
-    const investments = await Investment.find({ user_id: userId, is_deleted: false }).lean();
-    const totalInvestments = investments.reduce((sum, inv) => sum + (inv.current_price * inv.quantity), 0);
+    const investments = await Investment.find({
+      user_id: userId,
+      is_deleted: false,
+    }).lean();
+    const totalInvestments = investments.reduce(
+      (sum, inv) => sum + inv.current_price * inv.quantity,
+      0,
+    );
 
     // 4. Debts (Lent vs Borrowed)
-    const debts = await Debt.find({ user_id: userId, is_deleted: false }).lean();
+    const debts = await Debt.find({
+      user_id: userId,
+      is_deleted: false,
+    }).lean();
     let totalLent = 0;
     let totalBorrowed = 0;
 
-    debts.forEach(d => {
+    debts.forEach((d) => {
       const trueRemaining = calculateDebtInterest(d);
       // Status isn't completely reliable here if we just check "paid", so check trueRemaining
       if (trueRemaining > 0) {
@@ -50,11 +68,19 @@ export const NetWorthService = {
     });
 
     // 5. Installments
-    const installments = await Installment.find({ user_id: userId, is_deleted: false, is_completed: false }).lean();
-    const totalEMIs = installments.reduce((sum, inst) => sum + (inst.remaining_amount || 0), 0);
+    const installments = await Installment.find({
+      user_id: userId,
+      is_deleted: false,
+      is_completed: false,
+    }).lean();
+    const totalEMIs = installments.reduce(
+      (sum, inst) => sum + (inst.remaining_amount || 0),
+      0,
+    );
 
     // Totals
-    const totalAssets = totalCash + totalPhysicalAssets + totalInvestments + totalLent;
+    const totalAssets =
+      totalCash + totalPhysicalAssets + totalInvestments + totalLent;
     const totalLiabilities = totalBorrowed + totalEMIs;
     const netWorth = totalAssets - totalLiabilities;
 
@@ -72,25 +98,25 @@ export const NetWorthService = {
         liabilities: {
           money_borrowed: totalBorrowed,
           emi_remaining: totalEMIs,
-        }
+        },
       },
-      date: new Date()
+      date: new Date(),
     };
   },
 
   takeDailySnapshot: async (userId: string) => {
     const current = await NetWorthService.calculateCurrentNetWorth(userId);
-    
+
     // Check if snapshot exists for today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     const existingSnapshot = await NetWorthHistory.findOne({
       user_id: userId,
-      date: { $gte: today, $lt: tomorrow }
+      date: { $gte: today, $lt: tomorrow },
     });
 
     if (existingSnapshot) {
@@ -117,11 +143,11 @@ export const NetWorthService = {
 
     const history = await NetWorthHistory.find({
       user_id: userId,
-      date: { $gte: startDate }
+      date: { $gte: startDate },
     })
       .sort({ date: 1 })
       .lean();
 
     return history;
-  }
+  },
 };

@@ -6,6 +6,7 @@ import { AssetRoutes } from "@/modules/asset/asset.route";
 import { authRoutes } from "@/modules/auth/auth.route";
 import { billRoutes } from "@/modules/bill/bill.route";
 import { budgetRoutes } from "@/modules/budget/budget.route";
+import { CalendarRoutes } from "@/modules/calendar/calendar.route";
 import { categoryRoutes } from "@/modules/category/category.route";
 import { dataRoutes } from "@/modules/data/data.route";
 import { debtRoutes } from "@/modules/debt/debt.route";
@@ -17,11 +18,10 @@ import { notificationRoutes } from "@/modules/notification/notification.route";
 import { RecurringRoutes } from "@/modules/recurring/recurring.route";
 import { ReportRoutes } from "@/modules/report/report.route";
 import { savedFilterRoutes } from "@/modules/saved-filter/saved-filter.route";
+import { SearchRoutes } from "@/modules/search/search.route";
 import { transactionRoutes } from "@/modules/transaction/transaction.route";
 import { transferRoutes } from "@/modules/transfer/transfer.route";
 import { userRoutes } from "@/modules/user/user.route";
-import { CalendarRoutes } from "@/modules/calendar/calendar.route";
-import { SearchRoutes } from "@/modules/search/search.route";
 import { Router } from "express";
 
 const router = Router();
@@ -53,7 +53,7 @@ const apiRoutes = [
   {
     path: "/search",
     route: SearchRoutes,
-  }
+  },
 ];
 
 apiRoutes.forEach((route) => {

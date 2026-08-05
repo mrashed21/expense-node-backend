@@ -19,7 +19,17 @@ const notificationSchema = new Schema<INotificationDocument>(
     },
     type: {
       type: String,
-      enum: ["budget_alert", "bill_reminder", "goal_milestone", "system", "info", "success", "warning", "error", "alert"],
+      enum: [
+        "budget_alert",
+        "bill_reminder",
+        "goal_milestone",
+        "system",
+        "info",
+        "success",
+        "warning",
+        "error",
+        "alert",
+      ],
       default: "system",
     },
     is_read: {
@@ -35,7 +45,10 @@ const notificationSchema = new Schema<INotificationDocument>(
 
 notificationSchema.index({ user_id: 1, createdAt: -1 });
 // Auto-expire notifications after 90 days to prevent unbounded growth
-notificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 * 90 });
+notificationSchema.index(
+  { createdAt: 1 },
+  { expireAfterSeconds: 60 * 60 * 24 * 90 },
+);
 
 export const Notification = model<INotificationDocument>(
   "Notification",

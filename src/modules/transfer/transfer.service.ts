@@ -1,9 +1,9 @@
 import ApiError from "@/helpers/api-error";
 import httpStatus from "http-status";
 import mongoose from "mongoose";
-import { Transaction } from "../transaction/transaction.model";
-import { TransactionType } from "../transaction/transaction.interface";
 import { Account } from "../account/account.model";
+import { TransactionType } from "../transaction/transaction.interface";
+import { Transaction } from "../transaction/transaction.model";
 import { Transfer } from "./transfer.model";
 
 export const TransferService = {
@@ -66,7 +66,7 @@ export const TransferService = {
             notes,
           },
         ],
-        { session }
+        { session },
       );
       const transfer = createdTransfers[0];
 
@@ -82,7 +82,7 @@ export const TransferService = {
               notes: `Transfer Fee: ${notes || "No notes"}`,
             },
           ],
-          { session }
+          { session },
         );
       }
 

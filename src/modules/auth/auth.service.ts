@@ -1,23 +1,23 @@
-import bcrypt from "bcrypt";
-import httpStatus from "http-status";
-import { UAParser } from "ua-parser-js";
 import { envConfig } from "@/config/env-config";
 import ApiError from "@/helpers/api-error";
+import { verifyToken as verifyTotp } from "@/helpers/totp.helper";
 import { generateToken, verifyToken } from "@/utils/jwt";
 import { sendEmail } from "@/utils/send-email";
+import bcrypt from "bcrypt";
+import crypto from "crypto";
+import httpStatus from "http-status";
+import { UAParser } from "ua-parser-js";
+import { Device } from "../user/device.model";
 import { LoginHistory } from "../user/login-history.model";
 import { UserStatus } from "../user/user.interface";
 import { User } from "../user/user.model";
-import { Device } from "../user/device.model";
-import { Otp } from "./auth.model";
-import { verifyToken as verifyTotp } from "@/helpers/totp.helper";
-import crypto from "crypto";
 import {
   IClientInfo,
   ILoginPayload,
   IRegisterPayload,
   IResetPasswordPayload,
 } from "./auth.interface";
+import { Otp } from "./auth.model";
 
 export const AuthService = {
   register: async (payload: IRegisterPayload) => {
@@ -156,13 +156,12 @@ export const AuthService = {
     return true;
   },
 
-  login: async (
-    payload: ILoginPayload,
-    clientInfo: IClientInfo,
-  ) => {
+  login: async (payload: ILoginPayload, clientInfo: IClientInfo) => {
     const { user_email, user_password } = payload;
 
-    const user = await User.findOne({ user_email }).select("+user_password +two_factor_secret");
+    const user = await User.findOne({ user_email }).select(
+      "+user_password +two_factor_secret",
+    );
     if (!user || user.is_deleted) {
       throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid email or password.");
     }
@@ -197,11 +196,20 @@ export const AuthService = {
     // 2FA Check
     if (user.two_factor_enabled) {
       const tempPayload = { _id: user._id.toString(), type: "2fa_temp" } as any;
-      const tempToken = generateToken(tempPayload, envConfig.jwt.access_secret, "5m");
+      const tempToken = generateToken(
+        tempPayload,
+        envConfig.jwt.access_secret,
+        "5m",
+      );
       return { requires2FA: true, tempToken };
     }
 
-    return await AuthService.finalizeLogin(user, clientInfo, deviceName, browserInfo);
+    return await AuthService.finalizeLogin(
+      user,
+      clientInfo,
+      deviceName,
+      browserInfo,
+    );
   },
 
   verifyLogin2FA: async (
@@ -213,25 +221,35 @@ export const AuthService = {
     try {
       decoded = verifyToken(tempToken, envConfig.jwt.access_secret);
     } catch (err) {
-      throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid or expired temporary token");
+      throw new ApiError(
+        httpStatus.UNAUTHORIZED,
+        "Invalid or expired temporary token",
+      );
     }
 
     if (decoded.type !== "2fa_temp") {
       throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid token type");
     }
 
-    const user = await User.findById(decoded._id).select("+two_factor_secret +two_factor_recovery_codes");
+    const user = await User.findById(decoded._id).select(
+      "+two_factor_secret +two_factor_recovery_codes",
+    );
     if (!user || !user.two_factor_enabled || !user.two_factor_secret) {
-      throw new ApiError(httpStatus.BAD_REQUEST, "2FA is not enabled for this account");
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "2FA is not enabled for this account",
+      );
     }
 
     // Check TOTP code or Recovery Code
     let isValid = verifyTotp(user.two_factor_secret, code);
-    
+
     if (!isValid && user.two_factor_recovery_codes?.includes(code)) {
       isValid = true;
       // Remove used recovery code
-      user.two_factor_recovery_codes = user.two_factor_recovery_codes.filter(c => c !== code);
+      user.two_factor_recovery_codes = user.two_factor_recovery_codes.filter(
+        (c) => c !== code,
+      );
       await user.save();
     }
 
@@ -247,7 +265,12 @@ export const AuthService = {
     const browserInfo =
       `${ua.browser.name || "Unknown Browser"} ${ua.browser.version || ""}`.trim();
 
-    return await AuthService.finalizeLogin(user, clientInfo, deviceName, browserInfo);
+    return await AuthService.finalizeLogin(
+      user,
+      clientInfo,
+      deviceName,
+      browserInfo,
+    );
   },
 
   finalizeLogin: async (
@@ -264,7 +287,10 @@ export const AuthService = {
       deviceId = crypto.randomUUID();
       isNewDevice = true;
     } else {
-      const existingDevice = await Device.findOne({ user_id: user._id, device_id: deviceId });
+      const existingDevice = await Device.findOne({
+        user_id: user._id,
+        device_id: deviceId,
+      });
       if (!existingDevice) {
         isNewDevice = true;
       }
@@ -273,13 +299,13 @@ export const AuthService = {
     // Upsert Device
     await Device.findOneAndUpdate(
       { user_id: user._id, device_id: deviceId },
-      { 
-        device_name: deviceName, 
-        last_active: new Date(), 
+      {
+        device_name: deviceName,
+        last_active: new Date(),
         ip_address: clientInfo.ip,
-        is_trusted: true // Once logged in successfully, we trust it for now
+        is_trusted: true, // Once logged in successfully, we trust it for now
       },
-      { upsert: true }
+      { upsert: true },
     );
 
     // Send New Login Alert
@@ -298,7 +324,7 @@ export const AuthService = {
               <li><strong>Time:</strong> ${new Date().toUTCString()}</li>
             </ul>
             <p>If this was you, you can ignore this email. If you don't recognize this activity, please reset your password immediately.</p>
-          </div>`
+          </div>`,
         );
       } catch (err) {
         console.error("Failed to send login alert email:", err);

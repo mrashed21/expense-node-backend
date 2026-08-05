@@ -1,13 +1,20 @@
-import cron from "node-cron";
-import { Recurring, RecurringStatus, RecurringFrequency } from "./recurring.model";
-import { TransactionService } from "@/modules/transaction/transaction.service";
 import { BillService } from "@/modules/bill/bill.service";
+import { TransactionService } from "@/modules/transaction/transaction.service";
 import { TransferService } from "@/modules/transfer/transfer.service";
+import cron from "node-cron";
+import {
+  Recurring,
+  RecurringFrequency,
+  RecurringStatus,
+} from "./recurring.model";
 
 /**
  * Calculates the next run date based on the frequency.
  */
-const calculateNextRunDate = (currentDate: Date, frequency: RecurringFrequency): Date => {
+const calculateNextRunDate = (
+  currentDate: Date,
+  frequency: RecurringFrequency,
+): Date => {
   const nextDate = new Date(currentDate);
   switch (frequency) {
     case RecurringFrequency.DAILY:
@@ -41,7 +48,10 @@ const executeTask = async (task: any) => {
         await TransactionService.createTransaction(userId, txData);
         break;
       case "bill":
-        const billData = { ...template, due_date: calculateNextRunDate(new Date(), task.frequency) }; // Bill due is next cycle
+        const billData = {
+          ...template,
+          due_date: calculateNextRunDate(new Date(), task.frequency),
+        }; // Bill due is next cycle
         await BillService.createBill(userId, billData);
         break;
       case "transfer":
@@ -80,10 +90,13 @@ const runRecurringJobs = async () => {
     for (const task of dueTasks) {
       try {
         await executeTask(task);
-        
+
         // Update task with new run date
         task.last_run_date = new Date();
-        task.next_run_date = calculateNextRunDate(task.next_run_date, task.frequency as RecurringFrequency);
+        task.next_run_date = calculateNextRunDate(
+          task.next_run_date,
+          task.frequency as RecurringFrequency,
+        );
         // @ts-ignore
         await task.save();
 

@@ -45,4 +45,3 @@ export const NotificationService = {
     return true;
   },
 };
-

@@ -1,12 +1,16 @@
 import ApiError from "@/helpers/api-error";
+import {
+  generateAuthURI,
+  generateSecret,
+  verifyToken,
+} from "@/helpers/totp.helper";
 import bcrypt from "bcrypt";
+import crypto from "crypto";
 import httpStatus from "http-status";
+import { Device } from "./device.model";
 import { LoginHistory } from "./login-history.model";
 import { UserStatus } from "./user.interface";
 import { User } from "./user.model";
-import { Device } from "./device.model";
-import crypto from "crypto";
-import { generateSecret, generateAuthURI, verifyToken } from "@/helpers/totp.helper";
 
 export const UserService = {
   getProfile: async (userId: string) => {
@@ -31,7 +35,7 @@ export const UserService = {
       "date_format",
       "number_format",
     ];
-    
+
     const sanitizedPayload = Object.keys(payload)
       .filter((key) => allowedKeys.includes(key))
       .reduce((obj, key) => {
@@ -124,7 +128,9 @@ export const UserService = {
   },
 
   verify2FA: async (userId: string, code: string) => {
-    const user = await User.findById(userId).select("+two_factor_secret +two_factor_recovery_codes");
+    const user = await User.findById(userId).select(
+      "+two_factor_secret +two_factor_recovery_codes",
+    );
     if (!user || !user.two_factor_secret) {
       throw new ApiError(httpStatus.BAD_REQUEST, "2FA setup not initialized");
     }
@@ -135,8 +141,10 @@ export const UserService = {
     }
 
     // Generate 10 recovery codes
-    const recoveryCodes = Array.from({ length: 10 }, () => crypto.randomBytes(4).toString('hex'));
-    
+    const recoveryCodes = Array.from({ length: 10 }, () =>
+      crypto.randomBytes(4).toString("hex"),
+    );
+
     user.two_factor_enabled = true;
     user.two_factor_recovery_codes = recoveryCodes;
     await user.save();
@@ -157,16 +165,17 @@ export const UserService = {
   },
 
   getDevices: async (userId: string) => {
-    return Device.find({ user_id: userId })
-      .sort({ last_active: -1 })
-      .lean();
+    return Device.find({ user_id: userId }).sort({ last_active: -1 }).lean();
   },
 
   revokeDevice: async (userId: string, deviceId: string) => {
-    const result = await Device.findOneAndDelete({ user_id: userId, _id: deviceId });
+    const result = await Device.findOneAndDelete({
+      user_id: userId,
+      _id: deviceId,
+    });
     if (!result) {
       throw new ApiError(httpStatus.NOT_FOUND, "Device not found");
     }
     return true;
-  }
+  },
 };

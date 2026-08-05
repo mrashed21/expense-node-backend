@@ -1,8 +1,6 @@
 import { checkAuth } from "@/middlewares/auth.middleware";
-import { validateRequest } from "@/middlewares/validate-request.middleware";
 import { Router } from "express";
 import { TransactionController } from "./transaction.controller";
-import { transactionSchema } from "./transaction.validation";
 
 const router = Router();
 

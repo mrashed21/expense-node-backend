@@ -21,7 +21,11 @@ export const RecurringController = {
   }),
 
   update: catchAsync(async (req, res) => {
-    const data = await RecurringService.update(req.user!._id, req.params.id as string, req.body);
+    const data = await RecurringService.update(
+      req.user!._id,
+      req.params.id as string,
+      req.body,
+    );
     res.status(200).json({
       success: true,
       message: "Recurring item updated successfully",
@@ -39,7 +43,10 @@ export const RecurringController = {
   }),
 
   toggleStatus: catchAsync(async (req, res) => {
-    const data = await RecurringService.toggleStatus(req.user!._id, req.params.id as string);
+    const data = await RecurringService.toggleStatus(
+      req.user!._id,
+      req.params.id as string,
+    );
     res.status(200).json({
       success: true,
       message: `Recurring item ${data.status} successfully`,

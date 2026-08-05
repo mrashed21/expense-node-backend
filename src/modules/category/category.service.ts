@@ -97,11 +97,13 @@ export const CategoryService = {
     let categories = await Category.find({
       $or: [
         { user_id: userId, is_deleted: false },
-        { is_default: true, is_deleted: false }
-      ]
-    }).sort({ name: 1 }).lean();
+        { is_default: true, is_deleted: false },
+      ],
+    })
+      .sort({ name: 1 })
+      .lean();
 
-    const globalCategories = categories.filter(c => c.is_default);
+    const globalCategories = categories.filter((c) => c.is_default);
 
     if (globalCategories.length === 0) {
       const defaults = DEFAULT_CATEGORIES.map((cat) => ({
@@ -109,7 +111,7 @@ export const CategoryService = {
         is_default: true,
       }));
       const docs = await Category.insertMany(defaults);
-      const newGlobalCategories = docs.map(d => d.toObject()) as any;
+      const newGlobalCategories = docs.map((d) => d.toObject()) as any;
       categories = [...categories, ...newGlobalCategories];
       // Sort again after merging
       categories.sort((a, b) => a.name.localeCompare(b.name));
@@ -127,17 +129,29 @@ export const CategoryService = {
   },
 
   updateCategory: async (user: any, categoryId: string, payload: any) => {
-    const category = await Category.findOne({ _id: categoryId, is_deleted: false });
+    const category = await Category.findOne({
+      _id: categoryId,
+      is_deleted: false,
+    });
     if (!category) {
       throw new ApiError(httpStatus.NOT_FOUND, "Category not found.");
     }
-    
+
     if (category.is_default && user.user_role !== "admin") {
-      throw new ApiError(httpStatus.FORBIDDEN, "Only admins can edit global categories.");
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        "Only admins can edit global categories.",
+      );
     }
-    
-    if (!category.is_default && category.user_id?.toString() !== user._id.toString()) {
-      throw new ApiError(httpStatus.FORBIDDEN, "You do not have permission to edit this category.");
+
+    if (
+      !category.is_default &&
+      category.user_id?.toString() !== user._id.toString()
+    ) {
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        "You do not have permission to edit this category.",
+      );
     }
 
     Object.assign(category, payload);
@@ -146,17 +160,29 @@ export const CategoryService = {
   },
 
   deleteCategory: async (user: any, categoryId: string) => {
-    const category = await Category.findOne({ _id: categoryId, is_deleted: false });
+    const category = await Category.findOne({
+      _id: categoryId,
+      is_deleted: false,
+    });
     if (!category) {
       throw new ApiError(httpStatus.NOT_FOUND, "Category not found.");
     }
 
     if (category.is_default && user.user_role !== "admin") {
-      throw new ApiError(httpStatus.FORBIDDEN, "Only admins can delete global categories.");
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        "Only admins can delete global categories.",
+      );
     }
 
-    if (!category.is_default && category.user_id?.toString() !== user._id.toString()) {
-      throw new ApiError(httpStatus.FORBIDDEN, "You do not have permission to delete this category.");
+    if (
+      !category.is_default &&
+      category.user_id?.toString() !== user._id.toString()
+    ) {
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        "You do not have permission to delete this category.",
+      );
     }
 
     category.is_deleted = true;

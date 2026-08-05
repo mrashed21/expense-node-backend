@@ -1,12 +1,11 @@
-import cron from "node-cron";
 import { Bill } from "@/modules/bill/bill.model";
-import { Installment } from "@/modules/installment/installment.model";
 import { Budget } from "@/modules/budget/budget.model";
-import { Transaction } from "@/modules/transaction/transaction.model";
+import { Installment } from "@/modules/installment/installment.model";
 import { NotificationService } from "@/modules/notification/notification.service";
+import { Transaction } from "@/modules/transaction/transaction.model";
 import { User } from "@/modules/user/user.model";
 import { sendEmail } from "@/utils/send-email";
-import mongoose from "mongoose";
+import cron from "node-cron";
 
 const ALERT_DAYS_THRESHOLD = 3;
 const BUDGET_WARNING_THRESHOLD = 0.8; // 80%

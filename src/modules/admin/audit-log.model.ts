@@ -13,7 +13,7 @@ const auditLogSchema = new Schema<IAuditLogDocument>(
   {
     versionKey: false,
     // Audit logs should ideally be immutable
-  }
+  },
 );
 
 auditLogSchema.index({ admin_id: 1 });

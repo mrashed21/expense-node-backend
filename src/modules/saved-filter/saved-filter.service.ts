@@ -1,7 +1,7 @@
-import { SavedFilter } from "./saved-filter.model";
-import { ISavedFilter } from "./saved-filter.interface";
 import ApiError from "@/helpers/api-error";
 import httpStatus from "http-status";
+import { ISavedFilter } from "./saved-filter.interface";
+import { SavedFilter } from "./saved-filter.model";
 
 export const SavedFilterService = {
   createFilter: async (userId: string, payload: Partial<ISavedFilter>) => {

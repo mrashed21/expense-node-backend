@@ -17,7 +17,7 @@ export const AssetService = {
       limit?: number;
       search?: string;
       type?: string;
-    }
+    },
   ) => {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
@@ -67,7 +67,7 @@ export const AssetService = {
     const asset = await Asset.findOneAndUpdate(
       { _id: assetId, user_id: userId, is_deleted: false },
       payload,
-      { new: true }
+      { new: true },
     );
     if (!asset) {
       throw new ApiError(httpStatus.NOT_FOUND, "Asset not found.");
@@ -79,7 +79,7 @@ export const AssetService = {
     const asset = await Asset.findOneAndUpdate(
       { _id: assetId, user_id: userId, is_deleted: false },
       { is_deleted: true },
-      { new: true }
+      { new: true },
     );
     if (!asset) {
       throw new ApiError(httpStatus.NOT_FOUND, "Asset not found.");
@@ -91,11 +91,14 @@ export const AssetService = {
     const asset = await Asset.findOneAndUpdate(
       { _id: assetId, user_id: userId, is_deleted: true },
       { is_deleted: false },
-      { new: true }
+      { new: true },
     );
     if (!asset) {
-      throw new ApiError(httpStatus.NOT_FOUND, "Asset not found or already restored.");
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        "Asset not found or already restored.",
+      );
     }
     return asset;
-  }
+  },
 };

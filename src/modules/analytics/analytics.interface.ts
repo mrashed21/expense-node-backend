@@ -1,5 +1,3 @@
-import { Document, Types } from "mongoose";
-
 export interface IAnalyticsSummary {
   /** Monthly income/expense for the current year (12 rows) */
   monthlyComparison: Array<{

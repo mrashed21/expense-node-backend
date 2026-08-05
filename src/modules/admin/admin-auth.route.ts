@@ -1,9 +1,9 @@
+import { checkAdminAuth } from "@/middlewares/auth.middleware";
+import { authLimiter } from "@/middlewares/rate-limiter.middleware";
+import { validateRequest } from "@/middlewares/validate-request.middleware";
 import { Router } from "express";
 import { AdminAuthController } from "./admin-auth.controller";
 import { adminLoginSchema } from "./admin.validation";
-import { validateRequest } from "@/middlewares/validate-request.middleware";
-import { checkAdminAuth } from "@/middlewares/auth.middleware";
-import { authLimiter } from "@/middlewares/rate-limiter.middleware";
 
 const router = Router();
 

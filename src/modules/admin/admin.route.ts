@@ -1,15 +1,15 @@
 import { checkAdminAuth } from "@/middlewares/auth.middleware";
-import { validateRequest } from "@/middlewares/validate-request.middleware";
 import { upload } from "@/middlewares/upload.middleware";
+import { validateRequest } from "@/middlewares/validate-request.middleware";
 import { Router } from "express";
 import { AdminController } from "./admin.controller";
 import { AdminRole } from "./admin.interface";
 import {
+  broadcastNotificationSchema,
   createAdminSchema,
   createUserSchema,
   updateAdminStatusSchema,
   updateUserStatusSchema,
-  broadcastNotificationSchema,
 } from "./admin.validation";
 
 const router = Router();
@@ -19,12 +19,20 @@ router.use(checkAdminAuth(AdminRole.ADMIN, AdminRole.SUPER_ADMIN));
 
 // Profile & Search
 router.patch("/profile", AdminController.updateProfile);
-router.patch("/profile-image", upload.single("admin_profile_image"), AdminController.updateProfileImage);
+router.patch(
+  "/profile-image",
+  upload.single("admin_profile_image"),
+  AdminController.updateProfileImage,
+);
 router.get("/search", AdminController.globalSearch);
 
 // User Management
 router.get("/users", AdminController.getUsers);
-router.post("/users", validateRequest(createUserSchema), AdminController.createUser);
+router.post(
+  "/users",
+  validateRequest(createUserSchema),
+  AdminController.createUser,
+);
 router.put("/users/:id", AdminController.updateUser);
 router.delete("/users/:id", AdminController.deleteUser);
 router.patch(

@@ -496,9 +496,8 @@ export const TransactionService = {
         const newAmount =
           payload.amount !== undefined ? payload.amount : oldTx.amount;
 
-        const newAccount = await Account.findById(newAccountId).session(
-          session,
-        );
+        const newAccount =
+          await Account.findById(newAccountId).session(session);
         if (newAccount) {
           if (
             newType === TransactionType.INCOME ||

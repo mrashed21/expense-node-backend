@@ -1,9 +1,9 @@
 import ApiError from "@/helpers/api-error";
 import httpStatus from "http-status";
+import mongoose from "mongoose";
+import { DebtPayment } from "./debt-payment.model";
 import { DebtStatus, DebtType, IDebt } from "./debt.interface";
 import { Debt } from "./debt.model";
-import { DebtPayment } from "./debt-payment.model";
-import mongoose from "mongoose";
 
 const calculateDynamicDebt = (debt: any) => {
   let accruedInterest = 0;

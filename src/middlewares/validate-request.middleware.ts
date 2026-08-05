@@ -3,7 +3,11 @@ import httpStatus from "http-status";
 import { ZodSchema } from "zod";
 
 export const validateRequest = (schema: ZodSchema) => {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
     try {
       await schema.parseAsync({
         body: req.body,
@@ -14,7 +18,9 @@ export const validateRequest = (schema: ZodSchema) => {
       next();
     } catch (error: any) {
       const errorMessage = error?.errors
-        ? error.errors.map((e: any) => `${e.path.join(".")}: ${e.message}`).join(", ")
+        ? error.errors
+            .map((e: any) => `${e.path.join(".")}: ${e.message}`)
+            .join(", ")
         : error.message;
 
       res.status(httpStatus.BAD_REQUEST).json({

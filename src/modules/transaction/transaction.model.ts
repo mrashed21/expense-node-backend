@@ -109,7 +109,12 @@ transactionSchema.index({ user_id: 1, date: -1, type: 1, is_deleted: 1 });
 transactionSchema.index({ user_id: 1, account_id: 1, date: -1 });
 transactionSchema.index({ user_id: 1, category_id: 1, date: -1 });
 transactionSchema.index({ user_id: 1, date: -1, createdAt: -1 }); // Pagination
-transactionSchema.index({ notes: "text", location: "text", reference_number: "text", tags: "text" }); // Search
+transactionSchema.index({
+  notes: "text",
+  location: "text",
+  reference_number: "text",
+  tags: "text",
+}); // Search
 
 export const Transaction = model<ITransactionDocument>(
   "Transaction",

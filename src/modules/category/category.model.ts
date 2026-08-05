@@ -54,7 +54,13 @@ const categorySchema = new Schema<ICategoryDocument>(
 categorySchema.index({ type: 1, is_deleted: 1, is_default: 1 });
 categorySchema.index(
   { user_id: 1, name: 1, type: 1 },
-  { unique: true, partialFilterExpression: { is_deleted: false, user_id: { $type: "objectId" } } }
+  {
+    unique: true,
+    partialFilterExpression: {
+      is_deleted: false,
+      user_id: { $type: "objectId" },
+    },
+  },
 );
 
 export const Category = model<ICategoryDocument>("Category", categorySchema);

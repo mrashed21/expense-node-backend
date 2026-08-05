@@ -39,7 +39,10 @@ const markAllAsRead = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteNotification = catchAsync(async (req: Request, res: Response) => {
-  await NotificationService.deleteNotification(req.user!._id, req.params.id as string);
+  await NotificationService.deleteNotification(
+    req.user!._id,
+    req.params.id as string,
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
-import httpStatus from "http-status";
 import catchAsync from "@/helpers/catch-async";
 import { sendResponse } from "@/helpers/send-response";
 import { clearRefreshTokenCookie } from "@/utils/cookie";
+import { Request, Response } from "express";
+import httpStatus from "http-status";
 import { UserService } from "./user.service";
 
 export const UserController = {
@@ -88,7 +88,10 @@ export const UserController = {
   }),
 
   generate2FA: catchAsync(async (req: Request, res: Response) => {
-    const result = await UserService.generate2FA(req.user!._id, req.user!.user_email || "user@expensetracker.com");
+    const result = await UserService.generate2FA(
+      req.user!._id,
+      req.user!.user_email || "user@expensetracker.com",
+    );
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -131,5 +134,5 @@ export const UserController = {
       success: true,
       message: "Device revoked successfully",
     });
-  })
+  }),
 };

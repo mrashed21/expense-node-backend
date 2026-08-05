@@ -6,10 +6,7 @@ import { AccountService } from "./account.service";
 
 export const AccountController = {
   createAccount: catchAsync(async (req: Request, res: Response) => {
-    const account = await AccountService.createAccount(
-      req.user!._id,
-      req.body,
-    );
+    const account = await AccountService.createAccount(req.user!._id, req.body);
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
       success: true,
@@ -54,10 +51,7 @@ export const AccountController = {
   }),
 
   deleteAccount: catchAsync(async (req: Request, res: Response) => {
-    await AccountService.deleteAccount(
-      req.user!._id,
-      req.params.id as string,
-    );
+    await AccountService.deleteAccount(req.user!._id, req.params.id as string);
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,

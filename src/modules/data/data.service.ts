@@ -12,10 +12,10 @@ import { Transfer } from "../transfer/transfer.model";
 export const DataService = {
   searchData: async (userId: string, query: string) => {
     if (!query) return { transactions: [], accounts: [], categories: [] };
-    
+
     const uid = new mongoose.Types.ObjectId(userId);
     // Escape user input for regex to prevent ReDoS (Regular Expression Denial of Service)
-    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(escapedQuery, "i"); // Case-insensitive global search
 
     const [transactions, accounts, categories] = await Promise.all([
@@ -90,7 +90,10 @@ export const DataService = {
 
   restoreData: async (userId: string, backupPayload: any) => {
     if (!backupPayload || !backupPayload.data) {
-      throw new ApiError(httpStatus.BAD_REQUEST, "Invalid backup payload format");
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "Invalid backup payload format",
+      );
     }
 
     const {
@@ -109,7 +112,9 @@ export const DataService = {
         const { _id, ...rest } = doc;
         return {
           ...rest,
-          _id: _id ? new mongoose.Types.ObjectId(_id) : new mongoose.Types.ObjectId(),
+          _id: _id
+            ? new mongoose.Types.ObjectId(_id)
+            : new mongoose.Types.ObjectId(),
           user_id: userId, // CRITICAL: Prevent injecting into other users' accounts
         };
       });
@@ -129,13 +134,20 @@ export const DataService = {
       await Transfer.deleteMany({ user_id: userId }, { session });
 
       // 2. Insert the restored data
-      if (accounts.length > 0) await Account.insertMany(sanitizeDocs(accounts), { session });
-      if (bills.length > 0) await Bill.insertMany(sanitizeDocs(bills), { session });
-      if (budgets.length > 0) await Budget.insertMany(sanitizeDocs(budgets), { session });
-      if (categories.length > 0) await Category.insertMany(sanitizeDocs(categories), { session });
-      if (goals.length > 0) await Goal.insertMany(sanitizeDocs(goals), { session });
-      if (transactions.length > 0) await Transaction.insertMany(sanitizeDocs(transactions), { session });
-      if (transfers.length > 0) await Transfer.insertMany(sanitizeDocs(transfers), { session });
+      if (accounts.length > 0)
+        await Account.insertMany(sanitizeDocs(accounts), { session });
+      if (bills.length > 0)
+        await Bill.insertMany(sanitizeDocs(bills), { session });
+      if (budgets.length > 0)
+        await Budget.insertMany(sanitizeDocs(budgets), { session });
+      if (categories.length > 0)
+        await Category.insertMany(sanitizeDocs(categories), { session });
+      if (goals.length > 0)
+        await Goal.insertMany(sanitizeDocs(goals), { session });
+      if (transactions.length > 0)
+        await Transaction.insertMany(sanitizeDocs(transactions), { session });
+      if (transfers.length > 0)
+        await Transfer.insertMany(sanitizeDocs(transfers), { session });
 
       await session.commitTransaction();
       session.endSession();
@@ -144,7 +156,10 @@ export const DataService = {
     } catch (error) {
       await session.abortTransaction();
       session.endSession();
-      throw new ApiError(httpStatus.INTERNAL_SERVER_ERROR, "Failed to restore data. Transaction rolled back.");
+      throw new ApiError(
+        httpStatus.INTERNAL_SERVER_ERROR,
+        "Failed to restore data. Transaction rolled back.",
+      );
     }
   },
 };

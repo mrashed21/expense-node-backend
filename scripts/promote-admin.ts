@@ -1,9 +1,9 @@
-import mongoose from "mongoose";
-import { User } from "../src/modules/user/user.model";
-import { Admin } from "../src/modules/admin/admin.model";
-import { AdminRole, AdminStatus } from "../src/modules/admin/admin.interface";
 import * as dotenv from "dotenv";
+import mongoose from "mongoose";
 import path from "path";
+import { AdminRole, AdminStatus } from "../src/modules/admin/admin.interface";
+import { Admin } from "../src/modules/admin/admin.model";
+import { User } from "../src/modules/user/user.model";
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
@@ -20,11 +20,13 @@ async function promoteAdmin() {
       console.error("DATABASE_URL or MONGO_URI is not set in .env");
       process.exit(1);
     }
-    
+
     await mongoose.connect(mongoUri);
     console.log("Connected to MongoDB.");
 
-    const user = await User.findOne({ user_email: email }).select("+user_password");
+    const user = await User.findOne({ user_email: email }).select(
+      "+user_password",
+    );
     if (!user) {
       console.error(`User with email ${email} not found.`);
       process.exit(1);
@@ -44,7 +46,9 @@ async function promoteAdmin() {
       admin_status: AdminStatus.ACTIVE,
     });
 
-    console.log(`✅ Success! User ${email} has been copied to the Admin collection as a SUPER_ADMIN.`);
+    console.log(
+      `✅ Success! User ${email} has been copied to the Admin collection as a SUPER_ADMIN.`,
+    );
     process.exit(0);
   } catch (error) {
     console.error("Error promoting user:", error);

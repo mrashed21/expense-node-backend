@@ -1,6 +1,6 @@
+import { auth } from "@/middlewares/auth.middleware";
 import { Router } from "express";
 import { CalendarController } from "./calendar.controller";
-import { auth } from "@/middlewares/auth.middleware";
 
 const router = Router();
 

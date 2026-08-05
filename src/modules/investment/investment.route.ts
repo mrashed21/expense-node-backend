@@ -2,7 +2,10 @@ import { Router } from "express";
 import { auth } from "../../middlewares/auth.middleware";
 import { validateRequest } from "../../middlewares/validate-request.middleware";
 import { InvestmentController } from "./investment.controller";
-import { createInvestmentSchema, updateInvestmentSchema } from "./investment.validation";
+import {
+  createInvestmentSchema,
+  updateInvestmentSchema,
+} from "./investment.validation";
 
 const router = Router();
 
@@ -10,7 +13,7 @@ router.post(
   "/",
   auth,
   validateRequest(createInvestmentSchema),
-  InvestmentController.createInvestment
+  InvestmentController.createInvestment,
 );
 
 router.get("/", auth, InvestmentController.getInvestments);
@@ -21,7 +24,7 @@ router.patch(
   "/:id",
   auth,
   validateRequest(updateInvestmentSchema),
-  InvestmentController.updateInvestment
+  InvestmentController.updateInvestment,
 );
 
 router.delete("/:id", auth, InvestmentController.deleteInvestment);

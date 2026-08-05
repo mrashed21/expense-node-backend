@@ -28,7 +28,7 @@ export const DebtController = {
   getDebtById: catchAsync(async (req: Request, res: Response) => {
     const debt = await DebtService.getDebtById(
       req.user!._id,
-      req.params.id as string
+      req.params.id as string,
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -41,7 +41,7 @@ export const DebtController = {
     const debt = await DebtService.updateDebt(
       req.user!._id,
       req.params.id as string,
-      req.body
+      req.body,
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -59,12 +59,12 @@ export const DebtController = {
       message: "Debt deleted successfully.",
     });
   }),
-  
+
   addPayment: catchAsync(async (req: Request, res: Response) => {
     const payment = await DebtService.addPayment(
       req.user!._id,
       req.params.id as string,
-      req.body
+      req.body,
     );
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
@@ -72,5 +72,5 @@ export const DebtController = {
       message: "Payment logged successfully.",
       data: payment,
     });
-  })
+  }),
 };

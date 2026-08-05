@@ -1,8 +1,8 @@
-import { TransactionService } from "./transaction.service";
-import { Transaction } from "./transaction.model";
+import mongoose from "mongoose";
 import { Account } from "../account/account.model";
 import { TransactionType } from "./transaction.interface";
-import mongoose from "mongoose";
+import { Transaction } from "./transaction.model";
+import { TransactionService } from "./transaction.service";
 
 jest.mock("./transaction.model");
 jest.mock("../account/account.model");

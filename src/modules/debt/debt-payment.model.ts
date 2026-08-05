@@ -49,4 +49,7 @@ const debtPaymentSchema = new Schema<IDebtPaymentDocument>(
 
 debtPaymentSchema.index({ debt_id: 1, date: -1 });
 
-export const DebtPayment = model<IDebtPaymentDocument>("DebtPayment", debtPaymentSchema);
+export const DebtPayment = model<IDebtPaymentDocument>(
+  "DebtPayment",
+  debtPaymentSchema,
+);

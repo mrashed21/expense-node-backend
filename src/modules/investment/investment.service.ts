@@ -17,7 +17,7 @@ export const InvestmentService = {
       limit?: number;
       search?: string;
       type?: string;
-    }
+    },
   ) => {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 20;
@@ -37,15 +37,15 @@ export const InvestmentService = {
     }
 
     const total = await Investment.countDocuments(filter);
-    
+
     // Calculate global portfolio metrics across all non-deleted items for this user/filter
     const allInvestments = await Investment.find(filter).lean();
     let totalInvested = 0;
     let totalCurrentValue = 0;
-    
-    allInvestments.forEach(inv => {
-      totalInvested += (inv.purchase_price * inv.quantity);
-      totalCurrentValue += (inv.current_price * inv.quantity);
+
+    allInvestments.forEach((inv) => {
+      totalInvested += inv.purchase_price * inv.quantity;
+      totalCurrentValue += inv.current_price * inv.quantity;
     });
     const totalPnL = totalCurrentValue - totalInvested;
 
@@ -65,7 +65,7 @@ export const InvestmentService = {
           totalInvested,
           totalCurrentValue,
           totalPnL,
-        }
+        },
       },
       data: investments,
     };
@@ -83,11 +83,15 @@ export const InvestmentService = {
     return investment;
   },
 
-  updateInvestment: async (userId: string, investmentId: string, payload: any) => {
+  updateInvestment: async (
+    userId: string,
+    investmentId: string,
+    payload: any,
+  ) => {
     const investment = await Investment.findOneAndUpdate(
       { _id: investmentId, user_id: userId, is_deleted: false },
       payload,
-      { new: true }
+      { new: true },
     );
     if (!investment) {
       throw new ApiError(httpStatus.NOT_FOUND, "Investment not found.");
@@ -99,7 +103,7 @@ export const InvestmentService = {
     const investment = await Investment.findOneAndUpdate(
       { _id: investmentId, user_id: userId, is_deleted: false },
       { is_deleted: true },
-      { new: true }
+      { new: true },
     );
     if (!investment) {
       throw new ApiError(httpStatus.NOT_FOUND, "Investment not found.");
@@ -111,11 +115,14 @@ export const InvestmentService = {
     const investment = await Investment.findOneAndUpdate(
       { _id: investmentId, user_id: userId, is_deleted: true },
       { is_deleted: false },
-      { new: true }
+      { new: true },
     );
     if (!investment) {
-      throw new ApiError(httpStatus.NOT_FOUND, "Investment not found or already restored.");
+      throw new ApiError(
+        httpStatus.NOT_FOUND,
+        "Investment not found or already restored.",
+      );
     }
     return investment;
-  }
+  },
 };

@@ -2,7 +2,6 @@ import catchAsync from "@/helpers/catch-async";
 import { sendResponse } from "@/helpers/send-response";
 import {
   clearAccessTokenCookie,
-  clearDeviceIdCookie,
   clearRefreshTokenCookie,
   setAccessTokenCookie,
   setDeviceIdCookie,
@@ -21,7 +20,7 @@ export const AuthController = {
       data: { csrfToken: req.csrfToken },
     });
   }),
-  
+
   register: catchAsync(async (req: Request, res: Response) => {
     const result = await AuthService.register(req.body);
     sendResponse(res, {

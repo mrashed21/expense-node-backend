@@ -9,7 +9,7 @@ export const AdminController = {
     const adminId = req.user?._id as string;
     const updateData = req.body;
     const updatedAdmin = await AdminService.updateProfile(adminId, updateData);
-    
+
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -21,7 +21,7 @@ export const AdminController = {
   updateProfileImage: catchAsync(async (req: Request, res: Response) => {
     const adminId = req.user?._id as string;
     const imageUrl = req.file?.path;
-    
+
     if (!imageUrl) {
       return sendResponse(res, {
         statusCode: httpStatus.BAD_REQUEST,
@@ -30,7 +30,10 @@ export const AdminController = {
       });
     }
 
-    const updatedAdmin = await AdminService.updateProfileImage(adminId, imageUrl);
+    const updatedAdmin = await AdminService.updateProfileImage(
+      adminId,
+      imageUrl,
+    );
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -42,7 +45,9 @@ export const AdminController = {
   globalSearch: catchAsync(async (req: Request, res: Response) => {
     const query = (req.query.q as string) || "";
     if (!query || query.length < 2) {
-      return res.status(200).json({ success: true, message: "Query too short", data: [] });
+      return res
+        .status(200)
+        .json({ success: true, message: "Query too short", data: [] });
     }
 
     const data = await AdminService.globalSearch(query);
@@ -53,8 +58,8 @@ export const AdminController = {
   getUsers: catchAsync(async (req: Request, res: Response) => {
     const limit = Number(req.query.limit) || 10;
     const page = Number(req.query.page) || 1;
-    const search = req.query.search as string || "";
-    const filter = req.query.filter as string || "all";
+    const search = (req.query.search as string) || "";
+    const filter = (req.query.filter as string) || "all";
 
     const result = await AdminService.getUsers(limit, page, search, filter);
 
@@ -268,7 +273,10 @@ export const AdminController = {
   // --- GLOBAL CATEGORY MANAGEMENT ---
   createGlobalCategory: catchAsync(async (req: Request, res: Response) => {
     const currentAdminId = req.user?._id as string;
-    const category = await AdminService.createGlobalCategory(req.body, currentAdminId);
+    const category = await AdminService.createGlobalCategory(
+      req.body,
+      currentAdminId,
+    );
 
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
@@ -281,7 +289,11 @@ export const AdminController = {
   updateGlobalCategory: catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
     const currentAdminId = req.user?._id as string;
-    const category = await AdminService.updateGlobalCategory(id as string, req.body, currentAdminId);
+    const category = await AdminService.updateGlobalCategory(
+      id as string,
+      req.body,
+      currentAdminId,
+    );
 
     sendResponse(res, {
       statusCode: httpStatus.OK,

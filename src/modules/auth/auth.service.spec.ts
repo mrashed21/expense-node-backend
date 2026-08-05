@@ -1,8 +1,7 @@
-import { AuthService } from "./auth.service";
+import bcrypt from "bcrypt";
 import { User } from "../user/user.model";
 import { Otp } from "./auth.model";
-import bcrypt from "bcrypt";
-import httpStatus from "http-status";
+import { AuthService } from "./auth.service";
 
 jest.mock("../user/user.model");
 jest.mock("../admin/admin.model");

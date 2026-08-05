@@ -135,10 +135,7 @@ const userSchema = new Schema<IUserDocument>(
   },
 );
 
-userSchema.index(
-  { user_phone: 1 },
-  { unique: true, sparse: true }
-);
+userSchema.index({ user_phone: 1 }, { unique: true, sparse: true });
 userSchema.index({ is_deleted: 1, user_status: 1 });
 userSchema.index({ createdAt: -1 });
 

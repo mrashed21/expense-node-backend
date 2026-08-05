@@ -1,5 +1,5 @@
-import { Recurring, IRecurring, RecurringStatus } from "./recurring.model";
 import mongoose from "mongoose";
+import { IRecurring, Recurring, RecurringStatus } from "./recurring.model";
 
 export const RecurringService = {
   create: async (userId: string, data: Partial<IRecurring>) => {
@@ -11,14 +11,20 @@ export const RecurringService = {
   },
 
   getAll: async (userId: string) => {
-    return await Recurring.find({ user_id: new mongoose.Types.ObjectId(userId) }).sort({ next_run_date: 1 });
+    return await Recurring.find({
+      user_id: new mongoose.Types.ObjectId(userId),
+    }).sort({ next_run_date: 1 });
   },
 
-  update: async (userId: string, recurringId: string, data: Partial<IRecurring>) => {
+  update: async (
+    userId: string,
+    recurringId: string,
+    data: Partial<IRecurring>,
+  ) => {
     return await Recurring.findOneAndUpdate(
       { _id: recurringId, user_id: new mongoose.Types.ObjectId(userId) },
       data,
-      { new: true }
+      { new: true },
     );
   },
 
@@ -37,7 +43,10 @@ export const RecurringService = {
 
     if (!recurring) throw new Error("Recurring item not found");
 
-    recurring.status = recurring.status === RecurringStatus.ACTIVE ? RecurringStatus.PAUSED : RecurringStatus.ACTIVE;
+    recurring.status =
+      recurring.status === RecurringStatus.ACTIVE
+        ? RecurringStatus.PAUSED
+        : RecurringStatus.ACTIVE;
     // @ts-ignore
     return await recurring.save();
   },

@@ -74,7 +74,7 @@ export const BudgetService = {
     ]);
 
     const spentMap = new Map(
-      spentResult.map((res) => [res._id.toString(), res.totalSpent])
+      spentResult.map((res) => [res._id.toString(), res.totalSpent]),
     );
 
     const budgetsWithAnalytics = budgets.map((b: any) => {

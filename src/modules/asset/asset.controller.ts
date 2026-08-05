@@ -28,7 +28,7 @@ export const AssetController = {
   getAssetById: catchAsync(async (req: Request, res: Response) => {
     const asset = await AssetService.getAssetById(
       req.user!._id,
-      req.params.id as string
+      req.params.id as string,
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -41,7 +41,7 @@ export const AssetController = {
     const asset = await AssetService.updateAsset(
       req.user!._id,
       req.params.id as string,
-      req.body
+      req.body,
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -63,7 +63,7 @@ export const AssetController = {
   restoreAsset: catchAsync(async (req: Request, res: Response) => {
     const asset = await AssetService.restoreAsset(
       req.user!._id,
-      req.params.id as string
+      req.params.id as string,
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,

@@ -20,38 +20,46 @@ markdown += `## Modules Overview\n\n`;
 
 function parseRouteFile(filePath, moduleName) {
   const content = fs.readFileSync(filePath, "utf-8");
-  
+
   // Extract global auth usage
-  const usesGlobalAuth = content.includes("router.use(checkAuth())") || content.includes("router.use(auth)");
-  
+  const usesGlobalAuth =
+    content.includes("router.use(checkAuth())") ||
+    content.includes("router.use(auth)");
+
   // Regex to find router methods
   // Matches: router.get('/path', middleware, controller)
   const routeRegex = /router\.(get|post|patch|put|delete)\(\s*(['"`].*?['"`])/g;
-  
+
   let match;
   let routes = [];
-  
+
   while ((match = routeRegex.exec(content)) !== null) {
     const method = match[1];
     const endpointPath = match[2].replace(/['"`]/g, ""); // Strip quotes
-    
+
     // Attempt to extract the rest of the line/block for this route to check for validateRequest
     const startIndex = match.index;
     let endIndex = content.indexOf(");", startIndex);
     if (endIndex === -1) endIndex = startIndex + 100; // fallback
     const routeBlock = content.substring(startIndex, endIndex);
-    
+
     let payload = "None";
-    const validateMatch = routeBlock.match(/validateRequest\(\s*([a-zA-Z0-9_]+)\s*\)/);
+    const validateMatch = routeBlock.match(
+      /validateRequest\(\s*([a-zA-Z0-9_]+)\s*\)/,
+    );
     if (validateMatch) {
       payload = validateMatch[1];
     }
-    
-    let isAuth = usesGlobalAuth || routeBlock.includes("checkAuth()") || routeBlock.includes("auth,") || routeBlock.includes("auth ");
-    
-    let displayPath = `/api/v1/${moduleName === 'user' ? 'users' : moduleName === 'category' ? 'categories' : moduleName + 's'}${endpointPath === '/' ? '' : endpointPath}`;
-    if (displayPath.endsWith('ys')) {
-        displayPath = displayPath.replace('ys', 'ies');
+
+    let isAuth =
+      usesGlobalAuth ||
+      routeBlock.includes("checkAuth()") ||
+      routeBlock.includes("auth,") ||
+      routeBlock.includes("auth ");
+
+    let displayPath = `/api/v1/${moduleName === "user" ? "users" : moduleName === "category" ? "categories" : moduleName + "s"}${endpointPath === "/" ? "" : endpointPath}`;
+    if (displayPath.endsWith("ys")) {
+      displayPath = displayPath.replace("ys", "ies");
     }
 
     routes.push({
@@ -61,26 +69,26 @@ function parseRouteFile(filePath, moduleName) {
       payload: payload,
     });
   }
-  
+
   return routes;
 }
 
 const dirs = fs.readdirSync(modulesDir);
-dirs.forEach(moduleName => {
+dirs.forEach((moduleName) => {
   const modulePath = path.join(modulesDir, moduleName);
   if (fs.statSync(modulePath).isDirectory()) {
     const routeFile = path.join(modulePath, `${moduleName}.route.ts`);
     if (fs.existsSync(routeFile)) {
       const routes = parseRouteFile(routeFile, moduleName);
-      
+
       markdown += `### ${moduleName.charAt(0).toUpperCase() + moduleName.slice(1)} Module\n`;
       markdown += `| Method | Endpoint | Auth | Payload / Validation Schema |\n`;
       markdown += `|--------|----------|------|-----------------------------|\n`;
-      
+
       if (routes.length === 0) {
         markdown += `| - | No routes found via automated extraction | - | - |\n`;
       } else {
-        routes.forEach(route => {
+        routes.forEach((route) => {
           markdown += `| ${methodColors[route.method] || route.method.toUpperCase()} | \`${route.path}\` | ${route.auth} | \`${route.payload}\` |\n`;
         });
       }

@@ -11,7 +11,8 @@ export interface IInstallmentPayment {
   updatedAt: Date;
 }
 
-export interface IInstallmentPaymentDocument extends IInstallmentPayment, Document {}
+export interface IInstallmentPaymentDocument
+  extends IInstallmentPayment, Document {}
 
 const installmentPaymentSchema = new Schema<IInstallmentPaymentDocument>(
   {

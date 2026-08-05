@@ -19,7 +19,11 @@ export interface ITransaction {
   foreign_currency?: string;
   foreign_amount?: number;
   exchange_rate?: number;
-  splits?: Array<{ category_id: Types.ObjectId; amount: number; notes?: string }>;
+  splits?: Array<{
+    category_id: Types.ObjectId;
+    amount: number;
+    notes?: string;
+  }>;
   is_installment?: boolean;
   installment_id?: Types.ObjectId;
   date: Date;

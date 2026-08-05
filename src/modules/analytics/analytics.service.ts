@@ -7,8 +7,18 @@ import { Transaction } from "@/modules/transaction/transaction.model";
 import mongoose from "mongoose";
 
 const MONTH_NAMES = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; // 1 = Sun, 7 = Sat in MongoDB
 
@@ -27,15 +37,37 @@ export const AnalyticsService = {
 
     // ── 1. Aggregation: Current Year Stats ──────────────────────────────────
     const currentYearAgg = await Transaction.aggregate([
-      { $match: { user_id: uid, is_deleted: false, date: { $gte: startOfYear } } },
+      {
+        $match: {
+          user_id: uid,
+          is_deleted: false,
+          date: { $gte: startOfYear },
+        },
+      },
       {
         $facet: {
           monthly: [
             {
               $group: {
                 _id: { $month: "$date" },
-                income: { $sum: { $cond: [{ $in: ["$type", [TransactionType.INCOME, "refund"]] }, "$amount", 0] } },
-                expense: { $sum: { $cond: [{ $eq: ["$type", TransactionType.EXPENSE] }, "$amount", 0] } },
+                income: {
+                  $sum: {
+                    $cond: [
+                      { $in: ["$type", [TransactionType.INCOME, "refund"]] },
+                      "$amount",
+                      0,
+                    ],
+                  },
+                },
+                expense: {
+                  $sum: {
+                    $cond: [
+                      { $eq: ["$type", TransactionType.EXPENSE] },
+                      "$amount",
+                      0,
+                    ],
+                  },
+                },
               },
             },
           ],
@@ -53,8 +85,24 @@ export const AnalyticsService = {
             {
               $group: {
                 _id: null,
-                income: { $sum: { $cond: [{ $in: ["$type", [TransactionType.INCOME, "refund"]] }, "$amount", 0] } },
-                expense: { $sum: { $cond: [{ $eq: ["$type", TransactionType.EXPENSE] }, "$amount", 0] } },
+                income: {
+                  $sum: {
+                    $cond: [
+                      { $in: ["$type", [TransactionType.INCOME, "refund"]] },
+                      "$amount",
+                      0,
+                    ],
+                  },
+                },
+                expense: {
+                  $sum: {
+                    $cond: [
+                      { $eq: ["$type", TransactionType.EXPENSE] },
+                      "$amount",
+                      0,
+                    ],
+                  },
+                },
               },
             },
           ],
@@ -64,27 +112,71 @@ export const AnalyticsService = {
 
     // ── 2. Aggregation: Last Year Totals ──────────────────────────────────
     const lastYearAgg = await Transaction.aggregate([
-      { $match: { user_id: uid, is_deleted: false, date: { $gte: startOfLastYear, $lte: endOfLastYear } } },
+      {
+        $match: {
+          user_id: uid,
+          is_deleted: false,
+          date: { $gte: startOfLastYear, $lte: endOfLastYear },
+        },
+      },
       {
         $group: {
           _id: null,
-          income: { $sum: { $cond: [{ $in: ["$type", [TransactionType.INCOME, "refund"]] }, "$amount", 0] } },
-          expense: { $sum: { $cond: [{ $eq: ["$type", TransactionType.EXPENSE] }, "$amount", 0] } },
+          income: {
+            $sum: {
+              $cond: [
+                { $in: ["$type", [TransactionType.INCOME, "refund"]] },
+                "$amount",
+                0,
+              ],
+            },
+          },
+          expense: {
+            $sum: {
+              $cond: [
+                { $eq: ["$type", TransactionType.EXPENSE] },
+                "$amount",
+                0,
+              ],
+            },
+          },
         },
       },
     ]);
 
     // ── 3. Aggregation: Current Month Stats ──────────────────────────────────
     const currentMonthAgg = await Transaction.aggregate([
-      { $match: { user_id: uid, is_deleted: false, date: { $gte: startOfMonth } } },
+      {
+        $match: {
+          user_id: uid,
+          is_deleted: false,
+          date: { $gte: startOfMonth },
+        },
+      },
       {
         $facet: {
           daily: [
             {
               $group: {
                 _id: { $dayOfMonth: "$date" },
-                income: { $sum: { $cond: [{ $in: ["$type", [TransactionType.INCOME, "refund"]] }, "$amount", 0] } },
-                expense: { $sum: { $cond: [{ $eq: ["$type", TransactionType.EXPENSE] }, "$amount", 0] } },
+                income: {
+                  $sum: {
+                    $cond: [
+                      { $in: ["$type", [TransactionType.INCOME, "refund"]] },
+                      "$amount",
+                      0,
+                    ],
+                  },
+                },
+                expense: {
+                  $sum: {
+                    $cond: [
+                      { $eq: ["$type", TransactionType.EXPENSE] },
+                      "$amount",
+                      0,
+                    ],
+                  },
+                },
               },
             },
           ],
@@ -104,7 +196,9 @@ export const AnalyticsService = {
                 as: "category",
               },
             },
-            { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+            {
+              $unwind: { path: "$category", preserveNullAndEmptyArrays: true },
+            },
             {
               $project: {
                 name: { $ifNull: ["$category.name", "Uncategorized"] },
@@ -130,11 +224,19 @@ export const AnalyticsService = {
     ]);
 
     // ── Extract Aggregation Results ──────────────────────────────────────────
-    const cyData = currentYearAgg[0] || { monthly: [], heatmap: [], yearlyTotals: [] };
+    const cyData = currentYearAgg[0] || {
+      monthly: [],
+      heatmap: [],
+      yearlyTotals: [],
+    };
     const cyTotals = cyData.yearlyTotals[0] || { income: 0, expense: 0 };
     const lyTotals = lastYearAgg[0] || { income: 0, expense: 0 };
-    
-    const cmData = currentMonthAgg[0] || { daily: [], categoryBreakdown: [], budgetSpent: [] };
+
+    const cmData = currentMonthAgg[0] || {
+      daily: [],
+      categoryBreakdown: [],
+      budgetSpent: [],
+    };
 
     // ── Format: Monthly Comparison ──────────────────────────────────────────
     const monthlyMap: Record<number, { income: number; expense: number }> = {};
@@ -181,10 +283,15 @@ export const AnalyticsService = {
     });
 
     // ── Format: Daily Spending ──────────────────────────────────────────
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const daysInMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+    ).getDate();
     const dailyMap: Record<number, { income: number; expense: number }> = {};
-    for (let d = 1; d <= daysInMonth; d++) dailyMap[d] = { income: 0, expense: 0 };
-    
+    for (let d = 1; d <= daysInMonth; d++)
+      dailyMap[d] = { income: 0, expense: 0 };
+
     cmData.daily.forEach((d: any) => {
       dailyMap[d._id] = { income: d.income, expense: d.expense };
     });
@@ -202,16 +309,21 @@ export const AnalyticsService = {
     }));
 
     // ── Format: Budget Analytics ──────────────────────────────────────────
-    const budgets = await Budget.find({ user_id: uid, month_year: currentMonth })
+    const budgets = await Budget.find({
+      user_id: uid,
+      month_year: currentMonth,
+    })
       .populate("category_id", "name color")
       .lean();
 
     const budgetSpentMap = new Map(
-      cmData.budgetSpent.map((r: any) => [r._id?.toString(), r.total])
+      cmData.budgetSpent.map((r: any) => [r._id?.toString(), r.total]),
     );
 
     const budgetAnalytics = budgets.map((b: any) => {
-      const spent = Number(budgetSpentMap.get(b.category_id._id.toString()) || 0);
+      const spent = Number(
+        budgetSpentMap.get(b.category_id._id.toString()) || 0,
+      );
       const pct = Math.round((spent / b.amount) * 100);
       return {
         categoryName: b.category_id.name,
@@ -230,43 +342,77 @@ export const AnalyticsService = {
       category: g.category,
       current: g.current_amount,
       target: g.target_amount,
-      percentage: Math.min(100, Math.round((g.current_amount / g.target_amount) * 100)),
+      percentage: Math.min(
+        100,
+        Math.round((g.current_amount / g.target_amount) * 100),
+      ),
       status: g.status,
     }));
 
     // ── Format: KPI & Net Worth Data ──────────────────────────────────────
-    const currentNetWorthData = await NetWorthService.calculateCurrentNetWorth(userId);
-    const netWorthHistory = await NetWorthService.getNetWorthHistory(userId, { days: 90 });
-    
+    const currentNetWorthData =
+      await NetWorthService.calculateCurrentNetWorth(userId);
+    const netWorthHistory = await NetWorthService.getNetWorthHistory(userId, {
+      days: 90,
+    });
+
     const totalIncomeYear = Math.round(cyTotals.income * 100) / 100;
     const totalExpenseYear = Math.round(cyTotals.expense * 100) / 100;
-    const netSavings = Math.round((cyTotals.income - cyTotals.expense) * 100) / 100;
-    const savingsRate = cyTotals.income > 0 ? Math.round((netSavings / cyTotals.income) * 100) : 0;
-    
+    const netSavings =
+      Math.round((cyTotals.income - cyTotals.expense) * 100) / 100;
+    const savingsRate =
+      cyTotals.income > 0
+        ? Math.round((netSavings / cyTotals.income) * 100)
+        : 0;
+
     const assetDistribution = [
-      { name: "Cash", value: currentNetWorthData.breakdown.assets.cash, color: "#10B981" },
-      { name: "Physical Assets", value: currentNetWorthData.breakdown.assets.physical_assets, color: "#8B5CF6" },
-      { name: "Investments", value: currentNetWorthData.breakdown.assets.investments, color: "#3B82F6" },
-      { name: "Money Lent", value: currentNetWorthData.breakdown.assets.money_lent, color: "#F59E0B" }
-    ].filter(a => a.value > 0);
+      {
+        name: "Cash",
+        value: currentNetWorthData.breakdown.assets.cash,
+        color: "#10B981",
+      },
+      {
+        name: "Physical Assets",
+        value: currentNetWorthData.breakdown.assets.physical_assets,
+        color: "#8B5CF6",
+      },
+      {
+        name: "Investments",
+        value: currentNetWorthData.breakdown.assets.investments,
+        color: "#3B82F6",
+      },
+      {
+        name: "Money Lent",
+        value: currentNetWorthData.breakdown.assets.money_lent,
+        color: "#F59E0B",
+      },
+    ].filter((a) => a.value > 0);
 
     const liabilityDistribution = [
-      { name: "Money Borrowed", value: currentNetWorthData.breakdown.liabilities.money_borrowed, color: "#EF4444" },
-      { name: "Remaining EMIs", value: currentNetWorthData.breakdown.liabilities.emi_remaining, color: "#F97316" }
-    ].filter(a => a.value > 0);
+      {
+        name: "Money Borrowed",
+        value: currentNetWorthData.breakdown.liabilities.money_borrowed,
+        color: "#EF4444",
+      },
+      {
+        name: "Remaining EMIs",
+        value: currentNetWorthData.breakdown.liabilities.emi_remaining,
+        color: "#F97316",
+      },
+    ].filter((a) => a.value > 0);
 
     const netWorthTrend = netWorthHistory.map((h: any) => {
       const d = new Date(h.date);
       return {
         date: `${d.getDate()} ${MONTH_NAMES[d.getMonth()]}`,
-        netWorth: h.net_worth
+        netWorth: h.net_worth,
       };
     });
 
     // ── Format: Cash Flow Forecast (Next 30 Days) ─────────────────────────
     const forecast: Array<{ date: string; projectedBalance: number }> = [];
     let projectedBalance = currentNetWorthData.net_worth;
-    
+
     const upcomingBills = await Bill.find({
       user_id: uid,
       status: "unpaid",
@@ -285,10 +431,10 @@ export const AnalyticsService = {
       const d = new Date();
       d.setDate(d.getDate() + i);
       const dStr = `${d.getMonth() + 1}/${d.getDate()}`;
-      
+
       const dailyBills = billMap.get(dStr) || 0;
       projectedBalance -= dailyBills;
-      
+
       forecast.push({
         date: dStr,
         projectedBalance: Math.round(projectedBalance * 100) / 100,

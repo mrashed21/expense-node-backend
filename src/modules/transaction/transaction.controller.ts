@@ -120,5 +120,5 @@ export const TransactionController = {
       message: "Transactions updated successfully.",
       data: result,
     });
-  })
+  }),
 };

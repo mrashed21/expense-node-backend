@@ -1,6 +1,6 @@
 import { NetWorthService } from "@/modules/net-worth/net-worth.service";
-import { Transaction } from "@/modules/transaction/transaction.model";
 import { TransactionType } from "@/modules/transaction/transaction.interface";
+import { Transaction } from "@/modules/transaction/transaction.model";
 import mongoose from "mongoose";
 
 export const ReportService = {
@@ -44,7 +44,9 @@ export const ReportService = {
         totalEquity: netWorthData.net_worth,
       },
       // Verification: Assets should equal Liabilities + Equity
-      isBalanced: netWorthData.total_assets === (netWorthData.total_liabilities + netWorthData.net_worth),
+      isBalanced:
+        netWorthData.total_assets ===
+        netWorthData.total_liabilities + netWorthData.net_worth,
     };
   },
 
@@ -54,7 +56,11 @@ export const ReportService = {
    * Investing: Buying/Selling Assets or Investments
    * Financing: Borrowing Money or Paying Debt
    */
-  generateCashFlowReport: async (userId: string, startDate: Date, endDate: Date) => {
+  generateCashFlowReport: async (
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+  ) => {
     const uid = new mongoose.Types.ObjectId(userId);
 
     const transactions = await Transaction.aggregate([
@@ -88,7 +94,7 @@ export const ReportService = {
         outflows: [] as any[],
         netCash: 0,
       },
-      // Optional enhancements for investing/financing could be parsed from categories, 
+      // Optional enhancements for investing/financing could be parsed from categories,
       // but for V1 we will group into generic Income/Expense.
     };
 
@@ -163,7 +169,12 @@ export const ReportService = {
         taxableIncome += amount;
       } else if (tx.type === TransactionType.EXPENSE) {
         const catName = (tx.category?.name || "").toLowerCase();
-        if (catName.includes("tax") || catName.includes("health") || catName.includes("education") || catName.includes("donation")) {
+        if (
+          catName.includes("tax") ||
+          catName.includes("health") ||
+          catName.includes("education") ||
+          catName.includes("donation")
+        ) {
           deductibleExpenses += amount;
         } else {
           otherExpenses += amount;

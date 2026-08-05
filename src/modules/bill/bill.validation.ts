@@ -5,7 +5,9 @@ export const createBillSchema = z.object({
     title: z.string().min(1, "Title is required").max(100),
     type: z.string().optional(),
     amount: z.number().positive("Amount must be greater than 0"),
-    due_date: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid date format"),
+    due_date: z
+      .string()
+      .refine((val) => !isNaN(Date.parse(val)), "Invalid date format"),
     auto_reminder: z.boolean().optional(),
   }),
 });

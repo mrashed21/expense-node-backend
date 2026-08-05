@@ -8,8 +8,8 @@ import {
   registerSchema,
   resendOtpSchema,
   resetPasswordSchema,
-  verifyOtpSchema,
   verifyLogin2FASchema,
+  verifyOtpSchema,
 } from "./auth.validation";
 
 import { generateCsrfToken } from "@/middlewares/csrf.middleware";

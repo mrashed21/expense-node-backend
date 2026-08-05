@@ -30,7 +30,7 @@ export const BillController = {
       req.user!._id,
       req.params.id as string,
       account_id,
-      category_id
+      category_id,
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,

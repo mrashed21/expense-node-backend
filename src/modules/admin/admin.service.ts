@@ -1,16 +1,16 @@
 import ApiError from "@/helpers/api-error";
 import bcrypt from "bcrypt";
 import httpStatus from "http-status";
-import { Transaction } from "../transaction/transaction.model";
-import { User } from "../user/user.model";
+import os from "os";
 import { Category } from "../category/category.model";
+import { Notification } from "../notification/notification.model";
+import { Transaction } from "../transaction/transaction.model";
+import { UserStatus } from "../user/user.interface";
+import { User } from "../user/user.model";
 import { AdminRole } from "./admin.interface";
 import { Admin } from "./admin.model";
 import { AuditLog } from "./audit-log.model";
 import { ErrorLog } from "./error-log.model";
-import { Notification } from "../notification/notification.model";
-import { UserStatus } from "../user/user.interface";
-import os from "os";
 
 export const AdminService = {
   updateProfile: async (adminId: string, payload: any) => {
@@ -27,7 +27,7 @@ export const AdminService = {
       "date_format",
       "number_format",
     ];
-    
+
     const sanitizedPayload = Object.keys(payload)
       .filter((key) => allowedKeys.includes(key))
       .reduce((obj, key) => {
@@ -63,10 +63,15 @@ export const AdminService = {
 
     const users = await User.find({
       is_deleted: false,
-      $or: [{ user_name: { $regex: regex } }, { user_email: { $regex: regex } }]
-    }).limit(10).lean();
+      $or: [
+        { user_name: { $regex: regex } },
+        { user_email: { $regex: regex } },
+      ],
+    })
+      .limit(10)
+      .lean();
 
-    users.forEach(u => {
+    users.forEach((u) => {
       results.push({
         id: u._id.toString(),
         type: "user",
@@ -78,10 +83,15 @@ export const AdminService = {
 
     const admins = await Admin.find({
       is_deleted: false,
-      $or: [{ admin_name: { $regex: regex } }, { admin_email: { $regex: regex } }]
-    }).limit(5).lean();
+      $or: [
+        { admin_name: { $regex: regex } },
+        { admin_email: { $regex: regex } },
+      ],
+    })
+      .limit(5)
+      .lean();
 
-    admins.forEach(a => {
+    admins.forEach((a) => {
       results.push({
         id: a._id.toString(),
         type: "admin",
@@ -93,13 +103,18 @@ export const AdminService = {
 
     return results;
   },
-  getUsers: async (limit: number, page: number = 1, search: string = "", filter: string = "all") => {
+  getUsers: async (
+    limit: number,
+    page: number = 1,
+    search: string = "",
+    filter: string = "all",
+  ) => {
     const query: any = { is_deleted: false };
-    
+
     if (search) {
       query.$or = [
         { user_name: { $regex: search, $options: "i" } },
-        { user_email: { $regex: search, $options: "i" } }
+        { user_email: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -115,7 +130,7 @@ export const AdminService = {
         .skip(skip)
         .limit(limit)
         .lean(),
-      User.countDocuments(query)
+      User.countDocuments(query),
     ]);
 
     // Fetch counts in parallel for the paginated users
@@ -123,14 +138,14 @@ export const AdminService = {
       users.map(async (user) => {
         const [totalTransactions, totalCategories] = await Promise.all([
           Transaction.countDocuments({ user_id: user._id }),
-          Category.countDocuments({ user_id: user._id, is_deleted: false })
+          Category.countDocuments({ user_id: user._id, is_deleted: false }),
         ]);
         return {
           ...user,
           total_transactions: totalTransactions,
-          total_categories: totalCategories
+          total_categories: totalCategories,
         };
-      })
+      }),
     );
 
     return {
@@ -139,8 +154,8 @@ export const AdminService = {
         total: totalCount,
         page,
         limit,
-        totalPages: Math.ceil(totalCount / limit)
-      }
+        totalPages: Math.ceil(totalCount / limit),
+      },
     };
   },
 
@@ -168,9 +183,16 @@ export const AdminService = {
     return updatedUser;
   },
 
-  deleteUser: async (id: string, currentAdminId: string, currentUserRole: string) => {
+  deleteUser: async (
+    id: string,
+    currentAdminId: string,
+    currentUserRole: string,
+  ) => {
     if (currentUserRole !== AdminRole.SUPER_ADMIN) {
-      throw new ApiError(httpStatus.FORBIDDEN, "Only super_admin can delete users");
+      throw new ApiError(
+        httpStatus.FORBIDDEN,
+        "Only super_admin can delete users",
+      );
     }
 
     const deletedUser = await User.findByIdAndUpdate(
@@ -192,7 +214,11 @@ export const AdminService = {
     return true;
   },
 
-  updateUserStatus: async (id: string, status: string, currentAdminId: string) => {
+  updateUserStatus: async (
+    id: string,
+    status: string,
+    currentAdminId: string,
+  ) => {
     const updatedUser = await User.findByIdAndUpdate(
       id,
       { user_status: status },
@@ -250,9 +276,16 @@ export const AdminService = {
     return adminObj;
   },
 
-  updateAdminStatus: async (id: string, status: string, currentAdminId: string) => {
+  updateAdminStatus: async (
+    id: string,
+    status: string,
+    currentAdminId: string,
+  ) => {
     if (currentAdminId === id) {
-      throw new ApiError(httpStatus.BAD_REQUEST, "You cannot change your own status.");
+      throw new ApiError(
+        httpStatus.BAD_REQUEST,
+        "You cannot change your own status.",
+      );
     }
 
     const updatedAdmin = await Admin.findByIdAndUpdate(
@@ -298,12 +331,16 @@ export const AdminService = {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const [totalUsers, totalAdmins, totalTransactions, activeUsers] = await Promise.all([
-      User.countDocuments({ is_deleted: false }),
-      Admin.countDocuments({ is_deleted: false }),
-      Transaction.countDocuments(),
-      User.countDocuments({ last_login: { $gte: thirtyDaysAgo }, is_deleted: false }),
-    ]);
+    const [totalUsers, totalAdmins, totalTransactions, activeUsers] =
+      await Promise.all([
+        User.countDocuments({ is_deleted: false }),
+        Admin.countDocuments({ is_deleted: false }),
+        Transaction.countDocuments(),
+        User.countDocuments({
+          last_login: { $gte: thirtyDaysAgo },
+          is_deleted: false,
+        }),
+      ]);
 
     return { totalUsers, totalAdmins, totalTransactions, activeUsers };
   },
@@ -338,12 +375,19 @@ export const AdminService = {
       .lean();
   },
 
-  broadcastNotification: async (payload: { title: string; message: string; type: string }, currentAdminId: string, io: any) => {
-    const activeUsers = await User.find({ user_status: UserStatus.ACTIVE, is_deleted: false }).select("_id");
-    
+  broadcastNotification: async (
+    payload: { title: string; message: string; type: string },
+    currentAdminId: string,
+    io: any,
+  ) => {
+    const activeUsers = await User.find({
+      user_status: UserStatus.ACTIVE,
+      is_deleted: false,
+    }).select("_id");
+
     if (activeUsers.length === 0) return 0;
 
-    const notifications = activeUsers.map(user => ({
+    const notifications = activeUsers.map((user) => ({
       user_id: user._id,
       title: payload.title,
       message: payload.message,
@@ -377,7 +421,7 @@ export const AdminService = {
       is_default: true,
       user_id: null,
     });
-    
+
     AuditLog.create({
       admin_id: currentAdminId,
       action: "CREATE_GLOBAL_CATEGORY",
@@ -388,14 +432,19 @@ export const AdminService = {
     return newCategory;
   },
 
-  updateGlobalCategory: async (categoryId: string, payload: any, currentAdminId: string) => {
+  updateGlobalCategory: async (
+    categoryId: string,
+    payload: any,
+    currentAdminId: string,
+  ) => {
     const updatedCategory = await Category.findOneAndUpdate(
       { _id: categoryId, is_default: true, is_deleted: false },
       payload,
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
-    if (!updatedCategory) throw new ApiError(httpStatus.NOT_FOUND, "Global category not found");
+    if (!updatedCategory)
+      throw new ApiError(httpStatus.NOT_FOUND, "Global category not found");
 
     AuditLog.create({
       admin_id: currentAdminId,
@@ -410,10 +459,11 @@ export const AdminService = {
     const deletedCategory = await Category.findOneAndUpdate(
       { _id: categoryId, is_default: true, is_deleted: false },
       { is_deleted: true },
-      { new: true }
+      { new: true },
     );
 
-    if (!deletedCategory) throw new ApiError(httpStatus.NOT_FOUND, "Global category not found");
+    if (!deletedCategory)
+      throw new ApiError(httpStatus.NOT_FOUND, "Global category not found");
 
     AuditLog.create({
       admin_id: currentAdminId,

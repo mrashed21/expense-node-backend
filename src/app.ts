@@ -2,14 +2,12 @@ import compression from "compression";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Application, Request, Response } from "express";
-import rateLimit from "express-rate-limit";
+import fs from "fs";
 import helmet from "helmet";
 import morgan from "morgan";
-import fs from "fs";
 import path from "path";
-import { csrfProtection } from "./middlewares/csrf.middleware";
-import { apiLimiter } from "./middlewares/rate-limiter.middleware";
 import { envConfig } from "./config/env-config";
+import { csrfProtection } from "./middlewares/csrf.middleware";
 import {
   globalErrorHandler,
   notFoundHandler,
@@ -20,32 +18,34 @@ const app: Application = express();
 app.set("trust proxy", 1);
 
 // Security Middlewares
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "res.cloudinary.com"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'", "data:"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:", "res.cloudinary.com"],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'", "data:"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"],
+      },
     },
-  },
-  crossOriginEmbedderPolicy: true,
-  crossOriginOpenerPolicy: true,
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-  dnsPrefetchControl: { allow: false },
-  frameguard: { action: "deny" },
-  hidePoweredBy: true,
-  hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
-  ieNoOpen: true,
-  noSniff: true,
-  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
-  xssFilter: true,
-}));
+    crossOriginEmbedderPolicy: true,
+    crossOriginOpenerPolicy: true,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    dnsPrefetchControl: { allow: false },
+    frameguard: { action: "deny" },
+    hidePoweredBy: true,
+    hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+    ieNoOpen: true,
+    noSniff: true,
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    xssFilter: true,
+  }),
+);
 app.use(
   cors({
     origin: [envConfig.frontend_url, "http://localhost:3000"],
@@ -70,7 +70,10 @@ if (envConfig.env === "development") {
   if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
   }
-  const accessLogStream = fs.createWriteStream(path.join(logDir, "access.log"), { flags: "a" });
+  const accessLogStream = fs.createWriteStream(
+    path.join(logDir, "access.log"),
+    { flags: "a" },
+  );
   app.use(morgan("combined", { stream: accessLogStream }));
 }
 

@@ -6,7 +6,10 @@ import { InvestmentService } from "./investment.service";
 
 export const InvestmentController = {
   createInvestment: catchAsync(async (req: Request, res: Response) => {
-    const investment = await InvestmentService.createInvestment(req.user!._id, req.body);
+    const investment = await InvestmentService.createInvestment(
+      req.user!._id,
+      req.body,
+    );
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
       success: true,
@@ -16,7 +19,10 @@ export const InvestmentController = {
   }),
 
   getInvestments: catchAsync(async (req: Request, res: Response) => {
-    const result = await InvestmentService.getInvestments(req.user!._id, req.query);
+    const result = await InvestmentService.getInvestments(
+      req.user!._id,
+      req.query,
+    );
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -28,7 +34,7 @@ export const InvestmentController = {
   getInvestmentById: catchAsync(async (req: Request, res: Response) => {
     const investment = await InvestmentService.getInvestmentById(
       req.user!._id,
-      req.params.id as string
+      req.params.id as string,
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -41,7 +47,7 @@ export const InvestmentController = {
     const investment = await InvestmentService.updateInvestment(
       req.user!._id,
       req.params.id as string,
-      req.body
+      req.body,
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -52,7 +58,10 @@ export const InvestmentController = {
   }),
 
   deleteInvestment: catchAsync(async (req: Request, res: Response) => {
-    await InvestmentService.deleteInvestment(req.user!._id, req.params.id as string);
+    await InvestmentService.deleteInvestment(
+      req.user!._id,
+      req.params.id as string,
+    );
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -63,7 +72,7 @@ export const InvestmentController = {
   restoreInvestment: catchAsync(async (req: Request, res: Response) => {
     const investment = await InvestmentService.restoreInvestment(
       req.user!._id,
-      req.params.id as string
+      req.params.id as string,
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,

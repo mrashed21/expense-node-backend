@@ -6,7 +6,10 @@ import { InstallmentService } from "./installment.service";
 
 export const InstallmentController = {
   createInstallment: catchAsync(async (req: Request, res: Response) => {
-    const installment = await InstallmentService.createInstallment(req.user!._id, req.body);
+    const installment = await InstallmentService.createInstallment(
+      req.user!._id,
+      req.body,
+    );
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
       success: true,
@@ -16,7 +19,10 @@ export const InstallmentController = {
   }),
 
   getInstallments: catchAsync(async (req: Request, res: Response) => {
-    const result = await InstallmentService.getInstallments(req.user!._id, req.query);
+    const result = await InstallmentService.getInstallments(
+      req.user!._id,
+      req.query,
+    );
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
@@ -28,7 +34,7 @@ export const InstallmentController = {
   getInstallmentById: catchAsync(async (req: Request, res: Response) => {
     const installment = await InstallmentService.getInstallmentById(
       req.user!._id,
-      req.params.id as string
+      req.params.id as string,
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -41,7 +47,7 @@ export const InstallmentController = {
     const installment = await InstallmentService.updateInstallment(
       req.user!._id,
       req.params.id as string,
-      req.body
+      req.body,
     );
     sendResponse(res, {
       statusCode: httpStatus.OK,
@@ -52,19 +58,22 @@ export const InstallmentController = {
   }),
 
   deleteInstallment: catchAsync(async (req: Request, res: Response) => {
-    await InstallmentService.deleteInstallment(req.user!._id, req.params.id as string);
+    await InstallmentService.deleteInstallment(
+      req.user!._id,
+      req.params.id as string,
+    );
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
       message: "Installment deleted successfully.",
     });
   }),
-  
+
   addPayment: catchAsync(async (req: Request, res: Response) => {
     const payment = await InstallmentService.addPayment(
       req.user!._id,
       req.params.id as string,
-      req.body
+      req.body,
     );
     sendResponse(res, {
       statusCode: httpStatus.CREATED,
@@ -72,5 +81,5 @@ export const InstallmentController = {
       message: "EMI Payment logged successfully.",
       data: payment,
     });
-  })
+  }),
 };

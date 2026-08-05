@@ -10,7 +10,7 @@ router.post(
   "/",
   auth,
   validateRequest(createAssetSchema),
-  AssetController.createAsset
+  AssetController.createAsset,
 );
 
 router.get("/", auth, AssetController.getAssets);
@@ -21,7 +21,7 @@ router.patch(
   "/:id",
   auth,
   validateRequest(updateAssetSchema),
-  AssetController.updateAsset
+  AssetController.updateAsset,
 );
 
 router.delete("/:id", auth, AssetController.deleteAsset);

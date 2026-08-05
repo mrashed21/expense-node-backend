@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
-import { Transaction } from "@/modules/transaction/transaction.model";
 import { Bill } from "@/modules/bill/bill.model";
 import { Installment } from "@/modules/installment/installment.model";
+import { Transaction } from "@/modules/transaction/transaction.model";
+import mongoose from "mongoose";
 
 export interface CalendarEvent {
   id: string;
@@ -14,7 +14,11 @@ export interface CalendarEvent {
 }
 
 export const CalendarService = {
-  getEvents: async (userId: string, startDate: Date, endDate: Date): Promise<CalendarEvent[]> => {
+  getEvents: async (
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<CalendarEvent[]> => {
     const uid = new mongoose.Types.ObjectId(userId);
     const events: CalendarEvent[] = [];
 
@@ -28,7 +32,7 @@ export const CalendarService = {
     transactions.forEach((tx) => {
       // Ensure type is strongly typed
       const evType = tx.type === "income" ? "income" : "expense";
-      
+
       events.push({
         id: tx._id.toString(),
         title: tx.notes || "Transaction",
@@ -82,6 +86,8 @@ export const CalendarService = {
     }
 
     // Sort chronologically
-    return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return events.sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
   },
 };
