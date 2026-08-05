@@ -29,7 +29,7 @@ export const CategoryController = {
 
   updateCategory: catchAsync(async (req: Request, res: Response) => {
     const updated = await CategoryService.updateCategory(
-      req.user!._id,
+      req.user as any,
       req.params.id as string,
       req.body,
     );
@@ -43,7 +43,7 @@ export const CategoryController = {
 
   deleteCategory: catchAsync(async (req: Request, res: Response) => {
     await CategoryService.deleteCategory(
-      req.user!._id,
+      req.user as any,
       req.params.id as string,
     );
     sendResponse(res, {

@@ -126,27 +126,41 @@ export const CategoryService = {
     });
   },
 
-  updateCategory: async (userId: string, categoryId: string, payload: any) => {
-    const category = await Category.findOneAndUpdate(
-      { _id: categoryId, user_id: userId, is_deleted: false },
-      payload,
-      { new: true },
-    );
+  updateCategory: async (user: any, categoryId: string, payload: any) => {
+    const category = await Category.findOne({ _id: categoryId, is_deleted: false });
     if (!category) {
       throw new ApiError(httpStatus.NOT_FOUND, "Category not found.");
     }
+    
+    if (category.is_default && user.user_role !== "admin") {
+      throw new ApiError(httpStatus.FORBIDDEN, "Only admins can edit global categories.");
+    }
+    
+    if (!category.is_default && category.user_id?.toString() !== user._id.toString()) {
+      throw new ApiError(httpStatus.FORBIDDEN, "You do not have permission to edit this category.");
+    }
+
+    Object.assign(category, payload);
+    await category.save();
     return category;
   },
 
-  deleteCategory: async (userId: string, categoryId: string) => {
-    const category = await Category.findOneAndUpdate(
-      { _id: categoryId, user_id: userId, is_deleted: false },
-      { is_deleted: true },
-      { new: true },
-    );
+  deleteCategory: async (user: any, categoryId: string) => {
+    const category = await Category.findOne({ _id: categoryId, is_deleted: false });
     if (!category) {
       throw new ApiError(httpStatus.NOT_FOUND, "Category not found.");
     }
+
+    if (category.is_default && user.user_role !== "admin") {
+      throw new ApiError(httpStatus.FORBIDDEN, "Only admins can delete global categories.");
+    }
+
+    if (!category.is_default && category.user_id?.toString() !== user._id.toString()) {
+      throw new ApiError(httpStatus.FORBIDDEN, "You do not have permission to delete this category.");
+    }
+
+    category.is_deleted = true;
+    await category.save();
     return true;
   },
 };
