@@ -43,6 +43,51 @@ const adminSchema = new Schema<IAdminDocument>(
       enum: Object.values(AdminStatus),
       default: AdminStatus.ACTIVE,
     },
+    admin_phone: {
+      type: String,
+      trim: true,
+      default: undefined,
+    },
+    admin_area: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    admin_city: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    admin_country: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    currency: {
+      type: String,
+      default: "USD",
+    },
+    language: {
+      type: String,
+      default: "en",
+    },
+    timezone: {
+      type: String,
+      default: "UTC",
+    },
+    theme: {
+      type: String,
+      enum: ["light", "dark", "system"],
+      default: "system",
+    },
+    date_format: {
+      type: String,
+      default: "YYYY-MM-DD",
+    },
+    number_format: {
+      type: String,
+      default: "en-US",
+    },
     token_version: {
       type: Number,
       default: 0,

@@ -21,6 +21,18 @@ export interface IAdmin {
   admin_profile_image?: string;
   admin_status: AdminStatus;
 
+  admin_phone?: string;
+  admin_area?: string;
+  admin_city?: string;
+  admin_country?: string;
+  
+  currency: string;
+  language: string;
+  timezone: string;
+  theme: "light" | "dark" | "system";
+  date_format: string;
+  number_format: string;
+
   token_version: number;
   last_login?: Date;
   password_changed_at?: Date;

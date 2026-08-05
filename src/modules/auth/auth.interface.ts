@@ -49,6 +49,10 @@ export interface IFinalizeLoginResult {
     email_verified: boolean;
     user_role: string;
     user_profile_image?: string;
+    user_phone?: string;
+    user_area?: string;
+    user_city?: string;
+    user_country?: string;
     currency: string;
     theme: string;
   };
