@@ -3,8 +3,9 @@ import bcrypt from "bcrypt";
 import httpStatus from "http-status";
 import os from "os";
 import { Category } from "../category/category.model";
-import { Notification } from "../notification/notification.model";
-import { Transaction } from "../transaction/transaction.model";
+import { Goal } from "@/modules/goal/goal.model";
+import { Notification } from "@/modules/notification/notification.model";
+import { Transaction } from "@/modules/transaction/transaction.model";
 import { UserStatus } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { AdminRole } from "./admin.interface";
@@ -314,6 +315,26 @@ export const AdminService = {
       .sort({ createdAt: -1 })
       .limit(20)
       .lean();
+  },
+
+  getNotificationHistory: async (limit: number, page: number) => {
+    const skip = (page - 1) * limit;
+    
+    const notifications = await Notification.find()
+      .populate("user_id", "user_name user_email user_profile_image")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const total = await Notification.countDocuments();
+
+    return {
+      notifications,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    };
   },
 
   getSystemHealth: () => {

@@ -61,28 +61,39 @@ export const CalendarService = {
       });
     });
 
-    // 3. Fetch EMIs (Using next_payment_date)
-    // Note: If Installment has a schedule array, we could map it, but typically it tracks next_payment_date.
-    // We will use next_payment_date for this MVP.
-    try {
-      const installments = await Installment.find({
-        user_id: uid,
-        status: "active",
-        next_payment_date: { $gte: startDate, $lte: endDate },
-      }).lean();
+    // 3. Fetch Installments
+    const installments = await Installment.find({
+      user_id: uid,
+      start_date: { $lte: endDate },
+      $or: [{ end_date: null }, { end_date: { $gte: startDate } }],
+    }).lean();
 
+    try {
       installments.forEach((emi) => {
-        events.push({
-          id: emi._id.toString(),
-          title: `EMI: ${emi.title}`,
-          date: emi.start_date,
-          amount: emi.monthly_amount,
-          type: "emi",
-          source: "installment",
-        });
+        const dayOfMonth = new Date(emi.start_date).getDate();
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const emiStart = new Date(emi.start_date);
+        const emiEnd = new Date(emi.end_date);
+        
+        let curr = new Date(start.getFullYear(), start.getMonth(), dayOfMonth);
+        
+        while (curr <= end) {
+          if (curr >= start && curr >= emiStart && curr <= emiEnd) {
+            events.push({
+              id: `${emi._id.toString()}-${curr.getTime()}`,
+              title: `EMI: ${emi.title}`,
+              date: new Date(curr),
+              amount: emi.monthly_amount,
+              type: "emi",
+              source: "installment",
+            });
+          }
+          curr.setMonth(curr.getMonth() + 1);
+        }
       });
     } catch (e) {
-      // Ignore if Installment schema is strictly different
+      console.error("Installment calendar fetch error", e);
     }
 
     // Sort chronologically

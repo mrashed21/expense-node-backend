@@ -4,16 +4,8 @@ export interface INotificationDocument extends Document {
   user_id: Types.ObjectId;
   title: string;
   message: string;
-  type:
-    | "budget_alert"
-    | "bill_reminder"
-    | "goal_milestone"
-    | "system"
-    | "info"
-    | "success"
-    | "warning"
-    | "error"
-    | "alert";
+  type: string;
+  category?: string;
   is_read: boolean;
   createdAt: Date;
 }

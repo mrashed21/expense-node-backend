@@ -10,13 +10,14 @@ import cron from "node-cron";
 const ALERT_DAYS_THRESHOLD = 3;
 const BUDGET_WARNING_THRESHOLD = 0.8; // 80%
 
-const notifyUser = async (userId: string, title: string, message: string, type: string) => {
+const notifyUser = async (userId: string, title: string, message: string, type: string, category: string = "system") => {
   try {
     // 1. In-App Notification
     await NotificationService.createNotification(userId, {
       title,
       message,
-      type: type as any,
+      type,
+      category,
     });
 
     // 2. Email Notification
@@ -48,7 +49,8 @@ const checkBills = async (now: Date, targetDate: Date) => {
       bill.user_id.toString(),
       "Upcoming Bill Reminder",
       `Your bill "${bill.title}" of ${bill.amount} is due on ${new Date(bill.due_date).toLocaleDateString()}.`,
-      "bill_due"
+      "bill_due",
+      "reminder"
     );
   }
 
@@ -62,7 +64,8 @@ const checkBills = async (now: Date, targetDate: Date) => {
       bill.user_id.toString(),
       "Overdue Bill Alert",
       `URGENT: Your bill "${bill.title}" of ${bill.amount} was due on ${new Date(bill.due_date).toLocaleDateString()} and is currently overdue!`,
-      "bill_overdue"
+      "bill_overdue",
+      "reminder"
     );
   }
 };
@@ -82,7 +85,8 @@ const checkEMIs = async (now: Date, targetDate: Date) => {
         emi.user_id.toString(),
         "Upcoming EMI Reminder",
         `Your EMI for "${emi.title}" of ${emi.monthly_amount} is due on ${new Date(emi.start_date).toLocaleDateString()}.`,
-        "emi_due"
+        "emi_due",
+        "reminder"
       );
     }
   } catch (error) {
@@ -133,14 +137,16 @@ const checkBudgets = async (now: Date) => {
         budget.user_id.toString(),
         "Budget Warning",
         `You have consumed ${(ratio * 100).toFixed(0)}% of your budget for this category.`,
-        "budget_alert"
+        "budget_alert",
+        "budget"
       );
     } else if (ratio >= 1) {
       await notifyUser(
         budget.user_id.toString(),
         "Budget Exceeded",
         `You have exceeded your budget of ${budget.amount}. Total spent: ${spent}.`,
-        "budget_exceeded"
+        "budget_exceeded",
+        "budget"
       );
     }
   }

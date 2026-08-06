@@ -19,17 +19,10 @@ const notificationSchema = new Schema<INotificationDocument>(
     },
     type: {
       type: String,
-      enum: [
-        "budget_alert",
-        "bill_reminder",
-        "goal_milestone",
-        "system",
-        "info",
-        "success",
-        "warning",
-        "error",
-        "alert",
-      ],
+      default: "system",
+    },
+    category: {
+      type: String,
       default: "system",
     },
     is_read: {

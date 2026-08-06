@@ -1,6 +1,7 @@
 import { BillService } from "@/modules/bill/bill.service";
 import { TransactionService } from "@/modules/transaction/transaction.service";
 import { TransferService } from "@/modules/transfer/transfer.service";
+import { NotificationService } from "@/modules/notification/notification.service";
 import cron from "node-cron";
 import {
   Recurring,
@@ -46,6 +47,12 @@ const executeTask = async (task: any) => {
         // Add date to the template
         const txData = { ...template, date: new Date() };
         await TransactionService.createTransaction(userId, txData);
+        await NotificationService.createNotification(userId, {
+          title: "Automated Transaction Executed",
+          message: `Your scheduled transaction has been successfully processed.`,
+          type: "success",
+          category: "system"
+        });
         break;
       case "bill":
         const billData = {
@@ -53,10 +60,22 @@ const executeTask = async (task: any) => {
           due_date: calculateNextRunDate(new Date(), task.frequency),
         }; // Bill due is next cycle
         await BillService.createBill(userId, billData);
+        await NotificationService.createNotification(userId, {
+          title: "Automated Bill Generated",
+          message: `Your scheduled bill has been successfully generated.`,
+          type: "success",
+          category: "system"
+        });
         break;
       case "transfer":
         const transferData = { ...template, date: new Date() };
         await TransferService.createTransfer(userId, transferData);
+        await NotificationService.createNotification(userId, {
+          title: "Automated Transfer Executed",
+          message: `Your scheduled transfer has been successfully processed.`,
+          type: "success",
+          category: "system"
+        });
         break;
       default:
         console.warn(`Unknown recurring type: ${task.type}`);

@@ -66,6 +66,7 @@ router.get("/user-growth", AdminController.getUserGrowth);
 
 router.get("/system-health", AdminController.getSystemHealth);
 router.get("/activity", AdminController.getActivity);
+router.get("/notifications", AdminController.getNotificationHistory);
 router.post("/test-notification", AdminController.testNotification);
 
 // Logs (Only SUPER_ADMIN)

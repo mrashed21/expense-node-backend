@@ -191,6 +191,19 @@ export const AdminController = {
     });
   }),
 
+  getNotificationHistory: catchAsync(async (req: Request, res: Response) => {
+    const limit = Number(req.query.limit) || 20;
+    const page = Number(req.query.page) || 1;
+
+    const data = await AdminService.getNotificationHistory(limit, page);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      data,
+    });
+  }),
+
   testNotification: catchAsync(async (req: Request, res: Response) => {
     const io = req.app.get("io");
     const currentAdminId = req.user?._id as string;
