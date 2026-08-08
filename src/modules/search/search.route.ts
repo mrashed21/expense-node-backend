@@ -1,4 +1,4 @@
-import { auth } from "@/middlewares/auth.middleware";
+import { auth } from "../../middlewares/auth.middleware";
 import { Router } from "express";
 import { SearchController } from "./search.controller";
 

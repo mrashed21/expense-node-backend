@@ -1,6 +1,6 @@
-import { checkAdminAuth } from "@/middlewares/auth.middleware";
-import { upload } from "@/middlewares/upload.middleware";
-import { validateRequest } from "@/middlewares/validate-request.middleware";
+import { checkAdminAuth } from "../../middlewares/auth.middleware";
+import { upload } from "../../middlewares/upload.middleware";
+import { validateRequest } from "../../middlewares/validate-request.middleware";
 import { Router } from "express";
 import { AdminController } from "./admin.controller";
 import { AdminRole } from "./admin.interface";

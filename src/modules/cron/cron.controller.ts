@@ -1,10 +1,10 @@
-import catchAsync from "@/helpers/catch-async";
-import { sendResponse } from "@/helpers/send-response";
-import { envConfig } from "@/config/env-config";
-import ApiError from "@/helpers/api-error";
+import catchAsync from "../../helpers/catch-async";
+import { sendResponse } from "../../helpers/send-response";
+import { envConfig } from "../../config/env-config";
+import ApiError from "../../helpers/api-error";
 import httpStatus from "http-status";
-import { runReminderJobs } from "@/modules/reminder/reminder.cron";
-import { runRecurringJobs } from "@/modules/recurring/recurring.cron";
+import { runReminderJobs } from "../../modules/reminder/reminder.cron";
+import { runRecurringJobs } from "../../modules/recurring/recurring.cron";
 import { Request, Response } from "express";
 
 export const CronController = {

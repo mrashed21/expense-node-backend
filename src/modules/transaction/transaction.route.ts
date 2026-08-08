@@ -1,4 +1,4 @@
-import { checkAuth } from "@/middlewares/auth.middleware";
+import { checkAuth } from "../../middlewares/auth.middleware";
 import { Router } from "express";
 import { TransactionController } from "./transaction.controller";
 

@@ -1,5 +1,5 @@
 import Ably from "ably";
-import { envConfig } from "@/config/env-config";
+import { envConfig } from "../config/env-config";
 
 export const ablyRest = new Ably.Rest(envConfig.ably_api_key);
 

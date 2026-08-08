@@ -1,10 +1,10 @@
-import { envConfig } from "@/config/env-config";
-import ApiError from "@/helpers/api-error";
-import { AdminRole, AdminStatus } from "@/modules/admin/admin.interface";
-import { Admin } from "@/modules/admin/admin.model";
-import { UserRole, UserStatus } from "@/modules/user/user.interface";
-import { User } from "@/modules/user/user.model";
-import { verifyToken } from "@/utils/jwt";
+import { envConfig } from "../config/env-config";
+import ApiError from "../helpers/api-error";
+import { AdminRole, AdminStatus } from "../modules/admin/admin.interface";
+import { Admin } from "../modules/admin/admin.model";
+import { UserRole, UserStatus } from "../modules/user/user.interface";
+import { User } from "../modules/user/user.model";
+import { verifyToken } from "../utils/jwt";
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 

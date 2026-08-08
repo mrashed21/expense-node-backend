@@ -1,4 +1,4 @@
-import ApiError from "@/helpers/api-error";
+import ApiError from "../../helpers/api-error";
 import httpStatus from "http-status";
 import { Types } from "mongoose";
 import { CategoryType } from "./category.interface";

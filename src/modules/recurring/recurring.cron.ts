@@ -1,7 +1,7 @@
-import { BillService } from "@/modules/bill/bill.service";
-import { TransactionService } from "@/modules/transaction/transaction.service";
-import { TransferService } from "@/modules/transfer/transfer.service";
-import { NotificationService } from "@/modules/notification/notification.service";
+import { BillService } from "../../modules/bill/bill.service";
+import { TransactionService } from "../../modules/transaction/transaction.service";
+import { TransferService } from "../../modules/transfer/transfer.service";
+import { NotificationService } from "../../modules/notification/notification.service";
 import {
   Recurring,
   RecurringFrequency,

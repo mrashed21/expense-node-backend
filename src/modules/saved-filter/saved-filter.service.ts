@@ -1,4 +1,4 @@
-import ApiError from "@/helpers/api-error";
+import ApiError from "../../helpers/api-error";
 import httpStatus from "http-status";
 import { ISavedFilter } from "./saved-filter.interface";
 import { SavedFilter } from "./saved-filter.model";

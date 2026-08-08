@@ -1,4 +1,4 @@
-import ApiError from "@/helpers/api-error";
+import ApiError from "../../helpers/api-error";
 import httpStatus from "http-status";
 import mongoose from "mongoose";
 import { DebtPayment } from "./debt-payment.model";

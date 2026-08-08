@@ -8,7 +8,7 @@ jest.mock("../admin/admin.model");
 jest.mock("./auth.model");
 jest.mock("bcrypt");
 jest.mock("jsonwebtoken");
-jest.mock("@/utils/email", () => ({
+jest.mock("../../utils/email", () => ({
   sendEmail: jest.fn().mockResolvedValue(true),
 }));
 

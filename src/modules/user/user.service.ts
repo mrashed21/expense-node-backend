@@ -1,9 +1,9 @@
-import ApiError from "@/helpers/api-error";
+import ApiError from "../../helpers/api-error";
 import {
   generateAuthURI,
   generateSecret,
   verifyToken,
-} from "@/helpers/totp.helper";
+} from "../../helpers/totp.helper";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import httpStatus from "http-status";

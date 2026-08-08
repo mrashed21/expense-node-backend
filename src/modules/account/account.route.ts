@@ -1,7 +1,7 @@
 import { Router } from "express";
 
-import { checkAuth } from "@/middlewares/auth.middleware";
-import { validateRequest } from "@/middlewares/validate-request.middleware";
+import { checkAuth } from "../../middlewares/auth.middleware";
+import { validateRequest } from "../../middlewares/validate-request.middleware";
 import { AccountController } from "./account.controller";
 import { accountSchema } from "./account.validation";
 

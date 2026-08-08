@@ -1,10 +1,10 @@
-import { checkAuth } from "@/middlewares/auth.middleware";
-import { validateRequest } from "@/middlewares/validate-request.middleware";
+import { checkAuth } from "../../middlewares/auth.middleware";
+import { validateRequest } from "../../middlewares/validate-request.middleware";
 import { Router } from "express";
 import { UserController } from "./user.controller";
 import { changePasswordSchema, updateProfileSchema } from "./user.validation";
 
-import { upload } from "@/middlewares/upload.middleware";
+import { upload } from "../../middlewares/upload.middleware";
 
 const router = Router();
 

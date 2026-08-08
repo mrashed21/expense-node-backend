@@ -1,6 +1,6 @@
 import httpStatus from "http-status";
 
-import ApiError from "@/helpers/api-error";
+import ApiError from "../../helpers/api-error";
 import { Account } from "./account.model";
 
 export const AccountService = {

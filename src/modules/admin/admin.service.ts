@@ -1,18 +1,18 @@
-import ApiError from "@/helpers/api-error";
+import ApiError from "../../helpers/api-error";
 import bcrypt from "bcrypt";
 import httpStatus from "http-status";
 import os from "os";
 import { Category } from "../category/category.model";
-import { Goal } from "@/modules/goal/goal.model";
-import { Notification } from "@/modules/notification/notification.model";
-import { Transaction } from "@/modules/transaction/transaction.model";
+import { Goal } from "../../modules/goal/goal.model";
+import { Notification } from "../../modules/notification/notification.model";
+import { Transaction } from "../../modules/transaction/transaction.model";
 import { UserStatus } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { AdminRole } from "./admin.interface";
 import { Admin } from "./admin.model";
 import { AuditLog } from "./audit-log.model";
 import { ErrorLog } from "./error-log.model";
-import { publishToUser } from "@/utils/ably";
+import { publishToUser } from "../../utils/ably";
 
 export const AdminService = {
   updateProfile: async (adminId: string, payload: any) => {

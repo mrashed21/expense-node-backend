@@ -4,7 +4,7 @@ import { register } from "tsconfig-paths";
 register({
   baseUrl: path.join(__dirname, ".."),
   paths: {
-    "@/*": ["src/*"],
+    "../src/*": ["src/*"],
   },
 });
 

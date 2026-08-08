@@ -1,6 +1,6 @@
-import { envConfig } from "@/config/env-config";
-import ApiError from "@/helpers/api-error";
-import { generateToken, verifyToken } from "@/utils/jwt";
+import { envConfig } from "../../config/env-config";
+import ApiError from "../../helpers/api-error";
+import { generateToken, verifyToken } from "../../utils/jwt";
 import bcrypt from "bcrypt";
 import httpStatus from "http-status";
 import { AdminStatus } from "./admin.interface";

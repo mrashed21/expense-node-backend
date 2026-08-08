@@ -1,4 +1,4 @@
-import { publishToUser } from "@/utils/ably";
+import { publishToUser } from "../../utils/ably";
 import { INotificationDocument } from "./notification.interface";
 import { Notification } from "./notification.model";
 

@@ -1,4 +1,4 @@
-import catchAsync from "@/helpers/catch-async";
+import catchAsync from "../../helpers/catch-async";
 import { SearchService } from "./search.service";
 
 export const SearchController = {

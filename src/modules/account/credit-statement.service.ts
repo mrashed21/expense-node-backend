@@ -1,5 +1,5 @@
-import { TransactionType } from "@/modules/transaction/transaction.interface";
-import { Transaction } from "@/modules/transaction/transaction.model";
+import { TransactionType } from "../../modules/transaction/transaction.interface";
+import { Transaction } from "../../modules/transaction/transaction.model";
 import mongoose from "mongoose";
 import { Account } from "./account.model";
 

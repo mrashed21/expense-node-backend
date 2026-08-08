@@ -1,4 +1,4 @@
-import catchAsync from "@/helpers/catch-async";
+import catchAsync from "../../helpers/catch-async";
 import { ReportService } from "./report.service";
 
 export const ReportController = {

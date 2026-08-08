@@ -1,4 +1,4 @@
-import catchAsync from "@/helpers/catch-async";
+import catchAsync from "../../helpers/catch-async";
 import { CalendarService } from "./calendar.service";
 
 export const CalendarController = {

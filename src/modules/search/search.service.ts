@@ -1,7 +1,7 @@
-import { Account } from "@/modules/account/account.model";
-import { Bill } from "@/modules/bill/bill.model";
-import { Category } from "@/modules/category/category.model";
-import { Transaction } from "@/modules/transaction/transaction.model";
+import { Account } from "../../modules/account/account.model";
+import { Bill } from "../../modules/bill/bill.model";
+import { Category } from "../../modules/category/category.model";
+import { Transaction } from "../../modules/transaction/transaction.model";
 import mongoose from "mongoose";
 
 export interface SearchResult {

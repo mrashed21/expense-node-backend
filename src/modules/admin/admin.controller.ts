@@ -1,9 +1,9 @@
-import catchAsync from "@/helpers/catch-async";
-import { sendResponse } from "@/helpers/send-response";
+import catchAsync from "../../helpers/catch-async";
+import { sendResponse } from "../../helpers/send-response";
 import { Request, Response } from "express";
 import httpStatus from "http-status";
 import { AdminService } from "./admin.service";
-import { publishToUser } from "@/utils/ably";
+import { publishToUser } from "../../utils/ably";
 
 export const AdminController = {
   updateProfile: catchAsync(async (req: Request, res: Response) => {

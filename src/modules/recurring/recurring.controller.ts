@@ -1,4 +1,4 @@
-import catchAsync from "@/helpers/catch-async";
+import catchAsync from "../../helpers/catch-async";
 import { RecurringService } from "./recurring.service";
 
 export const RecurringController = {

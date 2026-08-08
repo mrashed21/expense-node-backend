@@ -1,14 +1,14 @@
-import { envConfig } from "@/config/env-config";
-import ApiError from "@/helpers/api-error";
-import { verifyToken as verifyTotp } from "@/helpers/totp.helper";
-import { generateToken, verifyToken } from "@/utils/jwt";
-import { sendEmail } from "@/utils/send-email";
+import { envConfig } from "../../config/env-config";
+import ApiError from "../../helpers/api-error";
+import { verifyToken as verifyTotp } from "../../helpers/totp.helper";
+import { generateToken, verifyToken } from "../../utils/jwt";
+import { sendEmail } from "../../utils/send-email";
 import {
   emailVerificationTemplate,
   resendOtpTemplate,
   forgotPasswordTemplate,
   newLoginAlertTemplate,
-} from "@/utils/email-templates";
+} from "../../utils/email-templates";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import httpStatus from "http-status";

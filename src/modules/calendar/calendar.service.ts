@@ -1,6 +1,6 @@
-import { Bill } from "@/modules/bill/bill.model";
-import { Installment } from "@/modules/installment/installment.model";
-import { Transaction } from "@/modules/transaction/transaction.model";
+import { Bill } from "../../modules/bill/bill.model";
+import { Installment } from "../../modules/installment/installment.model";
+import { Transaction } from "../../modules/transaction/transaction.model";
 import mongoose from "mongoose";
 
 export interface CalendarEvent {

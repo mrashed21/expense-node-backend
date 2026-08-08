@@ -1,4 +1,4 @@
-import { envConfig } from "@/config/env-config";
+import { envConfig } from "../config/env-config";
 import { ErrorRequestHandler, NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { ErrorLog } from "../modules/admin/error-log.model";

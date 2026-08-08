@@ -1,5 +1,5 @@
-import { checkAuth } from "@/middlewares/auth.middleware";
-import { validateRequest } from "@/middlewares/validate-request.middleware";
+import { checkAuth } from "../../middlewares/auth.middleware";
+import { validateRequest } from "../../middlewares/validate-request.middleware";
 import { Router } from "express";
 import { BillController } from "./bill.controller";
 import { createBillSchema, payBillSchema } from "./bill.validation";

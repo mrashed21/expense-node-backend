@@ -1,5 +1,5 @@
-import { checkAuth } from "@/middlewares/auth.middleware";
-import { validateRequest } from "@/middlewares/validate-request.middleware";
+import { checkAuth } from "../../middlewares/auth.middleware";
+import { validateRequest } from "../../middlewares/validate-request.middleware";
 import { Router } from "express";
 import { AuthController } from "./auth.controller";
 import {
@@ -12,8 +12,8 @@ import {
   verifyOtpSchema,
 } from "./auth.validation";
 
-import { generateCsrfToken } from "@/middlewares/csrf.middleware";
-import { authLimiter } from "@/middlewares/rate-limiter.middleware";
+import { generateCsrfToken } from "../../middlewares/csrf.middleware";
+import { authLimiter } from "../../middlewares/rate-limiter.middleware";
 
 const router = Router();
 

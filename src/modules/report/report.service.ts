@@ -1,6 +1,6 @@
-import { NetWorthService } from "@/modules/net-worth/net-worth.service";
-import { TransactionType } from "@/modules/transaction/transaction.interface";
-import { Transaction } from "@/modules/transaction/transaction.model";
+import { NetWorthService } from "../../modules/net-worth/net-worth.service";
+import { TransactionType } from "../../modules/transaction/transaction.interface";
+import { Transaction } from "../../modules/transaction/transaction.model";
 import mongoose from "mongoose";
 
 export const ReportService = {

@@ -1,4 +1,4 @@
-import ApiError from "@/helpers/api-error";
+import ApiError from "../../helpers/api-error";
 import httpStatus from "http-status";
 import { createAndEmitNotification } from "../notification/notification.helper";
 import { Goal } from "./goal.model";
