@@ -5,6 +5,7 @@ import { NotificationService } from "@/modules/notification/notification.service
 import { Transaction } from "@/modules/transaction/transaction.model";
 import { User } from "@/modules/user/user.model";
 import { sendEmail } from "@/utils/send-email";
+import { reminderTemplate, reminderColors, reminderIcons } from "@/utils/email-templates";
 import { createAndEmitNotification } from "@/modules/notification/notification.helper";
 import cron from "node-cron";
 
@@ -33,14 +34,16 @@ const notifyUser = async (io: any, userId: string, title: string, message: strin
     // 2. Email Notification
     const user = await User.findById(userId);
     if (user && user.user_email) {
+      const accentColor = reminderColors[type] ?? reminderColors.default;
+      const icon = reminderIcons[type] ?? reminderIcons.default;
       await sendEmail(
         user.user_email,
         title,
-        `<div style="font-family: sans-serif; padding: 20px;">
-          <h2>${title}</h2>
-          <p>${message}</p>
-          <p style="color: #666; font-size: 12px; margin-top: 20px;">This is an automated reminder from Expense Tracker.</p>
-        </div>`
+        reminderTemplate(title, message, {
+          icon,
+          accentColor,
+          userName: user.user_name,
+        }),
       );
     }
   } catch (err) {

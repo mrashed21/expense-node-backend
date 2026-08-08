@@ -3,6 +3,12 @@ import ApiError from "@/helpers/api-error";
 import { verifyToken as verifyTotp } from "@/helpers/totp.helper";
 import { generateToken, verifyToken } from "@/utils/jwt";
 import { sendEmail } from "@/utils/send-email";
+import {
+  emailVerificationTemplate,
+  resendOtpTemplate,
+  forgotPasswordTemplate,
+  newLoginAlertTemplate,
+} from "@/utils/email-templates";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import httpStatus from "http-status";
@@ -67,11 +73,7 @@ export const AuthService = {
     await sendEmail(
       user_email,
       "Verify Your Expense Tracker Account",
-      `<div style="font-family: Arial, sans-serif; padding: 20px;">
-        <h2>Welcome to Expense Tracker!</h2>
-        <p>Your email verification OTP code is: <strong style="font-size: 24px; color: #4F46E5;">${otpCode}</strong></p>
-        <p>This code expires in 10 minutes.</p>
-      </div>`,
+      emailVerificationTemplate(otpCode, user_name),
     );
 
     return {
@@ -114,12 +116,8 @@ export const AuthService = {
 
     await sendEmail(
       user_email,
-      "Verify Your Expense Tracker Account - New Code",
-      `<div style="font-family: Arial, sans-serif; padding: 20px;">
-        <h2>Expense Tracker Verification Code</h2>
-        <p>Your new OTP code is: <strong style="font-size: 24px; color: #4F46E5;">${otpCode}</strong></p>
-        <p>This code expires in 10 minutes.</p>
-      </div>`,
+      "Verify Your Expense Tracker Account — New Code",
+      resendOtpTemplate(otpCode, user.user_name),
     );
 
     return true;
@@ -313,18 +311,14 @@ export const AuthService = {
       try {
         await sendEmail(
           user.user_email,
-          "New Login Detected - Expense Tracker",
-          `<div style="font-family: Arial, sans-serif; padding: 20px;">
-            <h2>New Login Alert</h2>
-            <p>We detected a new login to your account from an unrecognized device.</p>
-            <ul>
-              <li><strong>Device:</strong> ${deviceName}</li>
-              <li><strong>Browser:</strong> ${browserInfo}</li>
-              <li><strong>IP Address:</strong> ${clientInfo.ip}</li>
-              <li><strong>Time:</strong> ${new Date().toUTCString()}</li>
-            </ul>
-            <p>If this was you, you can ignore this email. If you don't recognize this activity, please reset your password immediately.</p>
-          </div>`,
+          "New Sign-In Detected — Expense Tracker",
+          newLoginAlertTemplate({
+            deviceName,
+            browser: browserInfo,
+            ip: clientInfo.ip,
+            time: new Date().toUTCString(),
+            userName: user.user_name,
+          }),
         );
       } catch (err) {
         console.error("Failed to send login alert email:", err);
@@ -497,12 +491,8 @@ export const AuthService = {
 
     await sendEmail(
       user_email,
-      "Password Reset Code - Expense Tracker",
-      `<div style="font-family: Arial, sans-serif; padding: 20px;">
-        <h2>Password Reset Request</h2>
-        <p>Your password reset OTP code is: <strong style="font-size: 24px; color: #EF4444;">${otpCode}</strong></p>
-        <p>This code expires in 10 minutes.</p>
-      </div>`,
+      "Password Reset Code — Expense Tracker",
+      forgotPasswordTemplate(otpCode, user.user_name),
     );
 
     return true;
