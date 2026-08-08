@@ -27,6 +27,8 @@ if (isProduction) {
 export const envConfig = {
   env: process.env.NODE_ENV || "development",
   port: process.env.PORT || 5005,
+  ably_api_key: process.env.ABLY_API_KEY || "",
+  cron_secret: process.env.CRON_SECRET || "",
   database_url: process.env.DATABASE_URL || "",
   jwt: {
     access_secret: accessSecret,

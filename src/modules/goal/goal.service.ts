@@ -52,9 +52,7 @@ export const GoalService = {
     if (newlyCompleted) {
       setImmediate(async () => {
         try {
-          const { default: app } = await import("../../app.js");
-          const io = (app as any).get("io") ?? null;
-          await createAndEmitNotification(io, userId, {
+          await createAndEmitNotification(userId, {
             title: "Goal Achieved! 🎉",
             message: `Congratulations! You've reached your goal: "${goal.title}".`,
             type: "goal_milestone",

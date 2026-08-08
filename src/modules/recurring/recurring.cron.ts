@@ -2,7 +2,6 @@ import { BillService } from "@/modules/bill/bill.service";
 import { TransactionService } from "@/modules/transaction/transaction.service";
 import { TransferService } from "@/modules/transfer/transfer.service";
 import { NotificationService } from "@/modules/notification/notification.service";
-import cron from "node-cron";
 import {
   Recurring,
   RecurringFrequency,
@@ -90,7 +89,7 @@ const executeTask = async (task: any) => {
  * The main cron job runner.
  * Scans for active tasks where next_run_date is less than or equal to now.
  */
-const runRecurringJobs = async () => {
+export const runRecurringJobs = async () => {
   console.log("[CRON] Checking for due recurring tasks...");
   const now = new Date();
 
@@ -129,19 +128,4 @@ const runRecurringJobs = async () => {
   }
 };
 
-/**
- * Initialize the cron job.
- * Runs every hour on the hour (0 * * * *).
- * Adjust schedule as needed (e.g., '0 0 * * *' for midnight).
- */
-export const initRecurringCron = () => {
-  // Run every hour to catch anything due
-  cron.schedule("0 * * * *", () => {
-    runRecurringJobs();
-  });
 
-  // Run immediately on startup just in case we missed some while server was down
-  setTimeout(() => {
-    runRecurringJobs();
-  }, 10000); // Wait 10 seconds after boot
-};

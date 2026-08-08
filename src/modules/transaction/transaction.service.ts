@@ -100,9 +100,6 @@ export const TransactionService = {
               const totalSpent = spentResult[0]?.total ?? 0;
               const percentage = Math.round((totalSpent / budget.amount) * 100);
 
-              // Get io from global app (set via app.set('io', io) in server.ts)
-              const { default: app } = await import("../../app.js");
-              const io = (app as any).get("io") ?? null;
 
               // Deduplication: only fire once per threshold breach per month.
               // Check if an alert already exists for this budget this month.
@@ -119,13 +116,13 @@ export const TransactionService = {
 
               if (!alreadyAlerted) {
                 if (percentage >= 100) {
-                  await createAndEmitNotification(io, userId, {
+                  await createAndEmitNotification(userId, {
                     title: "Budget Exceeded!",
                     message: `You have exceeded your budget for this category (${percentage}% used).`,
                     type: "budget_alert",
                   });
                 } else if (percentage >= budget.warning_threshold) {
-                  await createAndEmitNotification(io, userId, {
+                  await createAndEmitNotification(userId, {
                     title: "Budget Warning",
                     message: `You have used ${percentage}% of your budget for this category.`,
                     type: "budget_alert",

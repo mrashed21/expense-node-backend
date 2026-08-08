@@ -3,6 +3,7 @@ import { sendResponse } from "@/helpers/send-response";
 import { Request, Response } from "express";
 import httpStatus from "http-status";
 import { AdminService } from "./admin.service";
+import { publishToUser } from "@/utils/ably";
 
 export const AdminController = {
   updateProfile: catchAsync(async (req: Request, res: Response) => {
@@ -205,18 +206,17 @@ export const AdminController = {
   }),
 
   testNotification: catchAsync(async (req: Request, res: Response) => {
-    const io = req.app.get("io");
     const currentAdminId = req.user?._id as string;
 
     const notificationData = {
       title: "Test Notification",
-      message: "Socket.IO is working perfectly!",
+      message: "Ably is working perfectly!",
       time: new Date().toISOString(),
       type: "success",
     };
 
-    if (io && currentAdminId) {
-      io.to(currentAdminId).emit("new_notification", notificationData);
+    if (currentAdminId) {
+      await publishToUser(currentAdminId, "new_notification", notificationData);
     }
 
     sendResponse(res, {
@@ -267,13 +267,11 @@ export const AdminController = {
 
   broadcastNotification: catchAsync(async (req: Request, res: Response) => {
     const { title, message, type } = req.body;
-    const io = req.app.get("io");
     const currentAdminId = req.user?._id as string;
 
     const count = await AdminService.broadcastNotification(
       { title, message, type },
       currentAdminId,
-      io,
     );
 
     sendResponse(res, {

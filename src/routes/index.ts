@@ -22,6 +22,7 @@ import { SearchRoutes } from "@/modules/search/search.route";
 import { transactionRoutes } from "@/modules/transaction/transaction.route";
 import { transferRoutes } from "@/modules/transfer/transfer.route";
 import { userRoutes } from "@/modules/user/user.route";
+import { cronRoutes } from "@/modules/cron/cron.routes";
 import { Router } from "express";
 
 const router = Router();
@@ -54,6 +55,7 @@ const apiRoutes = [
     path: "/search",
     route: SearchRoutes,
   },
+  { path: "/cron", route: cronRoutes },
 ];
 
 apiRoutes.forEach((route) => {

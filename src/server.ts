@@ -1,10 +1,6 @@
 import mongoose from "mongoose";
-import os from "os";
-import { Server } from "socket.io";
 import app from "./app";
 import { envConfig } from "./config/env-config";
-import { initRecurringCron } from "./modules/recurring/recurring.cron";
-import { initReminderCron } from "./modules/reminder/reminder.cron";
 
 const banner = (port: number | string) => {
   const url = `http://localhost:${port}`;
@@ -74,10 +70,6 @@ async function main() {
     const { seedSuperAdmin } = await import("./utils/seed-super-admin.js");
     await seedSuperAdmin();
 
-    // Initialize Background Workers
-    initRecurringCron();
-    // Reminder cron requires 'io' which is initialized later.
-
     const server = app.listen(envConfig.port, () => {
       banner(envConfig.port);
       divider();
@@ -89,63 +81,6 @@ async function main() {
       divider();
       console.log("");
     });
-
-    const io = new Server(server, {
-      cors: {
-        origin: [envConfig.frontend_url, "http://localhost:3000"],
-        credentials: true,
-      },
-    });
-
-    app.set("io", io);
-
-    // Initialize reminder cron with socket io instance
-    initReminderCron(io);
-
-    io.on("connection", (socket) => {
-      const userId = socket.handshake.auth?.userId as string | undefined;
-
-      if (userId) {
-        // Place the client in their private room for targeted notifications
-        socket.join(userId);
-        log.event(`Socket ${socket.id} joined room: ${userId}`);
-
-        // If user is an admin, join the admin_room for system health updates
-        import("./modules/admin/admin.model.js").then(({ Admin }) => {
-          Admin.exists({ _id: userId }).then((isAdmin) => {
-            if (isAdmin) {
-              socket.join("admin_room");
-              log.event(`Socket ${socket.id} joined admin_room`);
-            }
-          }).catch(() => {}); // Ignore invalid ID casts
-        });
-      } else {
-        console.warn(`[Socket] Client connected without userId: ${socket.id}`);
-      }
-
-      socket.on("disconnect", () => {
-        log.event(`Socket disconnected: ${socket.id}`);
-      });
-    });
-
-    // Real-time system health emitter (admin panel)
-    setInterval(() => {
-      const totalMem = os.totalmem();
-      const freeMem = os.freemem();
-      const usedMem = totalMem - freeMem;
-      const memUsagePercent = (usedMem / totalMem) * 100;
-      const loadAvg = os.loadavg();
-      const cpuUsagePercent = (loadAvg[0] / os.cpus().length) * 100;
-
-      const systemHealth = {
-        time: new Date().toISOString(),
-        memoryUsage: memUsagePercent.toFixed(2),
-        cpuUsage: cpuUsagePercent.toFixed(2),
-        uptime: os.uptime(),
-      };
-
-      io.to("admin_room").emit("system_health_update", systemHealth);
-    }, 2000);
 
     const exitHandler = () => {
       if (server) {

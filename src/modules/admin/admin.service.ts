@@ -12,6 +12,7 @@ import { AdminRole } from "./admin.interface";
 import { Admin } from "./admin.model";
 import { AuditLog } from "./audit-log.model";
 import { ErrorLog } from "./error-log.model";
+import { publishToUser } from "@/utils/ably";
 
 export const AdminService = {
   updateProfile: async (adminId: string, payload: any) => {
@@ -399,7 +400,6 @@ export const AdminService = {
   broadcastNotification: async (
     payload: { title: string; message: string; type: string },
     currentAdminId: string,
-    io: any,
   ) => {
     const activeUsers = await User.find({
       user_status: UserStatus.ACTIVE,
@@ -418,14 +418,16 @@ export const AdminService = {
 
     await Notification.insertMany(notifications);
 
-    // Broadcast event to all connected clients
-    if (io) {
-      io.emit("new_notification", {
-        title: payload.title,
-        message: payload.message,
-        type: payload.type,
-      });
-    }
+    // Broadcast event to all active users via Ably
+    await Promise.all(
+      activeUsers.map((user) =>
+        publishToUser(user._id.toString(), "new_notification", {
+          title: payload.title,
+          message: payload.message,
+          type: payload.type,
+        })
+      )
+    );
 
     AuditLog.create({
       admin_id: currentAdminId,
