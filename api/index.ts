@@ -1,5 +1,5 @@
-import { register } from "tsconfig-paths";
 import path from "path";
+import { register } from "tsconfig-paths";
 
 register({
   baseUrl: path.join(__dirname, ".."),
@@ -8,6 +8,6 @@ register({
   },
 });
 
-import app from "../src/app";
+const app = require("../src/app").default;
 
 export default app;
