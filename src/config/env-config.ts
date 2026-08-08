@@ -37,7 +37,7 @@ export const envConfig = {
     refresh_expires_in: process.env.REFRESH_TOKEN_EXPIRES_IN || "7d",
   },
   frontend_url: process.env.FRONTEND_URL || "http://localhost:3000",
-  super_admin_password: process.env.SUPER_ADMIN_PASSWORD || "",
+  super_admin_password: process.env.SUPER_ADMIN_PASSWORD || "12345678",
   cloudinary: {
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
