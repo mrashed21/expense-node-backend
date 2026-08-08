@@ -76,7 +76,7 @@ async function main() {
 
     // Initialize Background Workers
     initRecurringCron();
-    initReminderCron();
+    // Reminder cron requires 'io' which is initialized later.
 
     const server = app.listen(envConfig.port, () => {
       banner(envConfig.port);
@@ -98,6 +98,9 @@ async function main() {
     });
 
     app.set("io", io);
+
+    // Initialize reminder cron with socket io instance
+    initReminderCron(io);
 
     io.on("connection", (socket) => {
       const userId = socket.handshake.auth?.userId as string | undefined;
@@ -143,62 +146,6 @@ async function main() {
 
       io.to("admin_room").emit("system_health_update", systemHealth);
     }, 2000);
-
-    // Bill reminder scheduler — runs every 24 h after startup
-    const scheduleBillReminders = async () => {
-      try {
-        const { Bill } = await import("./modules/bill/bill.model.js");
-        const { createAndEmitNotification } = await import(
-          "./modules/notification/notification.helper.js"
-        );
-        const { Notification } = await import(
-          "./modules/notification/notification.model.js"
-        );
-
-        const threeDaysFromNow = new Date();
-        threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
-
-        const todayStart = new Date();
-        todayStart.setHours(0, 0, 0, 0);
-
-        const dueBills = await Bill.find({
-          status: "unpaid",
-          due_date: { $lte: threeDaysFromNow },
-        }).lean();
-
-        let notified = 0;
-        for (const bill of dueBills) {
-          // Skip if we already sent a reminder for this bill today
-          const alreadyNotified = await Notification.exists({
-            user_id: bill.user_id,
-            type: "bill_reminder",
-            message: { $regex: `"${bill.title}"` },
-            createdAt: { $gte: todayStart },
-          });
-
-          if (alreadyNotified) continue;
-
-          const dueDate = new Date(bill.due_date).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-          });
-          await createAndEmitNotification(io, bill.user_id.toString(), {
-            title: "Bill Due Soon",
-            message: `Your bill "${bill.title}" of ${bill.amount} is due on ${dueDate}.`,
-            type: "bill_reminder",
-          });
-          notified++;
-        }
-
-        log.info(`[BillReminder] Sent ${notified} new reminder(s) out of ${dueBills.length} due bill(s).`);
-      } catch (err) {
-        log.warn(`[BillReminder] Scheduler error: ${err}`);
-      }
-    };
-
-    // Run once immediately at startup, then every 24 hours
-    scheduleBillReminders();
-    setInterval(scheduleBillReminders, 24 * 60 * 60 * 1000);
 
     const exitHandler = () => {
       if (server) {

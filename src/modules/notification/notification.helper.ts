@@ -6,6 +6,7 @@ interface NotificationPayload {
   title: string;
   message: string;
   type: INotificationDocument["type"];
+  category?: string;
 }
 
 /**

@@ -5,20 +5,30 @@ import { NotificationService } from "@/modules/notification/notification.service
 import { Transaction } from "@/modules/transaction/transaction.model";
 import { User } from "@/modules/user/user.model";
 import { sendEmail } from "@/utils/send-email";
+import { createAndEmitNotification } from "@/modules/notification/notification.helper";
 import cron from "node-cron";
 
 const ALERT_DAYS_THRESHOLD = 3;
 const BUDGET_WARNING_THRESHOLD = 0.8; // 80%
 
-const notifyUser = async (userId: string, title: string, message: string, type: string, category: string = "system") => {
+const notifyUser = async (io: any, userId: string, title: string, message: string, type: string, category: string = "system") => {
   try {
-    // 1. In-App Notification
-    await NotificationService.createNotification(userId, {
-      title,
-      message,
-      type,
-      category,
-    });
+    // 1. In-App Notification (with Socket.IO real-time event if io exists)
+    if (io) {
+      await createAndEmitNotification(io, userId, {
+        title,
+        message,
+        type,
+        category,
+      });
+    } else {
+      await NotificationService.createNotification(userId, {
+        title,
+        message,
+        type,
+        category,
+      });
+    }
 
     // 2. Email Notification
     const user = await User.findById(userId);
@@ -38,7 +48,7 @@ const notifyUser = async (userId: string, title: string, message: string, type: 
   }
 };
 
-const checkBills = async (now: Date, targetDate: Date) => {
+const checkBills = async (io: any, now: Date, targetDate: Date) => {
   const upcomingBills = await Bill.find({
     status: { $ne: "paid" },
     due_date: { $gte: now, $lte: targetDate },
@@ -46,6 +56,7 @@ const checkBills = async (now: Date, targetDate: Date) => {
 
   for (const bill of upcomingBills) {
     await notifyUser(
+      io,
       bill.user_id.toString(),
       "Upcoming Bill Reminder",
       `Your bill "${bill.title}" of ${bill.amount} is due on ${new Date(bill.due_date).toLocaleDateString()}.`,
@@ -61,6 +72,7 @@ const checkBills = async (now: Date, targetDate: Date) => {
 
   for (const bill of overdueBills) {
     await notifyUser(
+      io,
       bill.user_id.toString(),
       "Overdue Bill Alert",
       `URGENT: Your bill "${bill.title}" of ${bill.amount} was due on ${new Date(bill.due_date).toLocaleDateString()} and is currently overdue!`,
@@ -70,7 +82,7 @@ const checkBills = async (now: Date, targetDate: Date) => {
   }
 };
 
-const checkEMIs = async (now: Date, targetDate: Date) => {
+const checkEMIs = async (io: any, now: Date, targetDate: Date) => {
   // EMIs are typically stored in Installment model with next_payment_date
   // But wait, what if installment structure is different? Let's assume standard field names.
   // Actually, wait, do we have next_payment_date? Let's safely check if it exists in schema.
@@ -82,6 +94,7 @@ const checkEMIs = async (now: Date, targetDate: Date) => {
 
     for (const emi of upcomingEMIs) {
       await notifyUser(
+        io,
         emi.user_id.toString(),
         "Upcoming EMI Reminder",
         `Your EMI for "${emi.title}" of ${emi.monthly_amount} is due on ${new Date(emi.start_date).toLocaleDateString()}.`,
@@ -94,7 +107,7 @@ const checkEMIs = async (now: Date, targetDate: Date) => {
   }
 };
 
-const checkBudgets = async (now: Date) => {
+const checkBudgets = async (io: any, now: Date) => {
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
   
@@ -134,6 +147,7 @@ const checkBudgets = async (now: Date) => {
 
     if (ratio >= BUDGET_WARNING_THRESHOLD && ratio < 1) {
       await notifyUser(
+        io,
         budget.user_id.toString(),
         "Budget Warning",
         `You have consumed ${(ratio * 100).toFixed(0)}% of your budget for this category.`,
@@ -142,6 +156,7 @@ const checkBudgets = async (now: Date) => {
       );
     } else if (ratio >= 1) {
       await notifyUser(
+        io,
         budget.user_id.toString(),
         "Budget Exceeded",
         `You have exceeded your budget of ${budget.amount}. Total spent: ${spent}.`,
@@ -153,37 +168,23 @@ const checkBudgets = async (now: Date) => {
 };
 
 /**
- * Runs daily at 08:00 AM
+ * Runs daily at 08:00 AM and 08:00 PM
  */
-export const initReminderCron = () => {
-  cron.schedule("0 8 * * *", async () => {
-    console.log("[CRON Reminder] Running daily system check...");
+export const initReminderCron = (io?: any) => {
+  cron.schedule("0 8,20 * * *", async () => {
+    console.log("[CRON Reminder] Running daily system check (8 AM / 8 PM)...");
     const now = new Date();
     const targetDate = new Date();
     targetDate.setDate(targetDate.getDate() + ALERT_DAYS_THRESHOLD);
 
     try {
-      await checkBills(now, targetDate);
-      await checkEMIs(now, targetDate);
-      await checkBudgets(now);
+      await checkBills(io, now, targetDate);
+      await checkEMIs(io, now, targetDate);
+      await checkBudgets(io, now);
     } catch (error) {
       console.error("[CRON Reminder] Failed execution:", error);
     }
   });
 
-  // Run once on boot after 15 seconds to catch up
-  setTimeout(async () => {
-    console.log("[CRON Reminder] Running boot system check...");
-    const now = new Date();
-    const targetDate = new Date();
-    targetDate.setDate(targetDate.getDate() + ALERT_DAYS_THRESHOLD);
-    
-    try {
-      await checkBills(now, targetDate);
-      await checkEMIs(now, targetDate);
-      await checkBudgets(now);
-    } catch (error) {
-      console.error("[CRON Reminder] Failed boot execution:", error);
-    }
-  }, 15000);
+
 };
