@@ -23,7 +23,7 @@ export const createAndEmitNotification = async (
       ...payload,
     });
 
-    await publishToUser(userId, "new_notification", notification);
+    await publishToUser(userId, "new_notification", notification.toJSON());
   } catch (err) {
     // Notifications are non-critical — log but do not propagate errors
     // to avoid breaking the primary business transaction that triggered them.
