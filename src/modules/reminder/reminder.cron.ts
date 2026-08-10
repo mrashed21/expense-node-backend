@@ -2,6 +2,7 @@ import { Bill } from "../../modules/bill/bill.model";
 import { Budget } from "../../modules/budget/budget.model";
 import { Installment } from "../../modules/installment/installment.model";
 import { createAndEmitNotification } from "../../modules/notification/notification.helper";
+import { Notification } from "../../modules/notification/notification.model";
 import { Transaction } from "../../modules/transaction/transaction.model";
 import { User } from "../../modules/user/user.model";
 import {
@@ -13,6 +14,24 @@ import { sendEmail } from "../../utils/send-email";
 
 const ALERT_DAYS_THRESHOLD = 3;
 const BUDGET_WARNING_THRESHOLD = 0.8;
+const DEDUPE_WINDOW_HOURS = 20;
+
+let stats = { sent: 0, skipped: 0, failed: 0 };
+
+const wasRecentlyNotified = async (
+  userId: string,
+  title: string,
+  message: string,
+) => {
+  const since = new Date(Date.now() - DEDUPE_WINDOW_HOURS * 60 * 60 * 1000);
+  return Notification.exists({
+    user_id: userId,
+    title,
+    message,
+    createdAt: { $gte: since },
+  });
+};
+
 const notifyUser = async (
   userId: string,
   title: string,
@@ -21,12 +40,27 @@ const notifyUser = async (
   category: string = "system",
 ) => {
   try {
-    await createAndEmitNotification(userId, {
+    if (await wasRecentlyNotified(userId, title, message)) {
+      stats.skipped++;
+      return;
+    }
+
+    const notification = await createAndEmitNotification(userId, {
       title,
       message,
       type,
       category,
     });
+
+    if (!notification) {
+      stats.failed++;
+      console.error(
+        `[CRON Reminder] Skipping email for user ${userId}: notification could not be stored.`,
+      );
+      return;
+    }
+
+    stats.sent++;
 
     const user = await User.findById(userId);
     if (user && user.user_email) {
@@ -43,6 +77,7 @@ const notifyUser = async (
       );
     }
   } catch (err) {
+    stats.failed++;
     console.error(`[CRON Reminder] Failed to notify user ${userId}:`, err);
   }
 };
@@ -50,6 +85,7 @@ const notifyUser = async (
 const checkBills = async (now: Date, targetDate: Date) => {
   const upcomingBills = await Bill.find({
     status: { $ne: "paid" },
+    auto_reminder: true,
     due_date: { $gte: now, $lte: targetDate },
   });
 
@@ -65,6 +101,7 @@ const checkBills = async (now: Date, targetDate: Date) => {
 
   const overdueBills = await Bill.find({
     status: { $ne: "paid" },
+    auto_reminder: true,
     due_date: { $lt: now },
   });
 
@@ -79,18 +116,27 @@ const checkBills = async (now: Date, targetDate: Date) => {
   }
 };
 
+const getNextPaymentDate = (startDate: Date, monthsPaid: number): Date => {
+  const next = new Date(startDate);
+  next.setMonth(next.getMonth() + monthsPaid);
+  return next;
+};
+
 const checkEMIs = async (now: Date, targetDate: Date) => {
   try {
-    const upcomingEMIs = await Installment.find({
-      status: "active",
-      next_payment_date: { $gte: now, $lte: targetDate },
+    const activeEMIs = await Installment.find({
+      is_completed: false,
+      is_deleted: false,
     });
 
-    for (const emi of upcomingEMIs) {
+    for (const emi of activeEMIs) {
+      const dueDate = getNextPaymentDate(emi.start_date, emi.months_paid);
+      if (dueDate < now || dueDate > targetDate) continue;
+
       await notifyUser(
         emi.user_id.toString(),
         "Upcoming EMI Reminder",
-        `Your EMI for "${emi.title}" of ${emi.monthly_amount} is due on ${new Date(emi.start_date).toLocaleDateString()}.`,
+        `Your EMI for "${emi.title}" of ${emi.monthly_amount} is due on ${dueDate.toLocaleDateString()}.`,
         "emi_due",
         "reminder",
       );
@@ -103,11 +149,9 @@ const checkEMIs = async (now: Date, targetDate: Date) => {
 const checkBudgets = async (now: Date) => {
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
+  const monthYear = `${currentYear}-${String(currentMonth).padStart(2, "0")}`;
 
-  const activeBudgets = await Budget.find({
-    month: currentMonth,
-    year: currentYear,
-  });
+  const activeBudgets = await Budget.find({ month_year: monthYear });
 
   for (const budget of activeBudgets) {
     const spentData = await Transaction.aggregate([
@@ -152,10 +196,12 @@ const checkBudgets = async (now: Date) => {
 };
 
 export const runReminderJobs = async () => {
-  console.log("[CRON Reminder] Running daily system check (8 AM / 8 PM)...");
+  console.log("[CRON Reminder] Running daily system check...");
   const now = new Date();
   const targetDate = new Date();
   targetDate.setDate(targetDate.getDate() + ALERT_DAYS_THRESHOLD);
+
+  stats = { sent: 0, skipped: 0, failed: 0 };
 
   try {
     await checkBills(now, targetDate);
@@ -164,4 +210,10 @@ export const runReminderJobs = async () => {
   } catch (error) {
     console.error("[CRON Reminder] Failed execution:", error);
   }
+
+  console.log(
+    `[CRON Reminder] Done. sent=${stats.sent} skipped=${stats.skipped} failed=${stats.failed}`,
+  );
+
+  return stats;
 };

@@ -49,16 +49,11 @@ export const GoalService = {
     }
 
     if (newlyCompleted) {
-      setImmediate(async () => {
-        try {
-          await createAndEmitNotification(userId, {
-            title: "Goal Achieved! 🎉",
-            message: `Congratulations! You've reached your goal: "${goal.title}".`,
-            type: "goal_milestone",
-          });
-        } catch (e) {
-          console.error("[GoalMilestone] Failed to send notification:", e);
-        }
+      await createAndEmitNotification(userId, {
+        title: "Goal Achieved! 🎉",
+        message: `Congratulations! You've reached your goal: "${goal.title}".`,
+        type: "goal_milestone",
+        category: "goal",
       });
     }
 

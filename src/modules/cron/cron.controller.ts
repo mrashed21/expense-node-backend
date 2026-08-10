@@ -25,12 +25,13 @@ export const CronController = {
       throw new ApiError(httpStatus.UNAUTHORIZED, "Unauthorized");
     }
 
-    await runReminderJobs();
+    const stats = await runReminderJobs();
 
     sendResponse(res, {
       statusCode: 200,
       success: true,
       message: "Reminders executed successfully.",
+      data: stats,
     });
   }),
 

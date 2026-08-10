@@ -4,8 +4,68 @@ import ApiError from "../../helpers/api-error";
 import { Account } from "../account/account.model";
 import { Budget } from "../budget/budget.model";
 import { createAndEmitNotification } from "../notification/notification.helper";
+import { Notification } from "../notification/notification.model";
 import { TransactionType } from "./transaction.interface";
 import { Transaction } from "./transaction.model";
+
+const checkBudgetAndNotify = async (userId: string, categoryId: string) => {
+  try {
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const budget = await Budget.findOne({
+      user_id: userId,
+      category_id: categoryId,
+      month_year: currentMonth,
+    });
+
+    if (!budget) return;
+
+    const startOfMonth = new Date(`${currentMonth}-01T00:00:00.000Z`);
+    const spentResult = await Transaction.aggregate([
+      {
+        $match: {
+          user_id: new mongoose.Types.ObjectId(userId),
+          category_id: new mongoose.Types.ObjectId(categoryId),
+          type: TransactionType.EXPENSE,
+          is_deleted: false,
+          date: { $gte: startOfMonth },
+        },
+      },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]);
+
+    const totalSpent = spentResult[0]?.total ?? 0;
+    const percentage = Math.round((totalSpent / budget.amount) * 100);
+
+    if (percentage < budget.warning_threshold) return;
+
+    const alreadyAlerted = await Notification.exists({
+      user_id: userId,
+      type: "budget_alert",
+      createdAt: { $gte: startOfMonth },
+      message: { $regex: `${percentage}%` },
+    });
+
+    if (alreadyAlerted) return;
+
+    if (percentage >= 100) {
+      await createAndEmitNotification(userId, {
+        title: "Budget Exceeded!",
+        message: `You have exceeded your budget for this category (${percentage}% used).`,
+        type: "budget_alert",
+        category: "budget",
+      });
+    } else {
+      await createAndEmitNotification(userId, {
+        title: "Budget Warning",
+        message: `You have used ${percentage}% of your budget for this category.`,
+        type: "budget_alert",
+        category: "budget",
+      });
+    }
+  } catch (e) {
+    console.error("[BudgetAlert] Failed to check budget:", e);
+  }
+};
 
 export const TransactionService = {
   createTransaction: async (
@@ -69,65 +129,7 @@ export const TransactionService = {
       }
 
       if (type === TransactionType.EXPENSE && payload.category_id) {
-        setImmediate(async () => {
-          try {
-            const currentMonth = new Date().toISOString().slice(0, 7);
-            const budget = await Budget.findOne({
-              user_id: userId,
-              category_id: payload.category_id,
-              month_year: currentMonth,
-            });
-
-            if (budget) {
-              const startOfMonth = new Date(`${currentMonth}-01T00:00:00.000Z`);
-              const spentResult = await Transaction.aggregate([
-                {
-                  $match: {
-                    user_id: new mongoose.Types.ObjectId(userId),
-                    category_id: new mongoose.Types.ObjectId(
-                      payload.category_id,
-                    ),
-                    type: TransactionType.EXPENSE,
-                    is_deleted: false,
-                    date: { $gte: startOfMonth },
-                  },
-                },
-                { $group: { _id: null, total: { $sum: "$amount" } } },
-              ]);
-
-              const totalSpent = spentResult[0]?.total ?? 0;
-              const percentage = Math.round((totalSpent / budget.amount) * 100);
-
-              const { Notification } =
-                await import("../notification/notification.model.js");
-              const monthStart = new Date(`${currentMonth}-01T00:00:00.000Z`);
-              const alreadyAlerted = await Notification.exists({
-                user_id: userId,
-                type: "budget_alert",
-                createdAt: { $gte: monthStart },
-                message: { $regex: `${percentage}%` },
-              });
-
-              if (!alreadyAlerted) {
-                if (percentage >= 100) {
-                  await createAndEmitNotification(userId, {
-                    title: "Budget Exceeded!",
-                    message: `You have exceeded your budget for this category (${percentage}% used).`,
-                    type: "budget_alert",
-                  });
-                } else if (percentage >= budget.warning_threshold) {
-                  await createAndEmitNotification(userId, {
-                    title: "Budget Warning",
-                    message: `You have used ${percentage}% of your budget for this category.`,
-                    type: "budget_alert",
-                  });
-                }
-              }
-            }
-          } catch (e) {
-            console.error("[BudgetAlert] Failed to check budget:", e);
-          }
-        });
+        await checkBudgetAndNotify(userId, payload.category_id);
       }
 
       return transaction;

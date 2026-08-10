@@ -28,10 +28,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     await connectDB();
-    await runReminderJobs();
-    return res
-      .status(200)
-      .json({ success: true, message: "Reminders executed successfully." });
+    const stats = await runReminderJobs();
+    return res.status(200).json({
+      success: true,
+      message: "Reminders executed successfully.",
+      data: stats,
+    });
   } catch (error) {
     console.error("[CRON Reminders] Error:", error);
     return res

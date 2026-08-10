@@ -1,5 +1,5 @@
 import { BillService } from "../../modules/bill/bill.service";
-import { NotificationService } from "../../modules/notification/notification.service";
+import { createAndEmitNotification } from "../../modules/notification/notification.helper";
 import { TransactionService } from "../../modules/transaction/transaction.service";
 import { TransferService } from "../../modules/transfer/transfer.service";
 import {
@@ -39,7 +39,7 @@ const executeTask = async (task: any) => {
       case "transaction":
         const txData = { ...template, date: new Date() };
         await TransactionService.createTransaction(userId, txData);
-        await NotificationService.createNotification(userId, {
+        await createAndEmitNotification(userId, {
           title: "Automated Transaction Executed",
           message: `Your scheduled transaction has been successfully processed.`,
           type: "success",
@@ -52,7 +52,7 @@ const executeTask = async (task: any) => {
           due_date: calculateNextRunDate(new Date(), task.frequency),
         };
         await BillService.createBill(userId, billData);
-        await NotificationService.createNotification(userId, {
+        await createAndEmitNotification(userId, {
           title: "Automated Bill Generated",
           message: `Your scheduled bill has been successfully generated.`,
           type: "success",
@@ -62,7 +62,7 @@ const executeTask = async (task: any) => {
       case "transfer":
         const transferData = { ...template, date: new Date() };
         await TransferService.createTransfer(userId, transferData);
-        await NotificationService.createNotification(userId, {
+        await createAndEmitNotification(userId, {
           title: "Automated Transfer Executed",
           message: `Your scheduled transfer has been successfully processed.`,
           type: "success",

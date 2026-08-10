@@ -12,18 +12,30 @@ interface NotificationPayload {
 export const createAndEmitNotification = async (
   userId: string,
   payload: NotificationPayload,
-): Promise<void> => {
+): Promise<INotificationDocument | null> => {
+  let notification: INotificationDocument;
+
   try {
-    const notification = await Notification.create({
+    notification = await Notification.create({
       user_id: userId,
       ...payload,
     });
+  } catch (err) {
+    console.error(
+      `[NotificationHelper] DB create failed for user ${userId}:`,
+      err,
+    );
+    return null;
+  }
 
+  try {
     await publishToUser(userId, "new_notification", notification.toJSON());
   } catch (err) {
     console.error(
-      "[NotificationHelper] Failed to create/emit notification:",
+      `[NotificationHelper] Ably publish failed for user ${userId}:`,
       err,
     );
   }
+
+  return notification;
 };
