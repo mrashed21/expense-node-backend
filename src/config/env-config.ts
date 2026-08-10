@@ -5,12 +5,10 @@ dotenv.config({ path: path.join(process.cwd(), ".env") });
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const accessSecret =
-  process.env.ACCESS_TOKEN_SECRET || "default_access_secret";
+const accessSecret = process.env.ACCESS_TOKEN_SECRET || "default_access_secret";
 const refreshSecret =
   process.env.REFRESH_TOKEN_SECRET || "default_refresh_secret";
 
-// Prevent deploying with insecure default JWT secrets
 if (isProduction) {
   if (accessSecret === "default_access_secret") {
     throw new Error(

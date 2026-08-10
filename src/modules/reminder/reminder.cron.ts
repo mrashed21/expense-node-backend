@@ -1,19 +1,26 @@
 import { Bill } from "../../modules/bill/bill.model";
 import { Budget } from "../../modules/budget/budget.model";
 import { Installment } from "../../modules/installment/installment.model";
-import { NotificationService } from "../../modules/notification/notification.service";
+import { createAndEmitNotification } from "../../modules/notification/notification.helper";
 import { Transaction } from "../../modules/transaction/transaction.model";
 import { User } from "../../modules/user/user.model";
+import {
+  reminderColors,
+  reminderIcons,
+  reminderTemplate,
+} from "../../utils/email-templates";
 import { sendEmail } from "../../utils/send-email";
-import { reminderTemplate, reminderColors, reminderIcons } from "../../utils/email-templates";
-import { createAndEmitNotification } from "../../modules/notification/notification.helper";
 
 const ALERT_DAYS_THRESHOLD = 3;
-const BUDGET_WARNING_THRESHOLD = 0.8; // 80%
-
-const notifyUser = async (userId: string, title: string, message: string, type: string, category: string = "system") => {
+const BUDGET_WARNING_THRESHOLD = 0.8;
+const notifyUser = async (
+  userId: string,
+  title: string,
+  message: string,
+  type: string,
+  category: string = "system",
+) => {
   try {
-    // 1. In-App Notification (with Ably real-time event)
     await createAndEmitNotification(userId, {
       title,
       message,
@@ -21,10 +28,6 @@ const notifyUser = async (userId: string, title: string, message: string, type: 
       category,
     });
 
-    // We no longer need to call NotificationService directly here because
-    // createAndEmitNotification already saves it to the DB and emits it.
-
-    // 2. Email Notification
     const user = await User.findById(userId);
     if (user && user.user_email) {
       const accentColor = reminderColors[type] ?? reminderColors.default;
@@ -56,7 +59,7 @@ const checkBills = async (now: Date, targetDate: Date) => {
       "Upcoming Bill Reminder",
       `Your bill "${bill.title}" of ${bill.amount} is due on ${new Date(bill.due_date).toLocaleDateString()}.`,
       "bill_due",
-      "reminder"
+      "reminder",
     );
   }
 
@@ -71,15 +74,12 @@ const checkBills = async (now: Date, targetDate: Date) => {
       "Overdue Bill Alert",
       `URGENT: Your bill "${bill.title}" of ${bill.amount} was due on ${new Date(bill.due_date).toLocaleDateString()} and is currently overdue!`,
       "bill_overdue",
-      "reminder"
+      "reminder",
     );
   }
 };
 
 const checkEMIs = async (now: Date, targetDate: Date) => {
-  // EMIs are typically stored in Installment model with next_payment_date
-  // But wait, what if installment structure is different? Let's assume standard field names.
-  // Actually, wait, do we have next_payment_date? Let's safely check if it exists in schema.
   try {
     const upcomingEMIs = await Installment.find({
       status: "active",
@@ -92,31 +92,24 @@ const checkEMIs = async (now: Date, targetDate: Date) => {
         "Upcoming EMI Reminder",
         `Your EMI for "${emi.title}" of ${emi.monthly_amount} is due on ${new Date(emi.start_date).toLocaleDateString()}.`,
         "emi_due",
-        "reminder"
+        "reminder",
       );
     }
   } catch (error) {
-     console.error("[CRON Reminder] EMI check error", error);
+    console.error("[CRON Reminder] EMI check error", error);
   }
 };
 
 const checkBudgets = async (now: Date) => {
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
-  
-  // Find budgets for current month
+
   const activeBudgets = await Budget.find({
     month: currentMonth,
     year: currentYear,
   });
 
   for (const budget of activeBudgets) {
-    // Only alert once per budget? For MVP we will just alert if it hasn't been alerted today, but
-    // since we don't have a specific flag in Budget model, we will just send it if it's over 80%.
-    // To avoid spam, in a real app we'd add an `alerted: boolean` to the budget model. 
-    // We'll proceed with sending it.
-    
-    // Calculate total spent
     const spentData = await Transaction.aggregate([
       {
         $match: {
@@ -144,7 +137,7 @@ const checkBudgets = async (now: Date) => {
         "Budget Warning",
         `You have consumed ${(ratio * 100).toFixed(0)}% of your budget for this category.`,
         "budget_alert",
-        "budget"
+        "budget",
       );
     } else if (ratio >= 1) {
       await notifyUser(
@@ -152,7 +145,7 @@ const checkBudgets = async (now: Date) => {
         "Budget Exceeded",
         `You have exceeded your budget of ${budget.amount}. Total spent: ${spent}.`,
         "budget_exceeded",
-        "budget"
+        "budget",
       );
     }
   }

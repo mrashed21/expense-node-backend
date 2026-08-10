@@ -1,5 +1,5 @@
-import { IJwtPayload } from "../modules/user/user.interface";
 import jwt, { Secret } from "jsonwebtoken";
+import { IJwtPayload } from "../modules/user/user.interface";
 
 export const generateToken = (
   payload: IJwtPayload,

@@ -1,12 +1,12 @@
+import bcrypt from "bcrypt";
+import crypto from "crypto";
+import httpStatus from "http-status";
 import ApiError from "../../helpers/api-error";
 import {
   generateAuthURI,
   generateSecret,
   verifyToken,
 } from "../../helpers/totp.helper";
-import bcrypt from "bcrypt";
-import crypto from "crypto";
-import httpStatus from "http-status";
 import { Device } from "./device.model";
 import { LoginHistory } from "./login-history.model";
 import { UserStatus } from "./user.interface";
@@ -121,7 +121,7 @@ export const UserService = {
     await user.save();
 
     const qrData = generateAuthURI(secret, email);
-    // Return the base64 qr code data URI
+
     const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(qrData)}`;
 
     return { qrCodeUrl, secret };
@@ -140,7 +140,6 @@ export const UserService = {
       throw new ApiError(httpStatus.UNAUTHORIZED, "Invalid 2FA code");
     }
 
-    // Generate 10 recovery codes
     const recoveryCodes = Array.from({ length: 10 }, () =>
       crypto.randomBytes(4).toString("hex"),
     );

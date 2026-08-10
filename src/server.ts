@@ -55,7 +55,6 @@ async function main() {
     });
     log.success("Successfully connected to MongoDB database.");
 
-    // Sync indexes to clean up obsolete ones (e.g. duplicate or renamed schema indexes)
     try {
       const { Category } = await import("./modules/category/category.model.js");
       await Category.syncIndexes();
@@ -66,7 +65,6 @@ async function main() {
       log.warn("Failed to sync indexes: " + err);
     }
 
-    // Seed Super Admin
     const { seedSuperAdmin } = await import("./utils/seed-super-admin.js");
     await seedSuperAdmin();
 

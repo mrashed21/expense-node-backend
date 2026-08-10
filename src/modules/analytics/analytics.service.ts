@@ -1,10 +1,10 @@
+import mongoose from "mongoose";
 import { Bill } from "../../modules/bill/bill.model";
 import { Budget } from "../../modules/budget/budget.model";
 import { Goal } from "../../modules/goal/goal.model";
 import { NetWorthService } from "../../modules/net-worth/net-worth.service";
 import { TransactionType } from "../../modules/transaction/transaction.interface";
 import { Transaction } from "../../modules/transaction/transaction.model";
-import mongoose from "mongoose";
 
 const MONTH_NAMES = [
   "Jan",
@@ -20,7 +20,7 @@ const MONTH_NAMES = [
   "Nov",
   "Dec",
 ];
-const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; // 1 = Sun, 7 = Sat in MongoDB
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export const AnalyticsService = {
   getSummary: async (userId: string) => {
@@ -28,14 +28,13 @@ export const AnalyticsService = {
     const now = new Date();
     const currentYear = now.getFullYear();
     const lastYear = currentYear - 1;
-    const currentMonth = now.toISOString().slice(0, 7); // "YYYY-MM"
+    const currentMonth = now.toISOString().slice(0, 7);
 
     const startOfYear = new Date(`${currentYear}-01-01T00:00:00.000Z`);
     const startOfLastYear = new Date(`${lastYear}-01-01T00:00:00.000Z`);
     const endOfLastYear = new Date(`${lastYear}-12-31T23:59:59.999Z`);
     const startOfMonth = new Date(`${currentMonth}-01T00:00:00.000Z`);
 
-    // ── 1. Aggregation: Current Year Stats ──────────────────────────────────
     const currentYearAgg = await Transaction.aggregate([
       {
         $match: {
@@ -75,7 +74,7 @@ export const AnalyticsService = {
             { $match: { type: TransactionType.EXPENSE } },
             {
               $group: {
-                _id: { $dayOfWeek: "$date" }, // 1 (Sun) to 7 (Sat)
+                _id: { $dayOfWeek: "$date" },
                 amount: { $sum: "$amount" },
                 count: { $sum: 1 },
               },
@@ -110,7 +109,6 @@ export const AnalyticsService = {
       },
     ]);
 
-    // ── 2. Aggregation: Last Year Totals ──────────────────────────────────
     const lastYearAgg = await Transaction.aggregate([
       {
         $match: {
@@ -144,7 +142,6 @@ export const AnalyticsService = {
       },
     ]);
 
-    // ── 3. Aggregation: Current Month Stats ──────────────────────────────────
     const currentMonthAgg = await Transaction.aggregate([
       {
         $match: {
@@ -223,7 +220,6 @@ export const AnalyticsService = {
       },
     ]);
 
-    // ── Extract Aggregation Results ──────────────────────────────────────────
     const cyData = currentYearAgg[0] || {
       monthly: [],
       heatmap: [],
@@ -238,7 +234,6 @@ export const AnalyticsService = {
       budgetSpent: [],
     };
 
-    // ── Format: Monthly Comparison ──────────────────────────────────────────
     const monthlyMap: Record<number, { income: number; expense: number }> = {};
     for (let i = 1; i <= 12; i++) monthlyMap[i] = { income: 0, expense: 0 };
     cyData.monthly.forEach((m: any) => {
@@ -255,7 +250,6 @@ export const AnalyticsService = {
       };
     });
 
-    // ── Format: Yearly Comparison ──────────────────────────────────────────
     const yearlyComparison = {
       currentYear,
       lastYear,
@@ -265,7 +259,6 @@ export const AnalyticsService = {
       lastYearExpense: Math.round(lyTotals.expense * 100) / 100,
     };
 
-    // ── Format: Spending Heatmap ──────────────────────────────────────────
     const dowMap: Record<number, { amount: number; count: number }> = {};
     for (let i = 1; i <= 7; i++) dowMap[i] = { amount: 0, count: 0 };
     cyData.heatmap.forEach((h: any) => {
@@ -273,7 +266,6 @@ export const AnalyticsService = {
     });
 
     const spendingHeatmap = DAY_NAMES.map((day, i) => {
-      // MongoDB $dayOfWeek: 1 (Sun) to 7 (Sat). Our array is 0-indexed.
       const data = dowMap[i + 1];
       return {
         day,
@@ -282,7 +274,6 @@ export const AnalyticsService = {
       };
     });
 
-    // ── Format: Daily Spending ──────────────────────────────────────────
     const daysInMonth = new Date(
       now.getFullYear(),
       now.getMonth() + 1,
@@ -302,13 +293,11 @@ export const AnalyticsService = {
       income: Math.round(vals.income * 100) / 100,
     }));
 
-    // ── Format: Category Breakdown ──────────────────────────────────────────
     const categoryBreakdown = cmData.categoryBreakdown.map((c: any) => ({
       ...c,
       expense: Math.round(c.expense * 100) / 100,
     }));
 
-    // ── Format: Budget Analytics ──────────────────────────────────────────
     const budgets = await Budget.find({
       user_id: uid,
       month_year: currentMonth,
@@ -335,7 +324,6 @@ export const AnalyticsService = {
       };
     });
 
-    // ── Format: Goal Analytics ────────────────────────────────────────────
     const goals = await Goal.find({ user_id: uid }).lean();
     const goalAnalytics = goals.map((g) => ({
       title: g.title,
@@ -349,7 +337,6 @@ export const AnalyticsService = {
       status: g.status,
     }));
 
-    // ── Format: KPI & Net Worth Data ──────────────────────────────────────
     const currentNetWorthData =
       await NetWorthService.calculateCurrentNetWorth(userId);
     const netWorthHistory = await NetWorthService.getNetWorthHistory(userId, {
@@ -409,7 +396,6 @@ export const AnalyticsService = {
       };
     });
 
-    // ── Format: Cash Flow Forecast (Next 30 Days) ─────────────────────────
     const forecast: Array<{ date: string; projectedBalance: number }> = [];
     let projectedBalance = currentNetWorthData.net_worth;
 

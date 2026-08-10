@@ -1,5 +1,5 @@
-import { checkAuth } from "../../middlewares/auth.middleware";
 import { Router } from "express";
+import { checkAuth } from "../../middlewares/auth.middleware";
 import { TransactionController } from "./transaction.controller";
 
 const router = Router();

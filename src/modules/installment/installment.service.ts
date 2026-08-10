@@ -1,6 +1,6 @@
-import ApiError from "../../helpers/api-error";
 import httpStatus from "http-status";
 import mongoose from "mongoose";
+import ApiError from "../../helpers/api-error";
 import { InstallmentPayment } from "./installment-payment.model";
 import { IInstallment } from "./installment.interface";
 import { Installment } from "./installment.model";
@@ -58,7 +58,6 @@ export const InstallmentService = {
 
     const total = await Installment.countDocuments(filter);
 
-    // Global Metrics
     const allInstallments = await Installment.find({
       user_id: userId,
       is_deleted: false,
@@ -138,7 +137,6 @@ export const InstallmentService = {
       throw new ApiError(httpStatus.NOT_FOUND, "Installment not found");
     }
 
-    // If core calculation fields change, recalculate
     if (
       payload.total_amount !== undefined ||
       payload.total_months !== undefined ||

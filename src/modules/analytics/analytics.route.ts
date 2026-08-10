@@ -1,6 +1,6 @@
+import { Router } from "express";
 import { checkAuth } from "../../middlewares/auth.middleware";
 import { UserRole } from "../../modules/user/user.interface";
-import { Router } from "express";
 import { AnalyticsController } from "./analytics.controller";
 
 const router = Router();

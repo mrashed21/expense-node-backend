@@ -1,12 +1,11 @@
-import mongoose from "mongoose";
-import { envConfig } from "../src/config/env-config";
-import app from "../src/app";
 import type { Request, Response } from "express";
+import mongoose from "mongoose";
+import app from "../src/app";
+import { envConfig } from "../src/config/env-config";
 
 let isConnected = false;
 
 async function connectDB() {
-  // Already connected
   if (isConnected && mongoose.connection.readyState === 1) return;
 
   if (!envConfig.database_url) {
@@ -23,13 +22,14 @@ async function connectDB() {
   console.log("MongoDB connected.");
 }
 
-// Each request waits for DB connection before being handled
 const handler = async (req: Request, res: Response) => {
   try {
     await connectDB();
   } catch (err) {
     console.error("MongoDB connection failed:", (err as Error).message);
-    res.status(500).json({ success: false, message: "Database connection failed." });
+    res
+      .status(500)
+      .json({ success: false, message: "Database connection failed." });
     return;
   }
 

@@ -1,8 +1,8 @@
+import bcrypt from "bcrypt";
+import httpStatus from "http-status";
 import { envConfig } from "../../config/env-config";
 import ApiError from "../../helpers/api-error";
 import { generateToken, verifyToken } from "../../utils/jwt";
-import bcrypt from "bcrypt";
-import httpStatus from "http-status";
 import { AdminStatus } from "./admin.interface";
 import { Admin } from "./admin.model";
 

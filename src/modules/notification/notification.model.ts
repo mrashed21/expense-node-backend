@@ -37,7 +37,6 @@ const notificationSchema = new Schema<INotificationDocument>(
 );
 
 notificationSchema.index({ user_id: 1, createdAt: -1 });
-// Auto-expire notifications after 90 days to prevent unbounded growth
 notificationSchema.index(
   { createdAt: 1 },
   { expireAfterSeconds: 60 * 60 * 24 * 90 },

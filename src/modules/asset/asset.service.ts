@@ -1,5 +1,5 @@
-import ApiError from "../../helpers/api-error";
 import httpStatus from "http-status";
+import ApiError from "../../helpers/api-error";
 import { Asset } from "./asset.model";
 
 export const AssetService = {

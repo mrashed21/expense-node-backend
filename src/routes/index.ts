@@ -1,3 +1,4 @@
+import { Router } from "express";
 import { accountRoutes } from "../modules/account/account.route";
 import { adminAuthRoutes } from "../modules/admin/admin-auth.route";
 import { adminRoutes } from "../modules/admin/admin.route";
@@ -8,6 +9,7 @@ import { billRoutes } from "../modules/bill/bill.route";
 import { budgetRoutes } from "../modules/budget/budget.route";
 import { CalendarRoutes } from "../modules/calendar/calendar.route";
 import { categoryRoutes } from "../modules/category/category.route";
+import { cronRoutes } from "../modules/cron/cron.routes";
 import { dataRoutes } from "../modules/data/data.route";
 import { debtRoutes } from "../modules/debt/debt.route";
 import { goalRoutes } from "../modules/goal/goal.route";
@@ -22,8 +24,6 @@ import { SearchRoutes } from "../modules/search/search.route";
 import { transactionRoutes } from "../modules/transaction/transaction.route";
 import { transferRoutes } from "../modules/transfer/transfer.route";
 import { userRoutes } from "../modules/user/user.route";
-import { cronRoutes } from "../modules/cron/cron.routes";
-import { Router } from "express";
 
 const router = Router();
 

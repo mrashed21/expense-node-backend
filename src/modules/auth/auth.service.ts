@@ -1,18 +1,18 @@
-import { envConfig } from "../../config/env-config";
-import ApiError from "../../helpers/api-error";
-import { verifyToken as verifyTotp } from "../../helpers/totp.helper";
-import { generateToken, verifyToken } from "../../utils/jwt";
-import { sendEmail } from "../../utils/send-email";
-import {
-  emailVerificationTemplate,
-  resendOtpTemplate,
-  forgotPasswordTemplate,
-  newLoginAlertTemplate,
-} from "../../utils/email-templates";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import httpStatus from "http-status";
 import { UAParser } from "ua-parser-js";
+import { envConfig } from "../../config/env-config";
+import ApiError from "../../helpers/api-error";
+import { verifyToken as verifyTotp } from "../../helpers/totp.helper";
+import {
+  emailVerificationTemplate,
+  forgotPasswordTemplate,
+  newLoginAlertTemplate,
+  resendOtpTemplate,
+} from "../../utils/email-templates";
+import { generateToken, verifyToken } from "../../utils/jwt";
+import { sendEmail } from "../../utils/send-email";
 import { Device } from "../user/device.model";
 import { LoginHistory } from "../user/login-history.model";
 import { UserStatus } from "../user/user.interface";
@@ -84,7 +84,6 @@ export const AuthService = {
     };
   },
 
-  // 1b. Resend OTP
   resendOtp: async (user_email: string) => {
     const user = await User.findOne({ user_email, is_deleted: false });
     if (!user) {
@@ -101,7 +100,6 @@ export const AuthService = {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     const hashedOtp = await bcrypt.hash(otpCode, 10);
 
-    // Invalidate old OTPs
     await Otp.updateMany(
       { user_email, otp_type: "email_verify" },
       { is_used: true },
@@ -191,7 +189,6 @@ export const AuthService = {
     const browserInfo =
       `${ua.browser.name || "Unknown Browser"} ${ua.browser.version || ""}`.trim();
 
-    // 2FA Check
     if (user.two_factor_enabled) {
       const tempPayload = { _id: user._id.toString(), type: "2fa_temp" } as any;
       const tempToken = generateToken(
@@ -239,12 +236,10 @@ export const AuthService = {
       );
     }
 
-    // Check TOTP code or Recovery Code
     let isValid = verifyTotp(user.two_factor_secret, code);
 
     if (!isValid && user.two_factor_recovery_codes?.includes(code)) {
       isValid = true;
-      // Remove used recovery code
       user.two_factor_recovery_codes = user.two_factor_recovery_codes.filter(
         (c) => c !== code,
       );
@@ -277,7 +272,6 @@ export const AuthService = {
     deviceName: string,
     browserInfo: string,
   ) => {
-    // Device Tracking
     let deviceId = clientInfo.deviceId;
     let isNewDevice = false;
 
@@ -294,19 +288,17 @@ export const AuthService = {
       }
     }
 
-    // Upsert Device
     await Device.findOneAndUpdate(
       { user_id: user._id, device_id: deviceId },
       {
         device_name: deviceName,
         last_active: new Date(),
         ip_address: clientInfo.ip,
-        is_trusted: true, // Once logged in successfully, we trust it for now
+        is_trusted: true,
       },
       { upsert: true },
     );
 
-    // Send New Login Alert
     if (isNewDevice) {
       try {
         await sendEmail(
@@ -376,7 +368,6 @@ export const AuthService = {
     };
   },
 
-  // 4. Refresh Token
   refreshToken: async (token: string) => {
     if (!token) {
       throw new ApiError(httpStatus.UNAUTHORIZED, "No refresh token provided.");
@@ -434,7 +425,6 @@ export const AuthService = {
     };
   },
 
-  // Get Current Authenticated User Profile
   getMe: async (userId: string) => {
     const user = await User.findById(userId);
     if (!user || user.is_deleted || user.user_status !== UserStatus.ACTIVE) {
@@ -457,10 +447,8 @@ export const AuthService = {
     };
   },
 
-  // 5. Logout All Devices
   logoutAllDevices: async (userId: string) => {
     await User.findByIdAndUpdate(userId, { $inc: { token_version: 1 } });
-    // Clear all login history when logging out from all devices
     await LoginHistory.deleteMany({ user_id: userId });
     return true;
   },
@@ -468,7 +456,6 @@ export const AuthService = {
   forgotPassword: async (user_email: string) => {
     const user = await User.findOne({ user_email, is_deleted: false });
     if (!user) {
-      // Prevent user enumeration: act as if email was sent
       return true;
     }
 
@@ -476,7 +463,6 @@ export const AuthService = {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     const hashedOtp = await bcrypt.hash(otpCode, 10);
 
-    // Invalidate old OTPs
     await Otp.updateMany(
       { user_email, otp_type: "forgot_password" },
       { is_used: true },

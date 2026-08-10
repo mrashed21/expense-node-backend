@@ -1,7 +1,7 @@
+import { Router } from "express";
 import { checkAdminAuth } from "../../middlewares/auth.middleware";
 import { upload } from "../../middlewares/upload.middleware";
 import { validateRequest } from "../../middlewares/validate-request.middleware";
-import { Router } from "express";
 import { AdminController } from "./admin.controller";
 import { AdminRole } from "./admin.interface";
 import {
@@ -14,10 +14,8 @@ import {
 
 const router = Router();
 
-// Apply auth middleware requiring ADMIN or SUPER_ADMIN
 router.use(checkAdminAuth(AdminRole.ADMIN, AdminRole.SUPER_ADMIN));
 
-// Profile & Search
 router.patch("/profile", AdminController.updateProfile);
 router.patch(
   "/profile-image",
@@ -26,7 +24,6 @@ router.patch(
 );
 router.get("/search", AdminController.globalSearch);
 
-// User Management
 router.get("/users", AdminController.getUsers);
 router.post(
   "/users",
@@ -41,7 +38,6 @@ router.patch(
   AdminController.updateUserStatus,
 );
 
-// Admin Management (Only SUPER_ADMIN)
 router.get(
   "/admins",
   checkAdminAuth(AdminRole.SUPER_ADMIN),
@@ -60,7 +56,6 @@ router.patch(
   AdminController.updateAdminStatus,
 );
 
-// System
 router.get("/dashboard-stats", AdminController.getDashboardStats);
 router.get("/user-growth", AdminController.getUserGrowth);
 
@@ -69,7 +64,6 @@ router.get("/activity", AdminController.getActivity);
 router.get("/notifications", AdminController.getNotificationHistory);
 router.post("/test-notification", AdminController.testNotification);
 
-// Logs (Only SUPER_ADMIN)
 router.get(
   "/error-logs",
   checkAdminAuth(AdminRole.SUPER_ADMIN),
@@ -81,7 +75,6 @@ router.get(
   AdminController.getAuditLogs,
 );
 
-// Broadcast (Only SUPER_ADMIN)
 router.post(
   "/broadcast",
   checkAdminAuth(AdminRole.SUPER_ADMIN),

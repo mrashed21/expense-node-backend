@@ -64,7 +64,7 @@ describe("TransactionService", () => {
       expect(result).toBe(true);
       expect(mockTransaction.is_deleted).toBe(true);
       expect(mockTransaction.save).toHaveBeenCalled();
-      
+
       // Since it was an EXPENSE, deleting it should ADD to balance
       expect(mockAccount.current_balance).toBe(600);
       expect(mockAccount.save).toHaveBeenCalled();
@@ -78,7 +78,9 @@ describe("TransactionService", () => {
         session: jest.fn().mockResolvedValue(null), // simulate not found
       });
 
-      await expect(TransactionService.deleteTransaction("user1", "tx1")).rejects.toThrow("Transaction not found.");
+      await expect(
+        TransactionService.deleteTransaction("user1", "tx1"),
+      ).rejects.toThrow("Transaction not found.");
       expect(sessionMock.abortTransaction).toHaveBeenCalled();
       expect(sessionMock.endSession).toHaveBeenCalled();
     });
@@ -87,15 +89,32 @@ describe("TransactionService", () => {
   describe("bulkDeleteTransactions", () => {
     it("should update multiple transactions and bulk write to accounts", async () => {
       const mockTransactions = [
-        { _id: "tx1", user_id: "user1", account_id: "acc1", amount: 100, type: TransactionType.EXPENSE },
-        { _id: "tx2", user_id: "user1", account_id: "acc1", amount: 200, type: TransactionType.INCOME },
+        {
+          _id: "tx1",
+          user_id: "user1",
+          account_id: "acc1",
+          amount: 100,
+          type: TransactionType.EXPENSE,
+        },
+        {
+          _id: "tx2",
+          user_id: "user1",
+          account_id: "acc1",
+          amount: 200,
+          type: TransactionType.INCOME,
+        },
       ];
 
       (Transaction.find as jest.Mock).mockResolvedValue(mockTransactions);
-      (Transaction.updateMany as jest.Mock).mockResolvedValue({ modifiedCount: 2 });
+      (Transaction.updateMany as jest.Mock).mockResolvedValue({
+        modifiedCount: 2,
+      });
       (Account.bulkWrite as jest.Mock).mockResolvedValue({ modifiedCount: 1 });
 
-      const result = await TransactionService.bulkDeleteTransactions("user1", ["tx1", "tx2"]);
+      const result = await TransactionService.bulkDeleteTransactions("user1", [
+        "tx1",
+        "tx2",
+      ]);
 
       expect(result).toEqual({ deletedCount: 2 });
       expect(Transaction.updateMany).toHaveBeenCalled();
@@ -105,8 +124,8 @@ describe("TransactionService", () => {
             filter: { _id: "acc1" },
             // tx1 expense (add 100 back), tx2 income (subtract 200) -> net -100
             update: { $inc: { current_balance: -100 } },
-          }
-        }
+          },
+        },
       ]);
     });
   });

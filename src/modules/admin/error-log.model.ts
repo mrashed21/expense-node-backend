@@ -12,11 +12,12 @@ const errorLogSchema = new Schema<IErrorLogDocument>(
   },
   {
     versionKey: false,
-  }
+  },
 );
-
-// TTL index to automatically delete error logs older than 30 days
-errorLogSchema.index({ timestamp: 1 }, { expireAfterSeconds: 30 * 24 * 60 * 60 });
+errorLogSchema.index(
+  { timestamp: 1 },
+  { expireAfterSeconds: 30 * 24 * 60 * 60 },
+);
 errorLogSchema.index({ path: 1 });
 
 export const ErrorLog = model<IErrorLogDocument>("ErrorLog", errorLogSchema);

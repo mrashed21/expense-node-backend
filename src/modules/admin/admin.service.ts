@@ -1,18 +1,17 @@
-import ApiError from "../../helpers/api-error";
 import bcrypt from "bcrypt";
 import httpStatus from "http-status";
 import os from "os";
-import { Category } from "../category/category.model";
-import { Goal } from "../../modules/goal/goal.model";
+import ApiError from "../../helpers/api-error";
 import { Notification } from "../../modules/notification/notification.model";
 import { Transaction } from "../../modules/transaction/transaction.model";
+import { publishToUser } from "../../utils/ably";
+import { Category } from "../category/category.model";
 import { UserStatus } from "../user/user.interface";
 import { User } from "../user/user.model";
 import { AdminRole } from "./admin.interface";
 import { Admin } from "./admin.model";
 import { AuditLog } from "./audit-log.model";
 import { ErrorLog } from "./error-log.model";
-import { publishToUser } from "../../utils/ably";
 
 export const AdminService = {
   updateProfile: async (adminId: string, payload: any) => {
@@ -135,7 +134,6 @@ export const AdminService = {
       User.countDocuments(query),
     ]);
 
-    // Fetch counts in parallel for the paginated users
     const usersWithStats = await Promise.all(
       users.map(async (user) => {
         const [totalTransactions, totalCategories] = await Promise.all([
@@ -164,7 +162,7 @@ export const AdminService = {
   createUser: async (payload: any) => {
     const newUser = await User.create({
       ...payload,
-      email_verified: true, // Auto verify if admin creates
+      email_verified: true,
     });
     const userObj = newUser.toObject();
     delete userObj.user_password;
@@ -269,8 +267,7 @@ export const AdminService = {
     delete adminObj.admin_password;
 
     AuditLog.create({
-      admin_id: payload.creatorId, // passed from controller
-      action: "CREATE_ADMIN",
+      admin_id: payload.creatorId,
       target_id: newAdmin._id,
       details: { email: admin_email, role: admin_role },
     }).catch(console.error);
@@ -320,7 +317,7 @@ export const AdminService = {
 
   getNotificationHistory: async (limit: number, page: number) => {
     const skip = (page - 1) * limit;
-    
+
     const notifications = await Notification.find()
       .populate("user_id", "user_name user_email user_profile_image")
       .sort({ createdAt: -1 })
@@ -418,15 +415,14 @@ export const AdminService = {
 
     await Notification.insertMany(notifications);
 
-    // Broadcast event to all active users via Ably
     await Promise.all(
       activeUsers.map((user) =>
         publishToUser(user._id.toString(), "new_notification", {
           title: payload.title,
           message: payload.message,
           type: payload.type,
-        })
-      )
+        }),
+      ),
     );
 
     AuditLog.create({

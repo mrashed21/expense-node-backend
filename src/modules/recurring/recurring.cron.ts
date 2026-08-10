@@ -1,16 +1,13 @@
 import { BillService } from "../../modules/bill/bill.service";
+import { NotificationService } from "../../modules/notification/notification.service";
 import { TransactionService } from "../../modules/transaction/transaction.service";
 import { TransferService } from "../../modules/transfer/transfer.service";
-import { NotificationService } from "../../modules/notification/notification.service";
 import {
   Recurring,
   RecurringFrequency,
   RecurringStatus,
 } from "./recurring.model";
 
-/**
- * Calculates the next run date based on the frequency.
- */
 const calculateNextRunDate = (
   currentDate: Date,
   frequency: RecurringFrequency,
@@ -33,9 +30,6 @@ const calculateNextRunDate = (
   return nextDate;
 };
 
-/**
- * Executes a single recurring task based on its type.
- */
 const executeTask = async (task: any) => {
   const userId = task.user_id.toString();
   const template = task.template;
@@ -43,27 +37,26 @@ const executeTask = async (task: any) => {
   try {
     switch (task.type) {
       case "transaction":
-        // Add date to the template
         const txData = { ...template, date: new Date() };
         await TransactionService.createTransaction(userId, txData);
         await NotificationService.createNotification(userId, {
           title: "Automated Transaction Executed",
           message: `Your scheduled transaction has been successfully processed.`,
           type: "success",
-          category: "system"
+          category: "system",
         });
         break;
       case "bill":
         const billData = {
           ...template,
           due_date: calculateNextRunDate(new Date(), task.frequency),
-        }; // Bill due is next cycle
+        };
         await BillService.createBill(userId, billData);
         await NotificationService.createNotification(userId, {
           title: "Automated Bill Generated",
           message: `Your scheduled bill has been successfully generated.`,
           type: "success",
-          category: "system"
+          category: "system",
         });
         break;
       case "transfer":
@@ -73,7 +66,7 @@ const executeTask = async (task: any) => {
           title: "Automated Transfer Executed",
           message: `Your scheduled transfer has been successfully processed.`,
           type: "success",
-          category: "system"
+          category: "system",
         });
         break;
       default:
@@ -85,10 +78,6 @@ const executeTask = async (task: any) => {
   }
 };
 
-/**
- * The main cron job runner.
- * Scans for active tasks where next_run_date is less than or equal to now.
- */
 export const runRecurringJobs = async () => {
   console.log("[CRON] Checking for due recurring tasks...");
   const now = new Date();
@@ -109,23 +98,18 @@ export const runRecurringJobs = async () => {
       try {
         await executeTask(task);
 
-        // Update task with new run date
         task.last_run_date = new Date();
         task.next_run_date = calculateNextRunDate(
           task.next_run_date,
           task.frequency as RecurringFrequency,
         );
-        // @ts-ignore
+
         await task.save();
 
         console.log(`[CRON] Successfully executed task ${task._id}`);
-      } catch (err) {
-        // Continue to the next task even if one fails
-      }
+      } catch (err) {}
     }
   } catch (error) {
     console.error("[CRON] Error querying recurring tasks:", error);
   }
 };
-
-

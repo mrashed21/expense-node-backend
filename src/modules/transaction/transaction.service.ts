@@ -1,6 +1,6 @@
-import ApiError from "../../helpers/api-error";
 import httpStatus from "http-status";
 import mongoose from "mongoose";
+import ApiError from "../../helpers/api-error";
 import { Account } from "../account/account.model";
 import { Budget } from "../budget/budget.model";
 import { createAndEmitNotification } from "../notification/notification.helper";
@@ -68,8 +68,6 @@ export const TransactionService = {
         session.endSession();
       }
 
-      // ── Budget Alert (fire-and-forget, outside the DB transaction) ──
-      // Only check if this was a regular expense with a category
       if (type === TransactionType.EXPENSE && payload.category_id) {
         setImmediate(async () => {
           try {
@@ -100,9 +98,6 @@ export const TransactionService = {
               const totalSpent = spentResult[0]?.total ?? 0;
               const percentage = Math.round((totalSpent / budget.amount) * 100);
 
-
-              // Deduplication: only fire once per threshold breach per month.
-              // Check if an alert already exists for this budget this month.
               const { Notification } =
                 await import("../notification/notification.model.js");
               const monthStart = new Date(`${currentMonth}-01T00:00:00.000Z`);
@@ -110,7 +105,6 @@ export const TransactionService = {
                 user_id: userId,
                 type: "budget_alert",
                 createdAt: { $gte: monthStart },
-                // Match on the budget category to scope correctly
                 message: { $regex: `${percentage}%` },
               });
 
@@ -470,7 +464,6 @@ export const TransactionService = {
         payload.account_id.toString() !== oldTx.account_id.toString();
 
       if (amountChanged || typeChanged || accountChanged) {
-        // Reverse old transaction effect
         const oldAccount = await Account.findById(oldTx.account_id).session(
           session,
         );
@@ -487,7 +480,6 @@ export const TransactionService = {
           await oldAccount.save({ session });
         }
 
-        // Apply new transaction effect
         const newAccountId = payload.account_id || oldTx.account_id;
         const newType = payload.type || oldTx.type;
         const newAmount =
@@ -530,8 +522,6 @@ export const TransactionService = {
     transactionIds: string[],
     payload: any,
   ) => {
-    // If payload modifies amount, type, or account_id, we cannot simply use updateMany.
-    // We must do it transactionally for each document to adjust balances.
     const affectsBalance =
       payload.amount !== undefined ||
       payload.type !== undefined ||
@@ -545,15 +535,12 @@ export const TransactionService = {
       return { updatedCount: result.modifiedCount };
     }
 
-    // Fallback: loop through each and use updateTransaction (safest for balances)
     let updatedCount = 0;
     for (const id of transactionIds) {
       try {
         await TransactionService.updateTransaction(userId, id, payload);
         updatedCount++;
-      } catch (e) {
-        // Skip those that fail (e.g. not found)
-      }
+      } catch (e) {}
     }
     return { updatedCount };
   },

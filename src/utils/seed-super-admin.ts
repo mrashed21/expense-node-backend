@@ -1,7 +1,7 @@
+import bcrypt from "bcrypt";
 import { envConfig } from "../config/env-config";
 import { AdminRole, AdminStatus } from "../modules/admin/admin.interface";
 import { Admin } from "../modules/admin/admin.model";
-import bcrypt from "bcrypt";
 
 export const seedSuperAdmin = async () => {
   try {

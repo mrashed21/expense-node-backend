@@ -1,5 +1,5 @@
-import ApiError from "../../helpers/api-error";
 import httpStatus from "http-status";
+import ApiError from "../../helpers/api-error";
 import { ISavedFilter } from "./saved-filter.interface";
 import { SavedFilter } from "./saved-filter.model";
 
@@ -20,7 +20,10 @@ export const SavedFilterService = {
   },
 
   deleteFilter: async (userId: string, filterId: string) => {
-    const deleted = await SavedFilter.findOneAndDelete({ _id: filterId, user_id: userId });
+    const deleted = await SavedFilter.findOneAndDelete({
+      _id: filterId,
+      user_id: userId,
+    });
     if (!deleted) throw new ApiError(httpStatus.NOT_FOUND, "Filter not found");
     return deleted;
   },

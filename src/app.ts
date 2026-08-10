@@ -17,7 +17,6 @@ import routes from "./routes";
 const app: Application = express();
 app.set("trust proxy", 1);
 
-// Security Middlewares
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -53,10 +52,6 @@ app.use(
   }),
 );
 
-// Global Rate Limiting
-// app.use(apiLimiter);
-
-// Core Middlewares
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(cookieParser());
@@ -65,7 +60,6 @@ app.use(compression());
 if (envConfig.env === "development") {
   app.use(morgan("dev"));
 } else {
-  // Ensure logs directory exists
   const logDir = path.join(process.cwd(), "logs");
   if (!fs.existsSync(logDir)) {
     fs.mkdirSync(logDir, { recursive: true });
@@ -77,7 +71,6 @@ if (envConfig.env === "development") {
   app.use(morgan("combined", { stream: accessLogStream }));
 }
 
-// Health Check
 app.get("/health", (req: Request, res: Response) => {
   res.status(200).json({
     status: "healthy",
@@ -86,10 +79,8 @@ app.get("/health", (req: Request, res: Response) => {
   });
 });
 
-// API Routes Version 1
 app.use("/api/v1", csrfProtection, routes);
 
-// Global Error & Not Found Handlers
 app.use(notFoundHandler);
 app.use(globalErrorHandler);
 

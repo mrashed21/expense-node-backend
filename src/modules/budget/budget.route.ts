@@ -1,6 +1,6 @@
+import { Router } from "express";
 import { checkAuth } from "../../middlewares/auth.middleware";
 import { validateRequest } from "../../middlewares/validate-request.middleware";
-import { Router } from "express";
 import { BudgetController } from "./budget.controller";
 import { createBudgetSchema } from "./budget.validation";
 

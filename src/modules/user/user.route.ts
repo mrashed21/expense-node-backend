@@ -1,6 +1,6 @@
+import { Router } from "express";
 import { checkAuth } from "../../middlewares/auth.middleware";
 import { validateRequest } from "../../middlewares/validate-request.middleware";
-import { Router } from "express";
 import { UserController } from "./user.controller";
 import { changePasswordSchema, updateProfileSchema } from "./user.validation";
 
@@ -29,12 +29,10 @@ router.patch(
 router.get("/login-history", UserController.getLoginHistory);
 router.delete("/account", UserController.deleteAccount);
 
-// 2FA Routes
 router.post("/2fa/generate", UserController.generate2FA);
 router.post("/2fa/verify", UserController.verify2FA);
 router.post("/2fa/disable", UserController.disable2FA);
 
-// Device Management
 router.get("/devices", UserController.getDevices);
 router.delete("/devices/:id", UserController.revokeDevice);
 

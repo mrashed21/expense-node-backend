@@ -43,7 +43,7 @@ loginHistorySchema.index({ user_id: 1, timestamp: -1 });
 loginHistorySchema.index(
   { timestamp: 1 },
   { expireAfterSeconds: 30 * 24 * 60 * 60 },
-); // 30 days TTL
+);
 
 export const LoginHistory = model<ILoginHistoryDocument>(
   "LoginHistory",

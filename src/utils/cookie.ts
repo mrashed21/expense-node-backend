@@ -1,11 +1,8 @@
-import { envConfig } from "../config/env-config";
 import { CookieOptions, Response } from "express";
+import { envConfig } from "../config/env-config";
 
 const isProduction = envConfig.env === "production";
 
-/**
- * Shared base cookie options for all auth cookies.
- */
 const getBaseCookieOptions = (): CookieOptions => ({
   httpOnly: true,
   secure: isProduction,
@@ -15,7 +12,7 @@ const getBaseCookieOptions = (): CookieOptions => ({
 export const setRefreshTokenCookie = (res: Response, token: string): void => {
   res.cookie("refreshToken", token, {
     ...getBaseCookieOptions(),
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 };
 
@@ -29,7 +26,7 @@ export const clearRefreshTokenCookie = (res: Response): void => {
 export const setAccessTokenCookie = (res: Response, token: string): void => {
   res.cookie("accessToken", token, {
     ...getBaseCookieOptions(),
-    maxAge: 60 * 60 * 1000, // 1 hour
+    maxAge: 60 * 60 * 1000,
   });
 };
 
@@ -45,7 +42,7 @@ export const setDeviceIdCookie = (res: Response, deviceId: string): void => {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? "none" : "strict",
-    maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+    maxAge: 365 * 24 * 60 * 60 * 1000,
   });
 };
 

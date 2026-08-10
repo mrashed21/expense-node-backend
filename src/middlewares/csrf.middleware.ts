@@ -2,7 +2,6 @@ import crypto from "crypto";
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 
-// Extend Express Request to include csrfToken
 declare global {
   namespace Express {
     interface Request {
@@ -18,7 +17,7 @@ export const generateCsrfToken = (
 ) => {
   const token = crypto.randomBytes(32).toString("hex");
   res.cookie("csrfToken", token, {
-    httpOnly: false, // Must be readable by frontend to send in header
+    httpOnly: false,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
   });
@@ -31,7 +30,6 @@ export const csrfProtection = (
   res: Response,
   next: NextFunction,
 ) => {
-  // Allow safe methods
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
     return next();
   }
@@ -51,7 +49,6 @@ export const csrfProtection = (
     });
   }
 
-  // Use timing-safe comparison to prevent timing attacks
   try {
     const cookieBuffer = Buffer.from(cookieToken, "utf-8");
     const headerBuffer = Buffer.from(headerToken, "utf-8");

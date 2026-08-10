@@ -3,7 +3,11 @@ import { envConfig } from "../config/env-config";
 
 export const ablyRest = new Ably.Rest(envConfig.ably_api_key);
 
-export const publishToUser = async (userId: string, event: string, data: unknown) => {
+export const publishToUser = async (
+  userId: string,
+  event: string,
+  data: unknown,
+) => {
   const channel = ablyRest.channels.get(`user:${userId}`);
   await channel.publish(event, data);
 };

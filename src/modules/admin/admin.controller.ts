@@ -1,9 +1,9 @@
-import catchAsync from "../../helpers/catch-async";
-import { sendResponse } from "../../helpers/send-response";
 import { Request, Response } from "express";
 import httpStatus from "http-status";
-import { AdminService } from "./admin.service";
+import catchAsync from "../../helpers/catch-async";
+import { sendResponse } from "../../helpers/send-response";
 import { publishToUser } from "../../utils/ably";
+import { AdminService } from "./admin.service";
 
 export const AdminController = {
   updateProfile: catchAsync(async (req: Request, res: Response) => {
@@ -55,7 +55,6 @@ export const AdminController = {
     res.status(200).json({ success: true, message: "Search results", data });
   }),
 
-  // --- USER MANAGEMENT ---
   getUsers: catchAsync(async (req: Request, res: Response) => {
     const limit = Number(req.query.limit) || 10;
     const page = Number(req.query.page) || 1;
@@ -130,7 +129,6 @@ export const AdminController = {
     });
   }),
 
-  // --- ADMIN MANAGEMENT ---
   getAdmins: catchAsync(async (req: Request, res: Response) => {
     const admins = await AdminService.getAdmins();
     sendResponse(res, {
@@ -171,7 +169,6 @@ export const AdminController = {
     });
   }),
 
-  // --- SYSTEM & OTHERS ---
   getSystemHealth: catchAsync(async (req: Request, res: Response) => {
     const health = AdminService.getSystemHealth();
 
@@ -281,7 +278,6 @@ export const AdminController = {
     });
   }),
 
-  // --- GLOBAL CATEGORY MANAGEMENT ---
   createGlobalCategory: catchAsync(async (req: Request, res: Response) => {
     const currentAdminId = req.user?._id as string;
     const category = await AdminService.createGlobalCategory(

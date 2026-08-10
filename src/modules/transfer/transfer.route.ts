@@ -1,6 +1,6 @@
+import { Router } from "express";
 import { checkAuth } from "../../middlewares/auth.middleware";
 import { validateRequest } from "../../middlewares/validate-request.middleware";
-import { Router } from "express";
 import { TransferController } from "./transfer.controller";
 import { transferSchema } from "./transfer.validation";
 

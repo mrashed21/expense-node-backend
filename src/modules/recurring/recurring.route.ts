@@ -1,5 +1,5 @@
-import { auth } from "../../middlewares/auth.middleware";
 import { Router } from "express";
+import { auth } from "../../middlewares/auth.middleware";
 import { RecurringController } from "./recurring.controller";
 
 const router = Router();

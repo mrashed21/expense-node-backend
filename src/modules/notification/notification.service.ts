@@ -1,5 +1,5 @@
-import ApiError from "../../helpers/api-error";
 import httpStatus from "http-status";
+import ApiError from "../../helpers/api-error";
 import { Notification } from "./notification.model";
 
 export const NotificationService = {

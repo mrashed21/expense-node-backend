@@ -1,5 +1,5 @@
-import ApiError from "../../helpers/api-error";
 import httpStatus from "http-status";
+import ApiError from "../../helpers/api-error";
 import { Investment } from "./investment.model";
 
 export const InvestmentService = {
@@ -38,7 +38,6 @@ export const InvestmentService = {
 
     const total = await Investment.countDocuments(filter);
 
-    // Calculate global portfolio metrics across all non-deleted items for this user/filter
     const allInvestments = await Investment.find(filter).lean();
     let totalInvested = 0;
     let totalCurrentValue = 0;

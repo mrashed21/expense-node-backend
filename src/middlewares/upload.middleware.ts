@@ -1,9 +1,8 @@
-import { envConfig } from "../config/env-config";
 import { v2 as cloudinary } from "cloudinary";
 import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
+import { envConfig } from "../config/env-config";
 
-// Configure Cloudinary
 if (envConfig.cloudinary.cloud_name) {
   cloudinary.config({
     cloud_name: envConfig.cloudinary.cloud_name,
@@ -12,7 +11,6 @@ if (envConfig.cloudinary.cloud_name) {
   });
 }
 
-// Define Storage
 let storage;
 
 if (envConfig.cloudinary.cloud_name) {
@@ -26,7 +24,6 @@ if (envConfig.cloudinary.cloud_name) {
     },
   });
 } else {
-  // Fallback to local storage if Cloudinary is not configured
   storage = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, "uploads/");
@@ -38,10 +35,9 @@ if (envConfig.cloudinary.cloud_name) {
   });
 }
 
-// Initialize upload middleware
 export const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB limit
+    fileSize: 5 * 1024 * 1024,
   },
 });

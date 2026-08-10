@@ -1,6 +1,6 @@
-import { envConfig } from "../config/env-config";
 import { ErrorRequestHandler, NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
+import { envConfig } from "../config/env-config";
 import { ErrorLog } from "../modules/admin/error-log.model";
 
 export const globalErrorHandler: ErrorRequestHandler = (
@@ -29,7 +29,6 @@ export const globalErrorHandler: ErrorRequestHandler = (
     message = "Token has expired. Please refresh your session.";
   }
 
-  // Asynchronously log unhandled / internal server errors
   if (statusCode === httpStatus.INTERNAL_SERVER_ERROR) {
     ErrorLog.create({
       path: req.originalUrl,
@@ -37,7 +36,7 @@ export const globalErrorHandler: ErrorRequestHandler = (
       message: message,
       stack: err.stack,
       user_id: req.user?._id || (req as any).admin?._id,
-    }).catch(console.error); // Do not await, fire and forget
+    }).catch(console.error);
   }
 
   res.status(statusCode).json({

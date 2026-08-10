@@ -1,5 +1,5 @@
-import { envConfig } from "../config/env-config";
 import mongoose from "mongoose";
+import { envConfig } from "../config/env-config";
 
 async function removePhoneIndex() {
   try {
@@ -13,7 +13,6 @@ async function removePhoneIndex() {
     }
     const collection = db.collection("users");
 
-    // Check existing indexes
     const indexes = await collection.indexes();
     const phoneIndex = indexes.find(
       (i) => i.name === "user_phone_1" || (i.key && i.key.user_phone === 1),

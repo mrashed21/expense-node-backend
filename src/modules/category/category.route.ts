@@ -1,6 +1,6 @@
+import { Router } from "express";
 import { checkAuth } from "../../middlewares/auth.middleware";
 import { validateRequest } from "../../middlewares/validate-request.middleware";
-import { Router } from "express";
 import { CategoryController } from "./category.controller";
 import { categorySchema } from "./category.validation";
 

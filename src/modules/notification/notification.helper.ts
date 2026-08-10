@@ -9,10 +9,6 @@ interface NotificationPayload {
   category?: string;
 }
 
-/**
- * Creates a Notification document in MongoDB and emits a real-time
- * `new_notification` event via Ably to the target user's channel.
- */
 export const createAndEmitNotification = async (
   userId: string,
   payload: NotificationPayload,
@@ -25,8 +21,9 @@ export const createAndEmitNotification = async (
 
     await publishToUser(userId, "new_notification", notification.toJSON());
   } catch (err) {
-    // Notifications are non-critical — log but do not propagate errors
-    // to avoid breaking the primary business transaction that triggered them.
-    console.error("[NotificationHelper] Failed to create/emit notification:", err);
+    console.error(
+      "[NotificationHelper] Failed to create/emit notification:",
+      err,
+    );
   }
 };

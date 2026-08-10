@@ -2,7 +2,6 @@ import { User } from "../user/user.model";
 import { AdminRole } from "./admin.interface";
 import { AdminService } from "./admin.service";
 
-// Mock the Mongoose models
 jest.mock("../user/user.model");
 jest.mock("./admin.model");
 jest.mock("../transaction/transaction.model");

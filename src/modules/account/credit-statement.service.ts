@@ -1,12 +1,9 @@
+import mongoose from "mongoose";
 import { TransactionType } from "../../modules/transaction/transaction.interface";
 import { Transaction } from "../../modules/transaction/transaction.model";
-import mongoose from "mongoose";
 import { Account } from "./account.model";
 
 export const CreditStatementService = {
-  /**
-   * Generates a credit card statement for a specific billing cycle.
-   */
   generateStatement: async (
     userId: string,
     accountId: string,
@@ -16,7 +13,11 @@ export const CreditStatementService = {
     const uid = new mongoose.Types.ObjectId(userId);
     const accId = new mongoose.Types.ObjectId(accountId);
 
-    const account = await Account.findOne({ _id: accId, user_id: uid, is_deleted: false });
+    const account = await Account.findOne({
+      _id: accId,
+      user_id: uid,
+      is_deleted: false,
+    });
     if (!account || !account.is_credit) {
       throw new Error("Invalid credit account");
     }
@@ -35,13 +36,22 @@ export const CreditStatementService = {
           _id: null,
           totalSpent: {
             $sum: {
-              $cond: [{ $eq: ["$type", TransactionType.EXPENSE] }, "$amount", 0],
+              $cond: [
+                { $eq: ["$type", TransactionType.EXPENSE] },
+                "$amount",
+                0,
+              ],
             },
           },
           totalPayments: {
             $sum: {
               $cond: [
-                { $in: ["$type", [TransactionType.INCOME, TransactionType.REFUND]] },
+                {
+                  $in: [
+                    "$type",
+                    [TransactionType.INCOME, TransactionType.REFUND],
+                  ],
+                },
                 "$amount",
                 0,
               ],
@@ -54,7 +64,7 @@ export const CreditStatementService = {
     const totalSpent = totals?.totalSpent || 0;
     const totalPayments = totals?.totalPayments || 0;
 
-    const previousBalance = account.current_balance; // Simplification for current state
+    const previousBalance = account.current_balance;
     const newBalance = previousBalance + totalSpent - totalPayments;
 
     const transactions = await Transaction.find({

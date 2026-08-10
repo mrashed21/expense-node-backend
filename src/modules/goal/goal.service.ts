@@ -1,5 +1,5 @@
-import ApiError from "../../helpers/api-error";
 import httpStatus from "http-status";
+import ApiError from "../../helpers/api-error";
 import { createAndEmitNotification } from "../notification/notification.helper";
 import { Goal } from "./goal.model";
 
@@ -32,9 +32,9 @@ export const GoalService = {
     let goal = await Goal.findOneAndUpdate(
       { _id: goalId, user_id: userId },
       { $inc: { current_amount: amount } },
-      { new: true }
+      { new: true },
     );
-    
+
     if (!goal) {
       throw new ApiError(httpStatus.NOT_FOUND, "Goal not found.");
     }
@@ -48,7 +48,6 @@ export const GoalService = {
       newlyCompleted = true;
     }
 
-    // Fire goal-milestone notification when goal just reached 100%
     if (newlyCompleted) {
       setImmediate(async () => {
         try {

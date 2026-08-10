@@ -20,14 +20,12 @@ const calculateDebtInterest = (debt: any) => {
 
 export const NetWorthService = {
   calculateCurrentNetWorth: async (userId: string) => {
-    // 1. Accounts
     const accounts = await Account.find({ user_id: userId }).lean();
     const totalCash = accounts.reduce(
       (sum, acc) => sum + (acc.current_balance || 0),
       0,
     );
 
-    // 2. Assets
     const assets = await Asset.find({
       user_id: userId,
       is_deleted: false,
@@ -37,7 +35,6 @@ export const NetWorthService = {
       0,
     );
 
-    // 3. Investments
     const investments = await Investment.find({
       user_id: userId,
       is_deleted: false,
@@ -47,7 +44,6 @@ export const NetWorthService = {
       0,
     );
 
-    // 4. Debts (Lent vs Borrowed)
     const debts = await Debt.find({
       user_id: userId,
       is_deleted: false,
@@ -57,7 +53,7 @@ export const NetWorthService = {
 
     debts.forEach((d) => {
       const trueRemaining = calculateDebtInterest(d);
-      // Status isn't completely reliable here if we just check "paid", so check trueRemaining
+
       if (trueRemaining > 0) {
         if (d.type === DebtType.LENT) {
           totalLent += trueRemaining;
@@ -67,7 +63,6 @@ export const NetWorthService = {
       }
     });
 
-    // 5. Installments
     const installments = await Installment.find({
       user_id: userId,
       is_deleted: false,
@@ -78,7 +73,6 @@ export const NetWorthService = {
       0,
     );
 
-    // Totals
     const totalAssets =
       totalCash + totalPhysicalAssets + totalInvestments + totalLent;
     const totalLiabilities = totalBorrowed + totalEMIs;
@@ -107,7 +101,6 @@ export const NetWorthService = {
   takeDailySnapshot: async (userId: string) => {
     const current = await NetWorthService.calculateCurrentNetWorth(userId);
 
-    // Check if snapshot exists for today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 

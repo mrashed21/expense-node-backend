@@ -1,7 +1,7 @@
-import catchAsync from "../../helpers/catch-async";
-import { sendResponse } from "../../helpers/send-response";
 import { Request, Response } from "express";
 import httpStatus from "http-status";
+import catchAsync from "../../helpers/catch-async";
+import { sendResponse } from "../../helpers/send-response";
 import { SavedFilterService } from "./saved-filter.service";
 
 const createFilter = catchAsync(async (req: Request, res: Response) => {
@@ -26,7 +26,10 @@ const getFilters = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteFilter = catchAsync(async (req: Request, res: Response) => {
-  const result = await SavedFilterService.deleteFilter(req.user!._id, req.params.id as string);
+  const result = await SavedFilterService.deleteFilter(
+    req.user!._id,
+    req.params.id as string,
+  );
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,

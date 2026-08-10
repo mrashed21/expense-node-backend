@@ -1,14 +1,7 @@
-/**
- * Professional HTML email templates for Expense Tracker.
- *
- * All templates share a common layout wrapper that renders consistently
- * across major email clients (Gmail, Outlook, Apple Mail).
- */
 
-// ─── Brand Colors ────────────────────────────────────────────────────────────
-const BRAND_PRIMARY = "#6366F1"; // Indigo-500
-const BRAND_DARK = "#1E1B4B"; // Indigo-950
-const BRAND_ACCENT = "#A5B4FC"; // Indigo-300
+const BRAND_PRIMARY = "#6366F1"; 
+const BRAND_DARK = "#1E1B4B";
+const BRAND_ACCENT = "#A5B4FC";
 const DANGER = "#EF4444";
 const WARNING = "#F59E0B";
 const SUCCESS = "#10B981";
@@ -17,7 +10,6 @@ const BODY_BG = "#F1F5F9";
 const CARD_BG = "#FFFFFF";
 const BORDER_COLOR = "#E2E8F0";
 
-// ─── Shared Layout Wrapper ────────────────────────────────────────────────────
 const wrap = (content: string, preheader = "") => `
 <!DOCTYPE html>
 <html lang="en">
@@ -90,7 +82,7 @@ const wrap = (content: string, preheader = "") => `
 </body>
 </html>`;
 
-// ─── Reusable Sub-components ─────────────────────────────────────────────────
+
 
 const greeting = (name?: string) =>
   `<p style="margin:0 0 8px;color:#475569;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Hello${name ? ", " + name : ""}!</p>`;
@@ -129,7 +121,7 @@ const ctaButton = (text: string, href = "#") => `
     </a>
   </div>`;
 
-// ─── 1. Email Verification ────────────────────────────────────────────────────
+
 export const emailVerificationTemplate = (otpCode: string, userName?: string) =>
   wrap(
     `
@@ -148,7 +140,7 @@ export const emailVerificationTemplate = (otpCode: string, userName?: string) =>
     `Your Expense Tracker verification code is ${otpCode}`,
   );
 
-// ─── 2. Resend OTP ────────────────────────────────────────────────────────────
+
 export const resendOtpTemplate = (otpCode: string, userName?: string) =>
   wrap(
     `
@@ -167,7 +159,7 @@ export const resendOtpTemplate = (otpCode: string, userName?: string) =>
     `Your new Expense Tracker verification code is ${otpCode}`,
   );
 
-// ─── 3. Forgot Password / Password Reset ─────────────────────────────────────
+
 export const forgotPasswordTemplate = (otpCode: string, userName?: string) =>
   wrap(
     `
@@ -187,7 +179,7 @@ export const forgotPasswordTemplate = (otpCode: string, userName?: string) =>
     `Your Expense Tracker password reset code is ${otpCode}`,
   );
 
-// ─── 4. New Login / Device Alert ─────────────────────────────────────────────
+
 export const newLoginAlertTemplate = (details: {
   deviceName: string;
   browser: string;
@@ -223,7 +215,7 @@ export const newLoginAlertTemplate = (details: {
     "A new sign-in was detected on your Expense Tracker account.",
   );
 
-// ─── 5. Generic Reminder / Alert (for cron jobs) ─────────────────────────────
+
 export const reminderTemplate = (
   title: string,
   message: string,
@@ -265,7 +257,7 @@ export const reminderTemplate = (
   );
 };
 
-// ─── Template colour + icon presets for reminder cron types ──────────────────
+
 export const reminderColors: Record<string, string> = {
   bill_due: WARNING,
   bill_overdue: DANGER,

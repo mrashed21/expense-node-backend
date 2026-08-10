@@ -1,19 +1,12 @@
+import mongoose from "mongoose";
 import { NetWorthService } from "../../modules/net-worth/net-worth.service";
 import { TransactionType } from "../../modules/transaction/transaction.interface";
 import { Transaction } from "../../modules/transaction/transaction.model";
-import mongoose from "mongoose";
 
 export const ReportService = {
-  /**
-   * Generates a formal Balance Sheet (Assets = Liabilities + Equity)
-   * We will use the NetWorthService as the core engine, as it already calculates
-   * exactly what we need for the snapshot.
-   */
   generateBalanceSheet: async (userId: string) => {
     const netWorthData = await NetWorthService.calculateCurrentNetWorth(userId);
 
-    // Balance Sheet formalizes Equity = Assets - Liabilities
-    // In personal finance, Equity is simply the Net Worth.
     const assets = netWorthData.breakdown.assets;
     const liabilities = netWorthData.breakdown.liabilities;
 
@@ -43,19 +36,13 @@ export const ReportService = {
         retainedEarnings: netWorthData.net_worth,
         totalEquity: netWorthData.net_worth,
       },
-      // Verification: Assets should equal Liabilities + Equity
+
       isBalanced:
         netWorthData.total_assets ===
         netWorthData.total_liabilities + netWorthData.net_worth,
     };
   },
 
-  /**
-   * Generates a Cash Flow statement over a specific period.
-   * Operations: Income (Salary, Business, etc)
-   * Investing: Buying/Selling Assets or Investments
-   * Financing: Borrowing Money or Paying Debt
-   */
   generateCashFlowReport: async (
     userId: string,
     startDate: Date,
@@ -94,8 +81,6 @@ export const ReportService = {
         outflows: [] as any[],
         netCash: 0,
       },
-      // Optional enhancements for investing/financing could be parsed from categories,
-      // but for V1 we will group into generic Income/Expense.
     };
 
     let totalIn = 0;
@@ -128,10 +113,6 @@ export const ReportService = {
     };
   },
 
-  /**
-   * Generates a simplistic Tax Report by identifying "taxable" vs "non-taxable" income
-   * and "deductible" expenses.
-   */
   generateTaxReport: async (userId: string, year: number) => {
     const uid = new mongoose.Types.ObjectId(userId);
     const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
@@ -161,8 +142,6 @@ export const ReportService = {
     let deductibleExpenses = 0;
     let otherExpenses = 0;
 
-    // For a real-world app, categories would have an `isTaxDeductible` boolean.
-    // For V1, we'll do simplistic string matching or treat all income as taxable.
     transactions.forEach((tx) => {
       const amount = tx.amount;
       if (tx.type === TransactionType.INCOME) {

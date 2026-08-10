@@ -1,7 +1,7 @@
+import { Router } from "express";
 import { checkAdminAuth } from "../../middlewares/auth.middleware";
 import { authLimiter } from "../../middlewares/rate-limiter.middleware";
 import { validateRequest } from "../../middlewares/validate-request.middleware";
-import { Router } from "express";
 import { AdminAuthController } from "./admin-auth.controller";
 import { adminLoginSchema } from "./admin.validation";
 
@@ -15,7 +15,6 @@ router.post(
 );
 router.post("/refresh-token", authLimiter, AdminAuthController.refreshToken);
 
-// Routes requiring authentication
 router.use(checkAdminAuth());
 router.get("/me", AdminAuthController.getMe);
 router.post("/logout", AdminAuthController.logout);

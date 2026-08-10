@@ -12,7 +12,6 @@ export const ReportController = {
   }),
 
   getCashFlowReport: catchAsync(async (req, res) => {
-    // Default to current year if dates aren't provided
     const now = new Date();
     const startStr = req.query.startDate as string;
     const endStr = req.query.endDate as string;

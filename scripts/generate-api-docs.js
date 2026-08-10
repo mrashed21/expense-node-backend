@@ -21,13 +21,10 @@ markdown += `## Modules Overview\n\n`;
 function parseRouteFile(filePath, moduleName) {
   const content = fs.readFileSync(filePath, "utf-8");
 
-  // Extract global auth usage
   const usesGlobalAuth =
     content.includes("router.use(checkAuth())") ||
     content.includes("router.use(auth)");
 
-  // Regex to find router methods
-  // Matches: router.get('/path', middleware, controller)
   const routeRegex = /router\.(get|post|patch|put|delete)\(\s*(['"`].*?['"`])/g;
 
   let match;
@@ -35,12 +32,11 @@ function parseRouteFile(filePath, moduleName) {
 
   while ((match = routeRegex.exec(content)) !== null) {
     const method = match[1];
-    const endpointPath = match[2].replace(/['"`]/g, ""); // Strip quotes
+    const endpointPath = match[2].replace(/['"`]/g, "");
 
-    // Attempt to extract the rest of the line/block for this route to check for validateRequest
     const startIndex = match.index;
     let endIndex = content.indexOf(");", startIndex);
-    if (endIndex === -1) endIndex = startIndex + 100; // fallback
+    if (endIndex === -1) endIndex = startIndex + 100;
     const routeBlock = content.substring(startIndex, endIndex);
 
     let payload = "None";

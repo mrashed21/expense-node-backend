@@ -25,7 +25,7 @@ export interface IAdmin {
   admin_area?: string;
   admin_city?: string;
   admin_country?: string;
-  
+
   currency: string;
   language: string;
   timezone: string;

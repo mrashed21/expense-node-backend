@@ -16,11 +16,9 @@ async function connectDB() {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Vercel cron sends: Authorization: Bearer <CRON_SECRET>
   const authHeader = req.headers["authorization"];
   const isVercelCron = authHeader === `Bearer ${envConfig.cron_secret}`;
 
-  // Fallback for manual/local testing
   const customSecret = req.headers["x-cron-secret"];
   const isManualCall = customSecret === envConfig.cron_secret;
 
@@ -31,9 +29,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     await connectDB();
     await runReminderJobs();
-    return res.status(200).json({ success: true, message: "Reminders executed successfully." });
+    return res
+      .status(200)
+      .json({ success: true, message: "Reminders executed successfully." });
   } catch (error) {
     console.error("[CRON Reminders] Error:", error);
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error." });
   }
 }

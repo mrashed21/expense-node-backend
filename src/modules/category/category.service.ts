@@ -1,6 +1,6 @@
-import ApiError from "../../helpers/api-error";
 import httpStatus from "http-status";
 import { Types } from "mongoose";
+import ApiError from "../../helpers/api-error";
 import { CategoryType } from "./category.interface";
 import { Category } from "./category.model";
 
@@ -113,7 +113,7 @@ export const CategoryService = {
       const docs = await Category.insertMany(defaults);
       const newGlobalCategories = docs.map((d) => d.toObject()) as any;
       categories = [...categories, ...newGlobalCategories];
-      // Sort again after merging
+
       categories.sort((a, b) => a.name.localeCompare(b.name));
     }
 

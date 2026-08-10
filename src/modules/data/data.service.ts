@@ -1,6 +1,6 @@
-import ApiError from "../../helpers/api-error";
 import httpStatus from "http-status";
 import mongoose from "mongoose";
+import ApiError from "../../helpers/api-error";
 import { Account } from "../account/account.model";
 import { Bill } from "../bill/bill.model";
 import { Budget } from "../budget/budget.model";
@@ -14,7 +14,6 @@ export const DataService = {
     if (!query) return { transactions: [], accounts: [], categories: [] };
 
     const uid = new mongoose.Types.ObjectId(userId);
-    // Escape user input for regex to prevent ReDoS (Regular Expression Denial of Service)
     const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const regex = new RegExp(escapedQuery, "i"); // Case-insensitive global search
 
@@ -52,7 +51,6 @@ export const DataService = {
   },
 
   exportData: async (userId: string) => {
-    // Parallelize the queries to fetch all user data
     const [
       accounts,
       bills,
@@ -106,7 +104,6 @@ export const DataService = {
       transfers = [],
     } = backupPayload.data;
 
-    // Helper to sanitize documents and force user_id securely
     const sanitizeDocs = (docs: any[]) => {
       return docs.map((doc) => {
         const { _id, ...rest } = doc;
@@ -115,7 +112,7 @@ export const DataService = {
           _id: _id
             ? new mongoose.Types.ObjectId(_id)
             : new mongoose.Types.ObjectId(),
-          user_id: userId, // CRITICAL: Prevent injecting into other users' accounts
+          user_id: userId,
         };
       });
     };
@@ -124,7 +121,6 @@ export const DataService = {
     session.startTransaction();
 
     try {
-      // 1. Wipe existing data for this user
       await Account.deleteMany({ user_id: userId }, { session });
       await Bill.deleteMany({ user_id: userId }, { session });
       await Budget.deleteMany({ user_id: userId }, { session });
@@ -133,7 +129,6 @@ export const DataService = {
       await Transaction.deleteMany({ user_id: userId }, { session });
       await Transfer.deleteMany({ user_id: userId }, { session });
 
-      // 2. Insert the restored data
       if (accounts.length > 0)
         await Account.insertMany(sanitizeDocs(accounts), { session });
       if (bills.length > 0)
