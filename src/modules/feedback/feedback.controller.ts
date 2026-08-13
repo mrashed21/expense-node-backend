@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import catchAsync from "../../utils/catch-async";
-import sendResponse from "../../utils/send-response";
+import catchAsync from "../../helpers/catch-async";
+import { sendResponse } from "../../helpers/send-response";
 import { FeedbackService } from "./feedback.service";
 
 const createFeedback = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user._id;
+  const userId = req.user?._id as string;
   const result = await FeedbackService.createFeedback(userId, req.body);
 
   sendResponse(res, {
@@ -16,7 +16,7 @@ const createFeedback = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getMyFeedbacks = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user._id;
+  const userId = req.user?._id as string;
   const result = await FeedbackService.getMyFeedbacks(userId);
 
   sendResponse(res, {
@@ -28,8 +28,8 @@ const getMyFeedbacks = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteFeedback = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user._id;
-  const { id } = req.params;
+  const userId = req.user?._id as string;
+  const id = req.params.id as string;
   const result = await FeedbackService.deleteFeedback(userId, id);
 
   sendResponse(res, {
@@ -52,7 +52,7 @@ const getAdminFeedbacks = catchAsync(async (req: Request, res: Response) => {
 });
 
 const markAsReviewed = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const result = await FeedbackService.markAsReviewed(id);
 
   sendResponse(res, {
@@ -64,7 +64,7 @@ const markAsReviewed = catchAsync(async (req: Request, res: Response) => {
 });
 
 const replyToFeedback = catchAsync(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const { admin_reply } = req.body;
   const result = await FeedbackService.replyToFeedback(id, admin_reply);
 

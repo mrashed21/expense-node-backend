@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import catchAsync from "../../utils/catch-async";
-import sendResponse from "../../utils/send-response";
+import catchAsync from "../../helpers/catch-async";
+import { sendResponse } from "../../helpers/send-response";
 import { ReviewService } from "./review.service";
 
 const createReview = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user._id;
+  const userId = req.user?._id as string;
   const result = await ReviewService.createReview(userId, req.body);
 
   sendResponse(res, {
@@ -16,7 +16,7 @@ const createReview = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getMyReviews = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user._id;
+  const userId = req.user?._id as string;
   const result = await ReviewService.getMyReviews(userId);
 
   sendResponse(res, {
@@ -28,8 +28,8 @@ const getMyReviews = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteReview = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user._id;
-  const { id } = req.params;
+  const userId = req.user?._id as string;
+  const id = req.params.id as string;
   const result = await ReviewService.deleteReview(userId, id);
 
   sendResponse(res, {

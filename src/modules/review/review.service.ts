@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import ApiError from "../../utils/api-error";
+import ApiError from "../../helpers/api-error";
 import { Review } from "./review.model";
 import { IReview } from "./review.interface";
 import { publishToAdmins } from "../../utils/ably";
