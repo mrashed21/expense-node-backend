@@ -24,6 +24,8 @@ import { SearchRoutes } from "../modules/search/search.route";
 import { transactionRoutes } from "../modules/transaction/transaction.route";
 import { transferRoutes } from "../modules/transfer/transfer.route";
 import { userRoutes } from "../modules/user/user.route";
+import { ReviewRoutes } from "../modules/review/review.route";
+import { FeedbackRoutes } from "../modules/feedback/feedback.route";
 
 const router = Router();
 
@@ -56,6 +58,8 @@ const apiRoutes = [
     route: SearchRoutes,
   },
   { path: "/cron", route: cronRoutes },
+  { path: "/reviews", route: ReviewRoutes },
+  { path: "/feedbacks", route: FeedbackRoutes },
 ];
 
 apiRoutes.forEach((route) => {
