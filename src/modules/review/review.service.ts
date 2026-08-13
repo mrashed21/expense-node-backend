@@ -42,9 +42,55 @@ const getApprovedReviews = async () => {
   return reviews;
 };
 
+// ── Admin functions ──────────────────────────────────────────────
+
+const getAdminReviews = async () => {
+  const reviews = await Review.find()
+    .populate("user_id", "user_name user_email profile_image")
+    .sort({ createdAt: -1 });
+  return reviews;
+};
+
+const approveReview = async (reviewId: string) => {
+  const review = await Review.findByIdAndUpdate(
+    reviewId,
+    { is_approved: true },
+    { new: true }
+  );
+  if (!review) {
+    throw new ApiError(404, "Review not found.");
+  }
+  return review;
+};
+
+const rejectReview = async (reviewId: string) => {
+  const review = await Review.findByIdAndUpdate(
+    reviewId,
+    { is_approved: false },
+    { new: true }
+  );
+  if (!review) {
+    throw new ApiError(404, "Review not found.");
+  }
+  return review;
+};
+
+const adminDeleteReview = async (reviewId: string) => {
+  const review = await Review.findByIdAndDelete(reviewId);
+  if (!review) {
+    throw new ApiError(404, "Review not found.");
+  }
+  return review;
+};
+
 export const ReviewService = {
   createReview,
   getMyReviews,
   deleteReview,
   getApprovedReviews,
+  getAdminReviews,
+  approveReview,
+  rejectReview,
+  adminDeleteReview,
 };
+
