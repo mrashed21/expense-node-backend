@@ -8,6 +8,7 @@ import {
   broadcastNotificationSchema,
   createAdminSchema,
   createUserSchema,
+  sendUserNotificationSchema,
   updateAdminStatusSchema,
   updateUserStatusSchema,
 } from "./admin.validation";
@@ -36,6 +37,11 @@ router.patch(
   "/users/:id/status",
   validateRequest(updateUserStatusSchema),
   AdminController.updateUserStatus,
+);
+router.post(
+  "/users/:id/notify",
+  validateRequest(sendUserNotificationSchema),
+  AdminController.sendUserNotification,
 );
 
 router.get(

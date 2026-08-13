@@ -410,7 +410,7 @@ export const AdminService = {
       title: payload.title,
       message: payload.message,
       type: payload.type,
-      read: false,
+      is_read: false,
     }));
 
     await Notification.insertMany(notifications);
@@ -432,6 +432,43 @@ export const AdminService = {
     }).catch(console.error);
 
     return activeUsers.length;
+  },
+
+  sendUserNotification: async (
+    userId: string,
+    payload: { title: string; message: string; type: string },
+    currentAdminId: string,
+  ) => {
+    const targetUser = await User.findOne({
+      _id: userId,
+      is_deleted: false,
+    }).select("_id");
+
+    if (!targetUser) {
+      throw new ApiError(httpStatus.NOT_FOUND, "User not found.");
+    }
+
+    await Notification.create({
+      user_id: targetUser._id,
+      title: payload.title,
+      message: payload.message,
+      type: payload.type,
+      is_read: false,
+    });
+
+    await publishToUser(targetUser._id.toString(), "new_notification", {
+      title: payload.title,
+      message: payload.message,
+      type: payload.type,
+    });
+
+    AuditLog.create({
+      admin_id: currentAdminId,
+      action: "SEND_USER_NOTIFICATION",
+      details: { title: payload.title, user_id: targetUser._id },
+    }).catch(console.error);
+
+    return true;
   },
 
   createGlobalCategory: async (payload: any, currentAdminId: string) => {

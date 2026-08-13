@@ -262,6 +262,23 @@ export const AdminController = {
     });
   }),
 
+  sendUserNotification: catchAsync(async (req: Request, res: Response) => {
+    const { title, message, type } = req.body;
+    const currentAdminId = req.user?._id as string;
+
+    await AdminService.sendUserNotification(
+      req.params.id as string,
+      { title, message, type },
+      currentAdminId,
+    );
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: "Notification sent to user successfully.",
+    });
+  }),
+
   broadcastNotification: catchAsync(async (req: Request, res: Response) => {
     const { title, message, type } = req.body;
     const currentAdminId = req.user?._id as string;

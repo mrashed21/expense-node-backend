@@ -56,3 +56,16 @@ export const broadcastNotificationSchema = z.object({
       .default("info"),
   }),
 });
+
+export const sendUserNotificationSchema = z.object({
+  body: z.object({
+    title: z.string().min(3, "Title must be at least 3 characters").max(50),
+    message: z
+      .string()
+      .min(5, "Message must be at least 5 characters")
+      .max(200),
+    type: z
+      .enum(["info", "success", "warning", "error", "alert"])
+      .default("info"),
+  }),
+});
