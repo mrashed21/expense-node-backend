@@ -16,28 +16,30 @@ import { generateCsrfToken } from "../../middlewares/csrf.middleware";
 import { authLimiter } from "../../middlewares/rate-limiter.middleware";
 
 const router = Router();
-
-router.use(authLimiter);
 router.get("/csrf-token", generateCsrfToken, AuthController.getCsrfToken);
 
 router.post(
   "/register",
+  authLimiter,
   validateRequest(registerSchema),
   AuthController.register,
 );
 router.post(
   "/verify-otp",
+  authLimiter,
   validateRequest(verifyOtpSchema),
   AuthController.verifyOtp,
 );
 router.post(
   "/resend-otp",
+  authLimiter,
   validateRequest(resendOtpSchema),
   AuthController.resendOtp,
 );
-router.post("/login", validateRequest(loginSchema), AuthController.login);
+router.post("/login", authLimiter, validateRequest(loginSchema), AuthController.login);
 router.post(
   "/login/verify",
+  authLimiter,
   validateRequest(verifyLogin2FASchema),
   AuthController.verifyLogin2FA,
 );
@@ -47,11 +49,13 @@ router.post("/logout", AuthController.logout);
 router.post("/logout-all", checkAuth(), AuthController.logoutAllDevices);
 router.post(
   "/forgot-password",
+  authLimiter,
   validateRequest(forgotPasswordSchema),
   AuthController.forgotPassword,
 );
 router.post(
   "/reset-password",
+  authLimiter,
   validateRequest(resetPasswordSchema),
   AuthController.resetPassword,
 );
