@@ -1,6 +1,6 @@
 # Expense Tracker — Backend
 
-Scalable & secure REST API for a mobile-first Expense Tracker SaaS. Built with **Express 5**, **TypeScript**, and **MongoDB (Mongoose)**, deployed as a serverless app on **Vercel**.
+Scalable & secure REST API for a mobile-first Expense Tracker. Built with **Express 5**, **TypeScript**, and **MongoDB (Mongoose)**, deployed as a serverless app on **Vercel**.
 
 ## Tech Stack
 

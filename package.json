@@ -1,7 +1,7 @@
 {
   "name": "expense-tracker-backend",
   "version": "1.0.0",
-  "description": "Scalable & Secure Backend for Mobile-First Expense Tracker SaaS",
+  "description": "Scalable & Secure Backend for Mobile-First Expense Tracker",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
