@@ -73,6 +73,12 @@ const DEFAULT_CATEGORIES = [
     color: "#64748B",
   },
   {
+    name: "Sadaqah",
+    type: CategoryType.EXPENSE,
+    icon: "Heart",
+    color: "#A855F7",
+  },
+  {
     name: "Salary",
     type: CategoryType.INCOME,
     icon: "DollarSign",
@@ -83,6 +89,12 @@ const DEFAULT_CATEGORIES = [
     type: CategoryType.INCOME,
     icon: "Laptop",
     color: "#0EA5E9",
+  },
+  {
+    name: "Gift",
+    type: CategoryType.INCOME,
+    icon: "Gift",
+    color: "#F472B6",
   },
   {
     name: "Others",
