@@ -22,6 +22,8 @@ export const AdminAuthController = {
       message: "Admin login successful.",
       data: {
         admin: result.admin,
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
       },
     });
   }),

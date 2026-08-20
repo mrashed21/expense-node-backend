@@ -98,6 +98,8 @@ export const AuthController = {
       message: "Login successful.",
       data: {
         user: (result as any).user,
+        accessToken: (result as any).accessToken,
+        refreshToken: (result as any).refreshToken,
       },
     });
   }),
@@ -124,6 +126,8 @@ export const AuthController = {
       message: "Login successful.",
       data: {
         user: result.user,
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
       },
     });
   }),
