@@ -24,6 +24,7 @@ import { SearchRoutes } from "../modules/search/search.route";
 import { transactionRoutes } from "../modules/transaction/transaction.route";
 import { transferRoutes } from "../modules/transfer/transfer.route";
 import { userRoutes } from "../modules/user/user.route";
+import { loanRoutes } from "../modules/loan/loan.route";
 import { ReviewRoutes } from "../modules/review/review.route";
 import { FeedbackRoutes } from "../modules/feedback/feedback.route";
 
@@ -41,6 +42,7 @@ const apiRoutes = [
   { path: "/goals", route: goalRoutes },
   { path: "/bills", route: billRoutes },
   { path: "/debts", route: debtRoutes },
+  { path: "/loans", route: loanRoutes },
   { path: "/saved-filters", route: savedFilterRoutes },
   { path: "/data", route: dataRoutes },
   { path: "/notifications", route: notificationRoutes },
