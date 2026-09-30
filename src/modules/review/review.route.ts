@@ -10,7 +10,7 @@ router.post(
   "/",
   checkAuth(),
   validateRequest(createReviewSchema),
-  ReviewController.createReview
+  ReviewController.createReview,
 );
 
 router.get("/my-reviews", checkAuth(), ReviewController.getMyReviews);
@@ -21,9 +21,20 @@ router.get("/", ReviewController.getApprovedReviews);
 
 // Admin routes
 router.get("/admin", checkAdminAuth(), ReviewController.getAdminReviews);
-router.patch("/admin/:id/approve", checkAdminAuth(), ReviewController.approveReview);
-router.patch("/admin/:id/reject", checkAdminAuth(), ReviewController.rejectReview);
-router.delete("/admin/:id", checkAdminAuth(), ReviewController.adminDeleteReview);
+router.patch(
+  "/admin/:id/approve",
+  checkAdminAuth(),
+  ReviewController.approveReview,
+);
+router.patch(
+  "/admin/:id/reject",
+  checkAdminAuth(),
+  ReviewController.rejectReview,
+);
+router.delete(
+  "/admin/:id",
+  checkAdminAuth(),
+  ReviewController.adminDeleteReview,
+);
 
 export const ReviewRoutes = router;
-

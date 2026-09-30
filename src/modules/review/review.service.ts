@@ -1,10 +1,13 @@
 import { Types } from "mongoose";
 import ApiError from "../../helpers/api-error";
-import { Review } from "./review.model";
-import { IReview } from "./review.interface";
 import { publishToAdmins } from "../../utils/ably";
+import { IReview } from "./review.interface";
+import { Review } from "./review.model";
 
-const createReview = async (userId: string, payload: Pick<IReview, "rating" | "comment">) => {
+const createReview = async (
+  userId: string,
+  payload: Pick<IReview, "rating" | "comment">,
+) => {
   const existingReview = await Review.findOne({ user_id: userId });
   if (existingReview) {
     throw new ApiError(400, "You have already submitted a review.");
@@ -22,12 +25,17 @@ const createReview = async (userId: string, payload: Pick<IReview, "rating" | "c
 };
 
 const getMyReviews = async (userId: string) => {
-  const reviews = await Review.find({ user_id: userId }).sort({ createdAt: -1 });
+  const reviews = await Review.find({ user_id: userId }).sort({
+    createdAt: -1,
+  });
   return reviews;
 };
 
 const deleteReview = async (userId: string, reviewId: string) => {
-  const review = await Review.findOneAndDelete({ _id: reviewId, user_id: userId });
+  const review = await Review.findOneAndDelete({
+    _id: reviewId,
+    user_id: userId,
+  });
   if (!review) {
     throw new ApiError(404, "Review not found or not authorized to delete.");
   }
@@ -55,7 +63,7 @@ const approveReview = async (reviewId: string) => {
   const review = await Review.findByIdAndUpdate(
     reviewId,
     { is_approved: true },
-    { new: true }
+    { new: true },
   );
   if (!review) {
     throw new ApiError(404, "Review not found.");
@@ -67,7 +75,7 @@ const rejectReview = async (reviewId: string) => {
   const review = await Review.findByIdAndUpdate(
     reviewId,
     { is_approved: false },
-    { new: true }
+    { new: true },
   );
   if (!review) {
     throw new ApiError(404, "Review not found.");
@@ -93,4 +101,3 @@ export const ReviewService = {
   rejectReview,
   adminDeleteReview,
 };
-

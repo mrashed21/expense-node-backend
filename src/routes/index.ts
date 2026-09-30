@@ -12,21 +12,21 @@ import { categoryRoutes } from "../modules/category/category.route";
 import { cronRoutes } from "../modules/cron/cron.routes";
 import { dataRoutes } from "../modules/data/data.route";
 import { debtRoutes } from "../modules/debt/debt.route";
+import { FeedbackRoutes } from "../modules/feedback/feedback.route";
 import { goalRoutes } from "../modules/goal/goal.route";
 import { installmentRoutes } from "../modules/installment/installment.route";
 import { InvestmentRoutes } from "../modules/investment/investment.route";
+import { loanRoutes } from "../modules/loan/loan.route";
 import { netWorthRoutes } from "../modules/net-worth/net-worth.route";
 import { notificationRoutes } from "../modules/notification/notification.route";
 import { RecurringRoutes } from "../modules/recurring/recurring.route";
 import { ReportRoutes } from "../modules/report/report.route";
+import { ReviewRoutes } from "../modules/review/review.route";
 import { savedFilterRoutes } from "../modules/saved-filter/saved-filter.route";
 import { SearchRoutes } from "../modules/search/search.route";
 import { transactionRoutes } from "../modules/transaction/transaction.route";
 import { transferRoutes } from "../modules/transfer/transfer.route";
 import { userRoutes } from "../modules/user/user.route";
-import { loanRoutes } from "../modules/loan/loan.route";
-import { ReviewRoutes } from "../modules/review/review.route";
-import { FeedbackRoutes } from "../modules/feedback/feedback.route";
 
 const router = Router();
 

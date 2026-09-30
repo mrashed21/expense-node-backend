@@ -29,12 +29,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     await connectDB();
     await runRecurringJobs();
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Recurring tasks executed successfully.",
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Recurring tasks executed successfully.",
+    });
   } catch (error) {
     console.error("[CRON Recurring] Error:", error);
     return res

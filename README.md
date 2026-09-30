@@ -4,20 +4,20 @@ Scalable & secure REST API for a mobile-first Expense Tracker. Built with **Expr
 
 ## Tech Stack
 
-| Concern | Technology |
-|---|---|
-| Runtime | Node.js (TypeScript, ES2022, NodeNext modules) |
-| Framework | Express 5 |
-| Database | MongoDB Atlas via Mongoose 9 |
-| Auth | JWT (access + refresh tokens), httpOnly cookies, bcrypt password hashing, TOTP-based 2FA |
-| Realtime | Ably (pub/sub notifications) |
-| File uploads | Multer + Cloudinary |
-| Email | Nodemailer (SMTP) |
-| Validation | Zod |
-| Security | Helmet, CORS, CSRF protection, express-rate-limit |
-| Testing | Jest, Supertest, ts-jest |
-| Deployment | Vercel serverless functions + Vercel Cron |
-| Package manager | pnpm |
+| Concern         | Technology                                                                               |
+| --------------- | ---------------------------------------------------------------------------------------- |
+| Runtime         | Node.js (TypeScript, ES2022, NodeNext modules)                                           |
+| Framework       | Express 5                                                                                |
+| Database        | MongoDB Atlas via Mongoose 9                                                             |
+| Auth            | JWT (access + refresh tokens), httpOnly cookies, bcrypt password hashing, TOTP-based 2FA |
+| Realtime        | Ably (pub/sub notifications)                                                             |
+| File uploads    | Multer + Cloudinary                                                                      |
+| Email           | Nodemailer (SMTP)                                                                        |
+| Validation      | Zod                                                                                      |
+| Security        | Helmet, CORS, CSRF protection, express-rate-limit                                        |
+| Testing         | Jest, Supertest, ts-jest                                                                 |
+| Deployment      | Vercel serverless functions + Vercel Cron                                                |
+| Package manager | pnpm                                                                                     |
 
 ## Project Structure
 

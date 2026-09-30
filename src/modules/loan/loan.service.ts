@@ -340,7 +340,10 @@ export const LoanService = {
       user_id: userId,
       is_deleted: false,
     })
-      .populate("source_account_id", "name type color icon currency current_balance")
+      .populate(
+        "source_account_id",
+        "name type color icon currency current_balance",
+      )
       .populate("borrower_id", "name phone email address note")
       .lean();
 
@@ -364,7 +367,11 @@ export const LoanService = {
     };
   },
 
-  updateLoan: async (userId: string, loanId: string, payload: Partial<ILoan>) => {
+  updateLoan: async (
+    userId: string,
+    loanId: string,
+    payload: Partial<ILoan>,
+  ) => {
     const allowedUpdates: any = {};
     if (payload.expected_return_date !== undefined) {
       allowedUpdates.expected_return_date = payload.expected_return_date
@@ -390,7 +397,11 @@ export const LoanService = {
     return loan;
   },
 
-  cancelLoan: async (userId: string, loanId: string, payload?: { reason?: string }) => {
+  cancelLoan: async (
+    userId: string,
+    loanId: string,
+    payload?: { reason?: string },
+  ) => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -517,7 +528,10 @@ export const LoanService = {
       throw new ApiError(httpStatus.NOT_FOUND, "Loan not found.");
     }
 
-    if (loan.status !== LoanStatus.CANCELLED && loan.status !== LoanStatus.PAID) {
+    if (
+      loan.status !== LoanStatus.CANCELLED &&
+      loan.status !== LoanStatus.PAID
+    ) {
       throw new ApiError(
         httpStatus.BAD_REQUEST,
         "Active loans cannot be deleted directly. Please cancel or write off first.",
@@ -589,7 +603,10 @@ export const LoanService = {
       }).session(session);
 
       if (!receivingAccount) {
-        throw new ApiError(httpStatus.NOT_FOUND, "Receiving account not found.");
+        throw new ApiError(
+          httpStatus.NOT_FOUND,
+          "Receiving account not found.",
+        );
       }
 
       // 1. Create Repayment record
@@ -819,11 +836,7 @@ export const LoanService = {
     });
   },
 
-  updateBorrower: async (
-    userId: string,
-    borrowerId: string,
-    payload: any,
-  ) => {
+  updateBorrower: async (userId: string, borrowerId: string, payload: any) => {
     const borrower = await Borrower.findOneAndUpdate(
       { _id: borrowerId, user_id: userId, is_deleted: false },
       { $set: payload },

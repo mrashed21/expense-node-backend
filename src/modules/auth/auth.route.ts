@@ -36,7 +36,12 @@ router.post(
   validateRequest(resendOtpSchema),
   AuthController.resendOtp,
 );
-router.post("/login", authLimiter, validateRequest(loginSchema), AuthController.login);
+router.post(
+  "/login",
+  authLimiter,
+  validateRequest(loginSchema),
+  AuthController.login,
+);
 router.post(
   "/login/verify",
   authLimiter,

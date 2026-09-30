@@ -1,11 +1,14 @@
 import { Types } from "mongoose";
 import ApiError from "../../helpers/api-error";
-import { Feedback } from "./feedback.model";
-import { IFeedback } from "./feedback.interface";
 import { publishToAdmins } from "../../utils/ably";
 import { createAndEmitNotification } from "../notification/notification.helper";
+import { IFeedback } from "./feedback.interface";
+import { Feedback } from "./feedback.model";
 
-const createFeedback = async (userId: string, payload: Pick<IFeedback, "subject" | "message">) => {
+const createFeedback = async (
+  userId: string,
+  payload: Pick<IFeedback, "subject" | "message">,
+) => {
   const result = await Feedback.create({
     user_id: new Types.ObjectId(userId),
     subject: payload.subject,
@@ -19,12 +22,17 @@ const createFeedback = async (userId: string, payload: Pick<IFeedback, "subject"
 };
 
 const getMyFeedbacks = async (userId: string) => {
-  const feedbacks = await Feedback.find({ user_id: userId }).sort({ createdAt: -1 });
+  const feedbacks = await Feedback.find({ user_id: userId }).sort({
+    createdAt: -1,
+  });
   return feedbacks;
 };
 
 const deleteFeedback = async (userId: string, feedbackId: string) => {
-  const feedback = await Feedback.findOneAndDelete({ _id: feedbackId, user_id: userId });
+  const feedback = await Feedback.findOneAndDelete({
+    _id: feedbackId,
+    user_id: userId,
+  });
   if (!feedback) {
     throw new ApiError(404, "Feedback not found or not authorized to delete.");
   }
@@ -43,7 +51,7 @@ const markAsReviewed = async (feedbackId: string) => {
   const feedback = await Feedback.findByIdAndUpdate(
     feedbackId,
     { status: "reviewed" },
-    { new: true }
+    { new: true },
   );
   if (!feedback) {
     throw new ApiError(404, "Feedback not found");
@@ -55,9 +63,9 @@ const replyToFeedback = async (feedbackId: string, replyMessage: string) => {
   const feedback = await Feedback.findByIdAndUpdate(
     feedbackId,
     { status: "reviewed", admin_reply: replyMessage },
-    { new: true }
+    { new: true },
   );
-  
+
   if (!feedback) {
     throw new ApiError(404, "Feedback not found");
   }

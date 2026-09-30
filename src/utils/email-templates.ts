@@ -1,5 +1,4 @@
-
-const BRAND_PRIMARY = "#6366F1"; 
+const BRAND_PRIMARY = "#6366F1";
 const BRAND_DARK = "#1E1B4B";
 const BRAND_ACCENT = "#A5B4FC";
 const DANGER = "#EF4444";
@@ -82,8 +81,6 @@ const wrap = (content: string, preheader = "") => `
 </body>
 </html>`;
 
-
-
 const greeting = (name?: string) =>
   `<p style="margin:0 0 8px;color:#475569;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Hello${name ? ", " + name : ""}!</p>`;
 
@@ -121,7 +118,6 @@ const ctaButton = (text: string, href = "#") => `
     </a>
   </div>`;
 
-
 export const emailVerificationTemplate = (otpCode: string, userName?: string) =>
   wrap(
     `
@@ -139,7 +135,6 @@ export const emailVerificationTemplate = (otpCode: string, userName?: string) =>
     </p>`,
     `Your Expense Tracker verification code is ${otpCode}`,
   );
-
 
 export const resendOtpTemplate = (otpCode: string, userName?: string) =>
   wrap(
@@ -159,7 +154,6 @@ export const resendOtpTemplate = (otpCode: string, userName?: string) =>
     `Your new Expense Tracker verification code is ${otpCode}`,
   );
 
-
 export const forgotPasswordTemplate = (otpCode: string, userName?: string) =>
   wrap(
     `
@@ -178,7 +172,6 @@ export const forgotPasswordTemplate = (otpCode: string, userName?: string) =>
     </p>`,
     `Your Expense Tracker password reset code is ${otpCode}`,
   );
-
 
 export const newLoginAlertTemplate = (details: {
   deviceName: string;
@@ -214,7 +207,6 @@ export const newLoginAlertTemplate = (details: {
     </p>`,
     "A new sign-in was detected on your Expense Tracker account.",
   );
-
 
 export const reminderTemplate = (
   title: string,
@@ -256,7 +248,6 @@ export const reminderTemplate = (
     message,
   );
 };
-
 
 export const reminderColors: Record<string, string> = {
   bill_due: WARNING,

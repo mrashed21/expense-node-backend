@@ -13,8 +13,10 @@ export const createFeedbackSchema = z.object({
 
 export const replyFeedbackSchema = z.object({
   body: z.object({
-    admin_reply: z.string({
-      required_error: "Reply message is required",
-    }).min(1, "Reply message cannot be empty"),
+    admin_reply: z
+      .string({
+        required_error: "Reply message is required",
+      })
+      .min(1, "Reply message cannot be empty"),
   }),
 });

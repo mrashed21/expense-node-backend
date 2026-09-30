@@ -36,11 +36,19 @@ if (envConfig.cloudinary.cloud_name) {
 }
 
 const fileFilter = (req: any, file: any, cb: any) => {
-  const allowedMimeTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+  const allowedMimeTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/jpg",
+    "image/webp",
+  ];
   if (allowedMimeTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error("Invalid file type. Only JPEG, PNG, and WebP are allowed."), false);
+    cb(
+      new Error("Invalid file type. Only JPEG, PNG, and WebP are allowed."),
+      false,
+    );
   }
 };
 
