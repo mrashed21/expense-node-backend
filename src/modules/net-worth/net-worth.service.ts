@@ -20,34 +20,43 @@ const calculateDebtInterest = (debt: any) => {
 
 export const NetWorthService = {
   calculateCurrentNetWorth: async (userId: string) => {
-    const accounts = await Account.find({ user_id: userId }).lean();
+    const [accounts, assets, investments, debts, installments] =
+      await Promise.all([
+        Account.find({ user_id: userId }).lean(),
+        Asset.find({
+          user_id: userId,
+          is_deleted: false,
+        }).lean(),
+        Investment.find({
+          user_id: userId,
+          is_deleted: false,
+        }).lean(),
+        Debt.find({
+          user_id: userId,
+          is_deleted: false,
+        }).lean(),
+        Installment.find({
+          user_id: userId,
+          is_deleted: false,
+          is_completed: false,
+        }).lean(),
+      ]);
+
     const totalCash = accounts.reduce(
       (sum, acc) => sum + (acc.current_balance || 0),
       0,
     );
 
-    const assets = await Asset.find({
-      user_id: userId,
-      is_deleted: false,
-    }).lean();
     const totalPhysicalAssets = assets.reduce(
       (sum, ast) => sum + (ast.value || 0),
       0,
     );
 
-    const investments = await Investment.find({
-      user_id: userId,
-      is_deleted: false,
-    }).lean();
     const totalInvestments = investments.reduce(
       (sum, inv) => sum + inv.current_price * inv.quantity,
       0,
     );
 
-    const debts = await Debt.find({
-      user_id: userId,
-      is_deleted: false,
-    }).lean();
     let totalLent = 0;
     let totalBorrowed = 0;
 
@@ -63,11 +72,6 @@ export const NetWorthService = {
       }
     });
 
-    const installments = await Installment.find({
-      user_id: userId,
-      is_deleted: false,
-      is_completed: false,
-    }).lean();
     const totalEMIs = installments.reduce(
       (sum, inst) => sum + (inst.remaining_amount || 0),
       0,

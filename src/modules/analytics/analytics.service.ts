@@ -35,7 +35,7 @@ export const AnalyticsService = {
     const endOfLastYear = new Date(`${lastYear}-12-31T23:59:59.999Z`);
     const startOfMonth = new Date(`${currentMonth}-01T00:00:00.000Z`);
 
-    const currentYearAgg = await Transaction.aggregate([
+    const currentYearQuery = Transaction.aggregate([
       {
         $match: {
           user_id: uid,
@@ -109,7 +109,7 @@ export const AnalyticsService = {
       },
     ]);
 
-    const lastYearAgg = await Transaction.aggregate([
+    const lastYearQuery = Transaction.aggregate([
       {
         $match: {
           user_id: uid,
@@ -142,7 +142,7 @@ export const AnalyticsService = {
       },
     ]);
 
-    const currentMonthAgg = await Transaction.aggregate([
+    const currentMonthQuery = Transaction.aggregate([
       {
         $match: {
           user_id: uid,
@@ -218,6 +218,12 @@ export const AnalyticsService = {
           ],
         },
       },
+    ]);
+
+    const [currentYearAgg, lastYearAgg, currentMonthAgg] = await Promise.all([
+      currentYearQuery,
+      lastYearQuery,
+      currentMonthQuery,
     ]);
 
     const cyData = currentYearAgg[0] || {
@@ -298,7 +304,7 @@ export const AnalyticsService = {
       expense: Math.round(c.expense * 100) / 100,
     }));
 
-    const budgets = await Budget.find({
+    const budgetsQuery = Budget.find({
       user_id: uid,
       month_year: currentMonth,
     })
@@ -308,6 +314,15 @@ export const AnalyticsService = {
     const budgetSpentMap = new Map(
       cmData.budgetSpent.map((r: any) => [r._id?.toString(), r.total]),
     );
+
+    const goalsQuery = Goal.find({ user_id: uid }).lean();
+    const [budgets, goals, currentNetWorthData, netWorthHistory] =
+      await Promise.all([
+        budgetsQuery,
+        goalsQuery,
+        NetWorthService.calculateCurrentNetWorth(userId),
+        NetWorthService.getNetWorthHistory(userId, { days: 90 }),
+      ]);
 
     const budgetAnalytics = budgets.map((b: any) => {
       const spent = Number(
@@ -324,7 +339,6 @@ export const AnalyticsService = {
       };
     });
 
-    const goals = await Goal.find({ user_id: uid }).lean();
     const goalAnalytics = goals.map((g) => ({
       title: g.title,
       category: g.category,
@@ -336,12 +350,6 @@ export const AnalyticsService = {
       ),
       status: g.status,
     }));
-
-    const currentNetWorthData =
-      await NetWorthService.calculateCurrentNetWorth(userId);
-    const netWorthHistory = await NetWorthService.getNetWorthHistory(userId, {
-      days: 90,
-    });
 
     const totalIncomeYear = Math.round(cyTotals.income * 100) / 100;
     const totalExpenseYear = Math.round(cyTotals.expense * 100) / 100;
