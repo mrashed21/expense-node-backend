@@ -48,7 +48,11 @@ export const checkAuth = (...requiredRoles: UserRole[]) => {
     try {
       const token = extractToken(req);
       const decoded = verifyToken(token, envConfig.jwt.access_secret);
-      const userExists = await User.findById(decoded._id);
+      const userExists = await User.findById(decoded._id)
+        .select(
+          "_id user_role user_email token_version is_deleted user_status email_verified",
+        )
+        .lean();
 
       if (
         !userExists ||
@@ -116,7 +120,11 @@ export const checkAdminAuth = (...requiredRoles: AdminRole[]) => {
         );
       }
 
-      const adminExists = await Admin.findById(decoded._id);
+      const adminExists = await Admin.findById(decoded._id)
+        .select(
+          "_id admin_role admin_email token_version is_deleted admin_status",
+        )
+        .lean();
 
       if (
         !adminExists ||

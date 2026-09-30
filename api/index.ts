@@ -3,22 +3,31 @@ import mongoose from "mongoose";
 import app from "../src/app";
 import { envConfig } from "../src/config/env-config";
 
-let isConnected = false;
+let connectionPromise: Promise<typeof mongoose> | null = null;
 
 async function connectDB() {
-  if (isConnected && mongoose.connection.readyState === 1) return;
+  if (mongoose.connection.readyState === 1) return;
+  if (connectionPromise) {
+    await connectionPromise;
+    return;
+  }
 
   if (!envConfig.database_url) {
     throw new Error("DATABASE_URL environment variable is missing.");
   }
 
-  await mongoose.connect(envConfig.database_url, {
-    maxPoolSize: 10,
-    serverSelectionTimeoutMS: 10000,
-    socketTimeoutMS: 45000,
-  });
+  connectionPromise = mongoose
+    .connect(envConfig.database_url, {
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 10000,
+      socketTimeoutMS: 45000,
+    })
+    .catch((error) => {
+      connectionPromise = null;
+      throw error;
+    });
 
-  isConnected = true;
+  await connectionPromise;
   console.log("MongoDB connected.");
 }
 
