@@ -52,7 +52,7 @@ export const AnalyticsService = {
                 income: {
                   $sum: {
                     $cond: [
-                      { $in: ["$type", [TransactionType.INCOME, "refund"]] },
+                      { $in: ["$type", [TransactionType.INCOME, "refund", TransactionType.LOAN]] },
                       "$amount",
                       0,
                     ],
@@ -87,7 +87,7 @@ export const AnalyticsService = {
                 income: {
                   $sum: {
                     $cond: [
-                      { $in: ["$type", [TransactionType.INCOME, "refund"]] },
+                      { $in: ["$type", [TransactionType.INCOME, "refund", TransactionType.LOAN]] },
                       "$amount",
                       0,
                     ],
@@ -123,7 +123,7 @@ export const AnalyticsService = {
           income: {
             $sum: {
               $cond: [
-                { $in: ["$type", [TransactionType.INCOME, "refund"]] },
+                { $in: ["$type", [TransactionType.INCOME, "refund", TransactionType.LOAN]] },
                 "$amount",
                 0,
               ],
@@ -159,7 +159,7 @@ export const AnalyticsService = {
                 income: {
                   $sum: {
                     $cond: [
-                      { $in: ["$type", [TransactionType.INCOME, "refund"]] },
+                      { $in: ["$type", [TransactionType.INCOME, "refund", TransactionType.LOAN]] },
                       "$amount",
                       0,
                     ],

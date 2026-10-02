@@ -49,7 +49,7 @@ export const CreditStatementService = {
                 {
                   $in: [
                     "$type",
-                    [TransactionType.INCOME, TransactionType.REFUND],
+                    [TransactionType.INCOME, TransactionType.REFUND, TransactionType.LOAN],
                   ],
                 },
                 "$amount",
