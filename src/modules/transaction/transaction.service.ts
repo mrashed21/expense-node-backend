@@ -105,7 +105,8 @@ export const TransactionService = {
       if (
         type === TransactionType.INCOME ||
         type === TransactionType.REFUND ||
-        type === TransactionType.OPENING_BALANCE
+        type === TransactionType.OPENING_BALANCE ||
+        type === TransactionType.LOAN
       ) {
         balanceDelta = amount;
       } else if (type === TransactionType.EXPENSE) {
@@ -406,7 +407,8 @@ export const TransactionService = {
         if (
           transaction.type === TransactionType.INCOME ||
           transaction.type === TransactionType.REFUND ||
-          transaction.type === TransactionType.OPENING_BALANCE
+          transaction.type === TransactionType.OPENING_BALANCE ||
+          transaction.type === TransactionType.LOAN
         ) {
           account.current_balance -= transaction.amount;
         } else if (transaction.type === TransactionType.EXPENSE) {
@@ -473,7 +475,8 @@ export const TransactionService = {
           if (
             oldTx.type === TransactionType.INCOME ||
             oldTx.type === TransactionType.REFUND ||
-            oldTx.type === TransactionType.OPENING_BALANCE
+            oldTx.type === TransactionType.OPENING_BALANCE ||
+            oldTx.type === TransactionType.LOAN
           ) {
             oldAccount.current_balance -= oldTx.amount;
           } else if (oldTx.type === TransactionType.EXPENSE) {
@@ -493,7 +496,8 @@ export const TransactionService = {
           if (
             newType === TransactionType.INCOME ||
             newType === TransactionType.REFUND ||
-            newType === TransactionType.OPENING_BALANCE
+            newType === TransactionType.OPENING_BALANCE ||
+            newType === TransactionType.LOAN
           ) {
             newAccount.current_balance += newAmount;
           } else if (newType === TransactionType.EXPENSE) {

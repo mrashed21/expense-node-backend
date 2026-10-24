@@ -8,6 +8,7 @@ export enum TransactionType {
   OPENING_BALANCE = "opening_balance",
   LENDING = "lending",
   LOAN_REPAYMENT = "loan_repayment",
+  LOAN = "loan",
 }
 
 export interface ITransaction {
