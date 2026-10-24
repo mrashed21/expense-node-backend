@@ -22,7 +22,7 @@ export const NetWorthService = {
   calculateCurrentNetWorth: async (userId: string) => {
     const [accounts, assets, investments, debts, installments] =
       await Promise.all([
-        Account.find({ user_id: userId }).lean(),
+        Account.find({ user_id: userId, is_deleted: false }).lean(),
         Asset.find({
           user_id: userId,
           is_deleted: false,
