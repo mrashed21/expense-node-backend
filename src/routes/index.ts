@@ -12,6 +12,7 @@ import { categoryRoutes } from "../modules/category/category.route";
 import { cronRoutes } from "../modules/cron/cron.routes";
 import { dataRoutes } from "../modules/data/data.route";
 import { debtRoutes } from "../modules/debt/debt.route";
+import { dpsFdrRoutes } from "../modules/dps-fdr/dps-fdr.route";
 import { FeedbackRoutes } from "../modules/feedback/feedback.route";
 import { goalRoutes } from "../modules/goal/goal.route";
 import { installmentRoutes } from "../modules/installment/installment.route";
@@ -42,6 +43,7 @@ const apiRoutes = [
   { path: "/goals", route: goalRoutes },
   { path: "/bills", route: billRoutes },
   { path: "/debts", route: debtRoutes },
+  { path: "/dps-fdr", route: dpsFdrRoutes },
   { path: "/loans", route: loanRoutes },
   { path: "/saved-filters", route: savedFilterRoutes },
   { path: "/data", route: dataRoutes },
