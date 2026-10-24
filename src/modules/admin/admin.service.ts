@@ -195,6 +195,10 @@ export const AdminService = {
       );
     }
 
+    const deletedTransactions = await Transaction.deleteMany({
+      user_id: id,
+    });
+
     const deletedUser = await User.findByIdAndUpdate(
       id,
       { is_deleted: true, user_status: "deleted" },
@@ -209,6 +213,7 @@ export const AdminService = {
       admin_id: currentAdminId,
       action: "DELETE_USER",
       target_id: id,
+      details: { deleted_transactions: deletedTransactions.deletedCount },
     }).catch(console.error);
 
     return true;

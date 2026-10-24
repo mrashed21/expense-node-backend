@@ -1,4 +1,5 @@
 import { User } from "../user/user.model";
+import { Transaction } from "../transaction/transaction.model";
 import { AdminRole } from "./admin.interface";
 import { AdminService } from "./admin.service";
 
@@ -39,12 +40,20 @@ describe("AdminService", () => {
       ).rejects.toThrow("Only super_admin can delete users");
     });
 
-    it("should successfully soft delete a user", async () => {
+    it("should delete the user's transactions and soft delete the user", async () => {
       const mockDeletedUser = { _id: "1", is_deleted: true };
+      (Transaction.deleteMany as jest.Mock).mockResolvedValue({
+        deletedCount: 3,
+      });
       (User.findByIdAndUpdate as jest.Mock).mockResolvedValue(mockDeletedUser);
 
-      const result = await AdminService.deleteUser("1", AdminRole.SUPER_ADMIN);
+      const result = await AdminService.deleteUser(
+        "1",
+        "507f1f77bcf86cd799439011",
+        AdminRole.SUPER_ADMIN,
+      );
       expect(result).toBe(true);
+      expect(Transaction.deleteMany).toHaveBeenCalledWith({ user_id: "1" });
       expect(User.findByIdAndUpdate).toHaveBeenCalledWith(
         "1",
         { is_deleted: true, user_status: "deleted" },
