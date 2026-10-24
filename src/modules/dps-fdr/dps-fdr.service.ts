@@ -37,7 +37,15 @@ export const DpsFdrService = {
       session.endSession();
     }
   },
-  list: (userId: string) => DpsFdr.find({ user_id: userId, is_deleted: false }).populate("account_id", "name currency").sort({ createdAt: -1 }).lean(),
+  list: (userId: string, type?: DepositType) =>
+    DpsFdr.find({
+      user_id: userId,
+      is_deleted: false,
+      ...(type ? { type } : {}),
+    })
+      .populate("account_id", "name currency")
+      .sort({ createdAt: -1 })
+      .lean(),
   update: async (userId: string, id: string, payload: any) => {
     const item = await DpsFdr.findOneAndUpdate({ _id: id, user_id: userId, is_deleted: false }, payload, { new: true, runValidators: true });
     if (!item) throw new ApiError(httpStatus.NOT_FOUND, "DPS/FDR not found.");
