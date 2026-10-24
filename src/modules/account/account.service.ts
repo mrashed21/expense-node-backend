@@ -33,10 +33,23 @@ export const AccountService = {
   },
 
   updateAccount: async (userId: string, accountId: string, payload: any) => {
+    const allowedFields = [
+      "name",
+      "type",
+      "opening_balance",
+      "current_balance",
+      "color",
+      "icon",
+      "description",
+    ];
+    const updateData = Object.fromEntries(
+      Object.entries(payload).filter(([key]) => allowedFields.includes(key)),
+    );
+
     const account = await Account.findOneAndUpdate(
       { _id: accountId, user_id: userId, is_deleted: false },
-      payload,
-      { new: true },
+      updateData,
+      { new: true, runValidators: true },
     );
     if (!account) {
       throw new ApiError(httpStatus.NOT_FOUND, "Account not found.");
